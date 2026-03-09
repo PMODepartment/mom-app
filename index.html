@@ -637,13 +637,18 @@ async function loadData(){
   try{
     // 1. Find file
     await findFile();
+    flash('DEBUG 1 — File ID found: ' + fileId);
+    await new Promise(r=>setTimeout(r,4000));
 
     // 2. Read User Roles
     const rolesData=await readSheet(SHEET_ROLES);
+    flash('DEBUG 2 — Sheet "' + SHEET_ROLES + '" rows: ' + rolesData.length + ' | Row1: ' + JSON.stringify(rolesData[0]) + ' | Row2: ' + JSON.stringify(rolesData[1]));
+    await new Promise(r=>setTimeout(r,8000));
+
     let role='';
     // DEBUG: show what we read from the sheet
     const sheetEmails = rolesData.slice(1).map(r=>(r[0]||'').toString().trim());
-    flash('DEBUG — Sheet emails: ' + sheetEmails.join(' | ') + ' || Signed-in: ' + currentEmail);
+    flash('DEBUG 3 — Sheet emails: ' + sheetEmails.join(' | ') + ' || Signed-in: ' + currentEmail);
     await new Promise(r=>setTimeout(r,8000)); // pause 8s so you can read it
     for(let i=1;i<rolesData.length;i++){
       if((rolesData[i][0]||'').toString().toLowerCase().trim()===currentEmail){
