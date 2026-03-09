@@ -564,19 +564,18 @@ async function graph(method, path, body){
 // ── FIND FILE ─────────────────────────────────────────
 async function findFile(){
   if(fileId) return fileId;
-  // Search in folder path if provided, otherwise root
-  let searchPath;
-  if(FOLDER_PATH && FOLDER_PATH !== 'YOUR_FOLDER_PATH' && FOLDER_PATH.trim()){
-    searchPath = `/me/drive/root:/${FOLDER_PATH}/${FILE_NAME}`;
+  // Try direct path first
+  if(FOLDER_PATH && FOLDER_PATH.trim()){
     try{
-      const f=await graph('GET', searchPath+'?$select=id,name');
+      const f=await graph('GET', `/me/drive/root:/${FOLDER_PATH}/${FILE_NAME}?$select=id,name`);
       fileId=f.id; return fileId;
     }catch(e){ /* fall through to search */ }
   }
-  // Search whole drive
-  const res=await graph('GET', `/me/drive/root/search(q='${encodeURIComponent(FILE_NAME)}')?$select=id,name`);
+  // Search whole drive and show what we found
+  const res=await graph('GET', `/me/drive/root/search(q='.xlsx')?$select=id,name&$top=20`);
+  const files=(res.value||[]).map(f=>f.name);
   const found=(res.value||[]).find(f=>f.name===FILE_NAME);
-  if(!found) throw new Error(`File "${FILE_NAME}" not found in OneDrive. Check the folder path in config.`);
+  if(!found) throw new Error(`File not found. Looking for: "${FILE_NAME}" — Files found in OneDrive: ${files.join(' | ')}`);
   fileId=found.id; return fileId;
 }
 
