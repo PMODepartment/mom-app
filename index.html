@@ -10,7 +10,7 @@
   <title>PMO · MOM</title>
   <link rel="manifest" href="manifest.json"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Literata:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
-  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.0/dist/index.min.js"></script>
   <style>
     :root {
       --ink:    #16213e;
@@ -426,10 +426,14 @@ let msalInstance = null;
 
 function getMsal() {
   if (msalInstance) return msalInstance;
-  if (typeof msal === 'undefined') {
+  // Support both MSAL v2 (msal.PublicClientApplication) and v3 (msalBrowser.PublicClientApplication)
+  const msalLib = (typeof msalBrowser !== 'undefined') ? msalBrowser
+                : (typeof msal !== 'undefined')        ? msal
+                : null;
+  if (!msalLib || !msalLib.PublicClientApplication) {
     throw new Error('Microsoft login library failed to load. Check your internet connection and refresh.');
   }
-  msalInstance = new msal.PublicClientApplication({
+  msalInstance = new msalLib.PublicClientApplication({
     auth: {
       clientId: CLIENT_ID,
       authority: 'https://login.microsoftonline.com/' + TENANT_ID,
@@ -478,12 +482,14 @@ function updateOfflineBanner(){ document.getElementById('offlineBanner').classLi
 // ── AUTH ──────────────────────────────────────────────
 async function signIn(){
   try{
-    await getMsal().loginPopup({scopes:SCOPES});
+    const instance = getMsal();
+    await instance.loginPopup({scopes:SCOPES});
     await onSignedIn();
   } catch(e){ flash('Sign-in error: '+e.message,true); }
 }
 function signOut(){
   try{ getMsal().logoutPopup(); } catch(e){}
+  msalInstance = null;
   currentRole=''; currentEmail=''; fileId=''; tableId='';
   document.getElementById('loginBtn').style.display='';
   document.getElementById('logoutBtn').style.display='none';
@@ -494,11 +500,13 @@ function signOut(){
   setState('login');
 }
 async function getToken(){
-  const accs=getMsal().getAllAccounts(); if(!accs.length) throw new Error('Not signed in');
-  return (await getMsal().acquireTokenSilent({scopes:SCOPES,account:accs[0]})).accessToken;
+  const instance = getMsal();
+  const accs = instance.getAllAccounts();
+  if(!accs.length) throw new Error('Not signed in');
+  return (await instance.acquireTokenSilent({scopes:SCOPES, account:accs[0]})).accessToken;
 }
 async function onSignedIn(){
-  const accs=getMsal().getAllAccounts(); if(!accs.length) return;
+  const accs = getMsal().getAllAccounts(); if(!accs.length) return;
   currentEmail=(accs[0].username||'').toLowerCase();
   if(!currentEmail.endsWith('@megawideph.com')){
     document.getElementById('deniedEmail').textContent=currentEmail;
@@ -852,10 +860,15 @@ function flash(msg,err=false){ const b=document.getElementById('flashBanner'); b
 (async()=>{
   updateOfflineBanner(); updateSyncBadge();
   try{
-    await getMsal().handleRedirectPromise();
-    if(getMsal().getAllAccounts().length) await onSignedIn();
+    const instance = getMsal();
+    // MSAL v3 requires initialize() before use
+    if (typeof instance.initialize === 'function') {
+      await instance.initialize();
+    }
+    await instance.handleRedirectPromise();
+    if(instance.getAllAccounts().length) await onSignedIn();
     else setState('login');
-  } catch(e){ setState('login'); }
+  } catch(e){ setState('login'); flash('Load error: ' + e.message, true); }
 })();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
