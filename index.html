@@ -10,18 +10,11 @@
   <title>PMO · MOM</title>
   <link rel="manifest" href="manifest.json"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Literata:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
-  <script>
-    // Load MSAL from Microsoft CDN with fallback to unpkg
-    (function(){
-      var s = document.createElement('script');
-      s.src = 'https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js';
-      s.onerror = function(){
-        var s2 = document.createElement('script');
-        s2.src = 'https://unpkg.com/@azure/msal-browser@2.38.3/dist/msal-browser.min.js';
-        document.head.appendChild(s2);
-      };
-      document.head.appendChild(s);
-    })();
+  <script type="module">
+    import * as msalModule from 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.0/dist/msal-browser.esm.min.js';
+    window.msal = msalModule;
+    window._msalReady = true;
+    window.dispatchEvent(new Event('msalloaded'));
   </script>
   <style>
     :root {
@@ -439,19 +432,29 @@ let msalInstance = null;
 function getMsalLib(){
   if (typeof window.msal !== 'undefined' && window.msal.PublicClientApplication)
     return window.msal;
-  if (typeof window.msalBrowser !== 'undefined' && window.msalBrowser.PublicClientApplication)
-    return window.msalBrowser;
   return null;
 }
-function waitForMsal(ms=10000){
+function waitForMsal(ms=15000){
   return new Promise((resolve, reject)=>{
-    if(getMsalLib()) return resolve(getMsalLib());
-    const start = Date.now();
-    const check = setInterval(()=>{
-      const lib = getMsalLib();
-      if(lib){ clearInterval(check); resolve(lib); }
-      else if(Date.now()-start > ms){ clearInterval(check); reject(new Error('Microsoft login library timed out loading. Please refresh the page.')); }
-    }, 100);
+    const lib = getMsalLib();
+    if(lib) return resolve(lib);
+    // Listen for our custom event fired by the module script
+    const onLoaded = ()=>{
+      clearTimeout(timer);
+      const l = getMsalLib();
+      if(l) resolve(l);
+      else reject(new Error('MSAL module loaded but PublicClientApplication not found.'));
+    };
+    const timer = setTimeout(()=>{
+      window.removeEventListener('msalloaded', onLoaded);
+      reject(new Error('Microsoft login library timed out. Please refresh.'));
+    }, ms);
+    window.addEventListener('msalloaded', onLoaded, {once:true});
+    // Also poll as backup
+    const poll = setInterval(()=>{
+      const l = getMsalLib();
+      if(l){ clearInterval(poll); clearTimeout(timer); window.removeEventListener('msalloaded',onLoaded); resolve(l); }
+    }, 200);
   });
 }
 function getMsal() {
