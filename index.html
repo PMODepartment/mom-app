@@ -641,6 +641,10 @@ async function loadData(){
     // 2. Read User Roles
     const rolesData=await readSheet(SHEET_ROLES);
     let role='';
+    // DEBUG: show what we read from the sheet
+    const sheetEmails = rolesData.slice(1).map(r=>(r[0]||'').toString().trim());
+    flash('DEBUG — Sheet emails: ' + sheetEmails.join(' | ') + ' || Signed-in: ' + currentEmail);
+    await new Promise(r=>setTimeout(r,8000)); // pause 8s so you can read it
     for(let i=1;i<rolesData.length;i++){
       if((rolesData[i][0]||'').toString().toLowerCase().trim()===currentEmail){
         role=(rolesData[i][1]||'').toString().toLowerCase().trim(); break;
