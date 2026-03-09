@@ -412,24 +412,36 @@
 // ╔══════════════════════════════════════════════════════╗
 // ║  CONFIG — fill these in after setup                 ║
 // ╚══════════════════════════════════════════════════════╝
-const CLIENT_ID   = '4288144d-c7e4-4c8c-8eed-85447fa46342';    // Azure App Registration
-const TENANT_ID   = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';    // Azure Tenant ID
+const CLIENT_ID   = '4288144d-c7e4-4c8c-8eed-85447fa46342';  // Azure App Registration
+const TENANT_ID   = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';  // Azure Tenant ID
 const FILE_NAME   = 'EPC. PMO. MOM Database. 2026 03 06.xlsx';
-const FOLDER_PATH = 'PMO Department 2/My Files/010 Database';  // e.g. 'PMO Documents/MOM' — no leading slash
+const FOLDER_PATH = 'PMO Department 2/My Files/010 Database'; // no leading slash
 const SHEET_MOM   = 'MOM Data';
 const SHEET_ROLES = 'User Role';
 const COLS        = 11; // A–K (col K = photo)
 
 // ── MSAL ──────────────────────────────────────────────
-const msalInstance = new msal.PublicClientApplication({
-  auth: {
-    clientId: CLIENT_ID,
-    authority: `https://login.microsoftonline.com/${TENANT_ID}`,
-    redirectUri: window.location.origin + window.location.pathname
-  },
-  cache: { cacheLocation: 'localStorage' }
-});
 const SCOPES = ['Files.ReadWrite', 'User.Read'];
+let msalInstance = null;
+
+function getMsal() {
+  if (msalInstance) return msalInstance;
+  if (CLIENT_ID === 'YOUR_CLIENT_ID' || TENANT_ID === 'YOUR_TENANT_ID') {
+    throw new Error('App not configured yet. Please open index.html in VS Code and replace YOUR_CLIENT_ID and YOUR_TENANT_ID with your Azure App Registration values.');
+  }
+  if (typeof msal === 'undefined') {
+    throw new Error('Microsoft login library failed to load. Check your internet connection and refresh.');
+  }
+  msalInstance = new msal.PublicClientApplication({
+    auth: {
+      clientId: CLIENT_ID,
+      authority: `https://login.microsoftonline.com/${TENANT_ID}`,
+      redirectUri: window.location.origin + window.location.pathname
+    },
+    cache: { cacheLocation: 'localStorage' }
+  });
+  return msalInstance;
+}
 
 // ── STATE ─────────────────────────────────────────────
 let allRows=[], filtered=[], displayCount=20, dtPage=1;
@@ -468,11 +480,14 @@ function updateOfflineBanner(){ document.getElementById('offlineBanner').classLi
 
 // ── AUTH ──────────────────────────────────────────────
 async function signIn(){
-  try{ await msalInstance.loginPopup({scopes:SCOPES}); await onSignedIn(); }
-  catch(e){ flash('Sign-in error: '+e.message,true); }
+  try{
+    const msal = getMsal();
+    await msal.loginPopup({scopes:SCOPES});
+    await onSignedIn();
+  } catch(e){ flash('Sign-in error: '+e.message,true); }
 }
 function signOut(){
-  msalInstance.logoutPopup();
+  try{ getMsal().logoutPopup(); } catch(e){}
   currentRole=''; currentEmail=''; fileId=''; tableId='';
   document.getElementById('loginBtn').style.display='';
   document.getElementById('logoutBtn').style.display='none';
@@ -483,11 +498,12 @@ function signOut(){
   setState('login');
 }
 async function getToken(){
-  const accs=msalInstance.getAllAccounts(); if(!accs.length) throw new Error('Not signed in');
-  return (await msalInstance.acquireTokenSilent({scopes:SCOPES,account:accs[0]})).accessToken;
+  const msal = getMsal();
+  const accs=msal.getAllAccounts(); if(!accs.length) throw new Error('Not signed in');
+  return (await msal.acquireTokenSilent({scopes:SCOPES,account:accs[0]})).accessToken;
 }
 async function onSignedIn(){
-  const accs=msalInstance.getAllAccounts(); if(!accs.length) return;
+  const accs=getMsal().getAllAccounts(); if(!accs.length) return;
   currentEmail=(accs[0].username||'').toLowerCase();
   if(!currentEmail.endsWith('@megawideph.com')){
     document.getElementById('deniedEmail').textContent=currentEmail;
@@ -840,8 +856,19 @@ function flash(msg,err=false){ const b=document.getElementById('flashBanner'); b
 // ── INIT ──────────────────────────────────────────────
 (async()=>{
   updateOfflineBanner(); updateSyncBadge();
-  try{ await msalInstance.handleRedirectPromise(); if(msalInstance.getAllAccounts().length) await onSignedIn(); else setState('login'); }
-  catch(e){ setState('login'); }
+  try{
+    // Show helpful message if not configured yet
+    if(CLIENT_ID==='YOUR_CLIENT_ID'||TENANT_ID==='YOUR_TENANT_ID'){
+      setState('login');
+      document.getElementById('stateLogin').querySelector('p').innerHTML=
+        `⚠️ <strong>App not configured yet.</strong><br/>Open <code>index.html</code> in VS Code and replace<br/><code>YOUR_CLIENT_ID</code> and <code>YOUR_TENANT_ID</code><br/>with your Azure App Registration values.`;
+      return;
+    }
+    const msal = getMsal();
+    await msal.handleRedirectPromise();
+    if(msal.getAllAccounts().length) await onSignedIn();
+    else setState('login');
+  } catch(e){ setState('login'); }
 })();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
