@@ -421,7 +421,7 @@ const SHEET_ROLES = 'User Role';
 const COLS        = 11; // A–K (col K = photo)
 
 // ── MSAL ──────────────────────────────────────────────
-const SCOPES = ['Files.ReadWrite', 'User.Read', 'Sites.Read.All'];
+const SCOPES = ['Files.ReadWrite.All', 'User.Read'];
 let msalInstance = null;
 
 function getMsalLib(){
@@ -564,19 +564,19 @@ async function graph(method, path, body){
 // ── FIND FILE ─────────────────────────────────────────
 const SHAREPOINT_HOST = 'megawideph-my.sharepoint.com';
 const DRIVE_OWNER_UPN = 'pmodepartment2_megawide_com_ph';
-const FILE_GUID       = '959E9038-BA71-42FE-993F-750AFBDF5758';
+const FILE_PATH       = 'Documents/010 Database/EPC. PMO. MOM Database. 2026 03 06.xlsx';
 let driveId = '';
 
 async function findFile(){
   if(fileId && driveId) return fileId;
   try{
-    // Get the site for the personal OneDrive of the department account
-    const site = await graph('GET', `/sites/${SHAREPOINT_HOST}:/personal/${DRIVE_OWNER_UPN}?$select=id`);
-    const drives = await graph('GET', `/sites/${site.id}/drives?$select=id,name`);
-    if(!drives.value || !drives.value.length) throw new Error('No drives found for ' + DRIVE_OWNER_UPN);
-    driveId = drives.value[0].id;
-    // Access file directly by its GUID
-    const item = await graph('GET', `/drives/${driveId}/items/${FILE_GUID}?$select=id,name`);
+    // Get the drive for the departmental OneDrive account
+    const driveRes = await graph('GET',
+      `/users/${DRIVE_OWNER_UPN}/drive?$select=id`);
+    driveId = driveRes.id;
+    // Access file by its exact path
+    const item = await graph('GET',
+      `/drives/${driveId}/root:/${FILE_PATH}?$select=id,name`);
     fileId = item.id;
     return fileId;
   } catch(e){
