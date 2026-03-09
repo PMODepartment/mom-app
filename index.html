@@ -637,24 +637,21 @@ async function loadData(){
   try{
     // 1. Find file
     await findFile();
-    flash('DEBUG 1 — File ID found: ' + fileId);
-    await new Promise(r=>setTimeout(r,4000));
+    showDebug('Step 1 ✓ File found: ' + fileId);
 
     // 2. Read User Roles
     const rolesData=await readSheet(SHEET_ROLES);
-    flash('DEBUG 2 — Sheet "' + SHEET_ROLES + '" rows: ' + rolesData.length + ' | Row1: ' + JSON.stringify(rolesData[0]) + ' | Row2: ' + JSON.stringify(rolesData[1]));
-    await new Promise(r=>setTimeout(r,8000));
+    showDebug('Step 2 ✓ Sheet: "' + SHEET_ROLES + '" — ' + rolesData.length + ' rows<br/>Header: ' + JSON.stringify(rolesData[0]) + '<br/>Row 2: ' + JSON.stringify(rolesData[1]));
 
     let role='';
-    // DEBUG: show what we read from the sheet
     const sheetEmails = rolesData.slice(1).map(r=>(r[0]||'').toString().trim());
-    flash('DEBUG 3 — Sheet emails: ' + sheetEmails.join(' | ') + ' || Signed-in: ' + currentEmail);
-    await new Promise(r=>setTimeout(r,8000)); // pause 8s so you can read it
+    showDebug('Step 3 — Signed in as: <b>' + currentEmail + '</b><br/>Emails in sheet: <b>' + sheetEmails.join(', ') + '</b>');
     for(let i=1;i<rolesData.length;i++){
       if((rolesData[i][0]||'').toString().toLowerCase().trim()===currentEmail){
         role=(rolesData[i][1]||'').toString().toLowerCase().trim(); break;
       }
     }
+    showDebug('Step 4 — Role matched: "' + role + '"');
     if(!role||!['admin','editor','viewer'].includes(role)){
       document.getElementById('deniedEmail').textContent=currentEmail;
       setState('noAccess'); return;
@@ -895,6 +892,21 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 function setState(s){ ['stateLogin','stateLoading','stateNoAccess','stateTable'].forEach(id=>document.getElementById(id).style.display='none'); const m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',table:'stateTable'}; if(m[s]) document.getElementById(m[s]).style.display=''; }
 let bTimer;
 function flash(msg,err=false){ const b=document.getElementById('flashBanner'); b.textContent=msg; b.style.borderLeftColor=err?'var(--accent)':'var(--gold)'; b.style.display='block'; clearTimeout(bTimer); bTimer=setTimeout(()=>b.style.display='none',4500); }
+function showDebug(msg){
+  let panel = document.getElementById('debugPanel');
+  if(!panel){
+    panel = document.createElement('div');
+    panel.id = 'debugPanel';
+    panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:#90caf9;font-family:monospace;font-size:0.72rem;padding:0.75rem 1rem;z-index:9999;max-height:50vh;overflow-y:auto;border-top:3px solid #b5341a;';
+    panel.innerHTML = '<b style="color:#ce93d8">DEBUG LOG</b> <button onclick="this.parentElement.remove()" style="float:right;background:#b5341a;color:#fff;border:none;padding:0.2rem 0.5rem;cursor:pointer;border-radius:2px;">✕ Close</button><hr style="border-color:#334;margin:0.4rem 0"/>';
+    document.body.appendChild(panel);
+  }
+  const line = document.createElement('div');
+  line.style.cssText = 'padding:0.3rem 0;border-bottom:1px solid #223;';
+  line.innerHTML = '<span style="color:#ffe082">' + new Date().toLocaleTimeString() + '</span> — ' + msg;
+  panel.appendChild(line);
+  panel.scrollTop = panel.scrollHeight;
+}
 
 // ── INIT ──────────────────────────────────────────────
 (async()=>{
