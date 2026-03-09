@@ -421,7 +421,7 @@ const SHEET_ROLES = 'User Role';
 const COLS        = 11; // A–K (col K = photo)
 
 // ── MSAL ──────────────────────────────────────────────
-const SCOPES = ['Files.ReadWrite', 'User.Read'];
+const SCOPES = ['Files.ReadWrite', 'User.Read', 'Sites.Read.All'];
 let msalInstance = null;
 
 function getMsalLib(){
@@ -516,7 +516,7 @@ async function signIn(){
 function signOut(){
   try{ getMsal().logoutRedirect(); } catch(e){}
   msalInstance = null;
-  currentRole=''; currentEmail=''; fileId=''; tableId='';
+  currentRole=''; currentEmail=''; fileId=''; driveId=''; tableId='';
   document.getElementById('loginBtn').style.display='';
   document.getElementById('logoutBtn').style.display='none';
   document.getElementById('roleChip').style.display='none';
@@ -562,42 +562,47 @@ async function graph(method, path, body){
 }
 
 // ── FIND FILE ─────────────────────────────────────────
+const SHAREPOINT_HOST = 'megawideph-my.sharepoint.com';
+const DRIVE_OWNER_UPN = 'pmodepartment2_megawide_com_ph';
+const FILE_GUID       = '959E9038-BA71-42FE-993F-750AFBDF5758';
+let driveId = '';
+
 async function findFile(){
-  if(fileId) return fileId;
-  // Try direct path first
-  if(FOLDER_PATH && FOLDER_PATH.trim()){
-    try{
-      const f=await graph('GET', `/me/drive/root:/${FOLDER_PATH}/${FILE_NAME}?$select=id,name`);
-      fileId=f.id; return fileId;
-    }catch(e){ /* fall through to search */ }
+  if(fileId && driveId) return fileId;
+  try{
+    // Get the site for the personal OneDrive of the department account
+    const site = await graph('GET', `/sites/${SHAREPOINT_HOST}:/personal/${DRIVE_OWNER_UPN}?$select=id`);
+    const drives = await graph('GET', `/sites/${site.id}/drives?$select=id,name`);
+    if(!drives.value || !drives.value.length) throw new Error('No drives found for ' + DRIVE_OWNER_UPN);
+    driveId = drives.value[0].id;
+    // Access file directly by its GUID
+    const item = await graph('GET', `/drives/${driveId}/items/${FILE_GUID}?$select=id,name`);
+    fileId = item.id;
+    return fileId;
+  } catch(e){
+    throw new Error('Cannot access file: ' + e.message);
   }
-  // Search whole drive and show what we found
-  const res=await graph('GET', `/me/drive/root/search(q='.xlsx')?$select=id,name&$top=20`);
-  const files=(res.value||[]).map(f=>f.name);
-  const found=(res.value||[]).find(f=>f.name===FILE_NAME);
-  if(!found) throw new Error(`File not found. Looking for: "${FILE_NAME}" — Files found in OneDrive: ${files.join(' | ')}`);
-  fileId=found.id; return fileId;
 }
 
 // ── READ RANGE ────────────────────────────────────────
 async function readSheet(sheetName){
-  const fid=await findFile();
-  const r=await graph('GET', `/me/drive/items/${fid}/workbook/worksheets/${encodeURIComponent(sheetName)}/usedRange`);
+  await findFile();
+  const r=await graph('GET', `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/usedRange`);
   return r.values||[];
 }
 
 // ── WRITE CELL RANGE ──────────────────────────────────
 async function writeRange(sheetName, address, values){
-  const fid=await findFile();
+  await findFile();
   await graph('PATCH',
-    `/me/drive/items/${fid}/workbook/worksheets/${encodeURIComponent(sheetName)}/range(address='${address}')`,
+    `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/range(address='${address}')`,
     {values});
 }
 
 // ── APPEND ROW ────────────────────────────────────────
 async function appendRow(sheetName, row){
-  const fid=await findFile();
-  const range=await graph('GET', `/me/drive/items/${fid}/workbook/worksheets/${encodeURIComponent(sheetName)}/usedRange`);
+  await findFile();
+  const range=await graph('GET', `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/usedRange`);
   const nextRow=range.rowCount+1;
   const colLetter=colLet(row.length);
   await writeRange(sheetName, `A${nextRow}:${colLetter}${nextRow}`, [row]);
@@ -605,11 +610,10 @@ async function appendRow(sheetName, row){
 
 // ── DELETE ROW ────────────────────────────────────────
 async function deleteExcelRow(sheetName, rowIndex){
-  // rowIndex is 0-based from data (excluding header), so excel row = rowIndex+2
-  const fid=await findFile();
+  await findFile();
   const excelRow=rowIndex+2;
   await graph('POST',
-    `/me/drive/items/${fid}/workbook/worksheets/${encodeURIComponent(sheetName)}/range(address='${excelRow}:${excelRow}')/delete`,
+    `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/range(address='${excelRow}:${excelRow}')/delete`,
     {shift:'Up'});
 }
 
