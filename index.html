@@ -421,7 +421,7 @@ const SHEET_ROLES = 'User Role';
 const COLS        = 11; // A–K (col K = photo)
 
 // ── MSAL ──────────────────────────────────────────────
-const SCOPES = ['Files.ReadWrite.All', 'User.Read'];
+const SCOPES = ['Files.ReadWrite', 'User.Read'];
 let msalInstance = null;
 
 function getMsalLib(){
@@ -562,25 +562,23 @@ async function graph(method, path, body){
 }
 
 // ── FIND FILE ─────────────────────────────────────────
-const SHAREPOINT_HOST = 'megawideph-my.sharepoint.com';
-const DRIVE_OWNER_UPN = 'pmodepartment2_megawide_com_ph';
-const FILE_PATH       = 'Documents/010 Database/EPC. PMO. MOM Database. 2026 03 06.xlsx';
+// Direct SharePoint URL of the file (no admin permissions needed via sharing token)
+const FILE_SHAREURL = 'https://megawideph-my.sharepoint.com/personal/pmodepartment2_megawide_com_ph/Documents/010%20Database/EPC.%20PMO.%20MOM%20Database.%202026%2003%2006.xlsx';
 let driveId = '';
 
 async function findFile(){
   if(fileId && driveId) return fileId;
   try{
-    // Get the drive for the departmental OneDrive account
-    const driveRes = await graph('GET',
-      `/users/${DRIVE_OWNER_UPN}/drive?$select=id`);
-    driveId = driveRes.id;
-    // Access file by its exact path
-    const item = await graph('GET',
-      `/drives/${driveId}/root:/${FILE_PATH}?$select=id,name`);
-    fileId = item.id;
+    // Encode the SharePoint URL as a Graph API sharing token (no admin consent needed)
+    const encoded = btoa(FILE_SHAREURL).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    const sharingToken = 'u!' + encoded;
+    const item = await graph('GET', `/shares/${sharingToken}/driveItem?$select=id,parentReference`);
+    fileId  = item.id;
+    driveId = item.parentReference && item.parentReference.driveId;
+    if(!driveId) throw new Error('Could not get driveId from sharing token');
     return fileId;
   } catch(e){
-    throw new Error('Cannot access file: ' + e.message);
+    throw new Error('Cannot access file: ' + e.message + ' — Make sure the file has been shared with you or your account has access to it in SharePoint.');
   }
 }
 
