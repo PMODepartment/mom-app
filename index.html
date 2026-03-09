@@ -539,6 +539,7 @@ async function getToken(){
 async function onSignedIn(){
   const accs = getMsal().getAllAccounts(); if(!accs.length) return;
   currentEmail=(accs[0].username||'').toLowerCase();
+  showDebug('onSignedIn — email: ' + currentEmail);
   if(!currentEmail.endsWith('@megawideph.com')){
     document.getElementById('deniedEmail').textContent=currentEmail;
     document.getElementById('loginBtn').style.display='none';
@@ -631,11 +632,12 @@ function colLet(n){
 // ── LOAD DATA ─────────────────────────────────────────
 async function loadData(){
   setState('loading');
+  showDebug('loadData started — online: ' + isOnline + ' — email: ' + currentEmail);
   const cached=lsGet(CACHE_KEY,[]);
   if(cached.length){ allRows=[...cached]; applyFilters(); setState('table'); }
   if(!isOnline){ applyRoleFromStorage(); return; }
   try{
-    // 1. Find file
+    showDebug('Calling findFile...');
     await findFile();
     showDebug('Step 1 ✓ File found: ' + fileId);
 
@@ -674,8 +676,12 @@ async function loadData(){
     applyFilters(); setState('table'); updateSyncBadge(); await syncQueue();
     flash(`✓ ${allRows.length} items loaded · ${cap(currentRole)}`);
   }catch(e){
+    showDebug('ERROR: ' + e.message);
     if(cached.length){ applyRoleFromStorage(); flash('Offline — showing cached data'); }
-    else{ setState('login'); document.getElementById('stateLogin').querySelector('p').innerHTML=`<strong style="color:var(--accent)">Error:</strong> ${e.message}`; }
+    else{
+      setState('login');
+      document.getElementById('stateLogin').querySelector('p').innerHTML=`<strong style="color:var(--accent)">Error:</strong> ${e.message}`;
+    }
   }
 }
 function applyRoleFromStorage(){ currentRole=localStorage.getItem('mom_role')||'viewer'; applyRoleUI(); setState('table'); }
