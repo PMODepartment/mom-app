@@ -426,16 +426,13 @@ let msalInstance = null;
 
 function getMsal() {
   if (msalInstance) return msalInstance;
-  if (CLIENT_ID === 'YOUR_CLIENT_ID' || TENANT_ID === 'YOUR_TENANT_ID') {
-    throw new Error('App not configured yet. Please open index.html in VS Code and replace YOUR_CLIENT_ID and YOUR_TENANT_ID with your Azure App Registration values.');
-  }
   if (typeof msal === 'undefined') {
     throw new Error('Microsoft login library failed to load. Check your internet connection and refresh.');
   }
   msalInstance = new msal.PublicClientApplication({
     auth: {
       clientId: CLIENT_ID,
-      authority: `https://login.microsoftonline.com/${TENANT_ID}`,
+      authority: 'https://login.microsoftonline.com/' + TENANT_ID,
       redirectUri: window.location.origin + window.location.pathname
     },
     cache: { cacheLocation: 'localStorage' }
@@ -481,8 +478,7 @@ function updateOfflineBanner(){ document.getElementById('offlineBanner').classLi
 // ── AUTH ──────────────────────────────────────────────
 async function signIn(){
   try{
-    const msal = getMsal();
-    await msal.loginPopup({scopes:SCOPES});
+    await getMsal().loginPopup({scopes:SCOPES});
     await onSignedIn();
   } catch(e){ flash('Sign-in error: '+e.message,true); }
 }
@@ -498,9 +494,8 @@ function signOut(){
   setState('login');
 }
 async function getToken(){
-  const msal = getMsal();
-  const accs=msal.getAllAccounts(); if(!accs.length) throw new Error('Not signed in');
-  return (await msal.acquireTokenSilent({scopes:SCOPES,account:accs[0]})).accessToken;
+  const accs=getMsal().getAllAccounts(); if(!accs.length) throw new Error('Not signed in');
+  return (await getMsal().acquireTokenSilent({scopes:SCOPES,account:accs[0]})).accessToken;
 }
 async function onSignedIn(){
   const accs=getMsal().getAllAccounts(); if(!accs.length) return;
@@ -857,16 +852,8 @@ function flash(msg,err=false){ const b=document.getElementById('flashBanner'); b
 (async()=>{
   updateOfflineBanner(); updateSyncBadge();
   try{
-    // Show helpful message if not configured yet
-    if(CLIENT_ID==='YOUR_CLIENT_ID'||TENANT_ID==='YOUR_TENANT_ID'){
-      setState('login');
-      document.getElementById('stateLogin').querySelector('p').innerHTML=
-        `⚠️ <strong>App not configured yet.</strong><br/>Open <code>index.html</code> in VS Code and replace<br/><code>YOUR_CLIENT_ID</code> and <code>YOUR_TENANT_ID</code><br/>with your Azure App Registration values.`;
-      return;
-    }
-    const msal = getMsal();
-    await msal.handleRedirectPromise();
-    if(msal.getAllAccounts().length) await onSignedIn();
+    await getMsal().handleRedirectPromise();
+    if(getMsal().getAllAccounts().length) await onSignedIn();
     else setState('login');
   } catch(e){ setState('login'); }
 })();
