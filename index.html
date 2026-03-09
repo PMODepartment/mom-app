@@ -426,14 +426,16 @@ let msalInstance = null;
 
 function getMsal() {
   if (msalInstance) return msalInstance;
-  // Support both MSAL v2 (msal.PublicClientApplication) and v3 (msalBrowser.PublicClientApplication)
-  const msalLib = (typeof msalBrowser !== 'undefined') ? msalBrowser
-                : (typeof msal !== 'undefined')        ? msal
-                : null;
-  if (!msalLib || !msalLib.PublicClientApplication) {
-    throw new Error('Microsoft login library failed to load. Check your internet connection and refresh.');
+  let PCA = null;
+  if (typeof window.msal !== 'undefined' && window.msal.PublicClientApplication)
+    PCA = window.msal.PublicClientApplication;
+  else if (typeof window.msalBrowser !== 'undefined' && window.msalBrowser.PublicClientApplication)
+    PCA = window.msalBrowser.PublicClientApplication;
+  if (!PCA) {
+    const g = Object.keys(window).filter(k => k.toLowerCase().includes('msal'));
+    throw new Error('MSAL not found. Globals: ' + (g.length ? g.join(', ') : 'none'));
   }
-  msalInstance = new msalLib.PublicClientApplication({
+  msalInstance = new PCA({
     auth: {
       clientId: CLIENT_ID,
       authority: 'https://login.microsoftonline.com/' + TENANT_ID,
