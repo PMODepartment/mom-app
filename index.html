@@ -510,12 +510,11 @@ async function signIn(){
       });
       if(typeof msalInstance.initialize === 'function') await msalInstance.initialize();
     }
-    await msalInstance.loginPopup({scopes:SCOPES});
-    await onSignedIn();
+    await msalInstance.loginRedirect({scopes:SCOPES});
   } catch(e){ flash('Sign-in error: '+e.message, true); }
 }
 function signOut(){
-  try{ getMsal().logoutPopup(); } catch(e){}
+  try{ getMsal().logoutRedirect(); } catch(e){}
   msalInstance = null;
   currentRole=''; currentEmail=''; fileId=''; tableId='';
   document.getElementById('loginBtn').style.display='';
@@ -530,7 +529,12 @@ async function getToken(){
   const instance = getMsal();
   const accs = instance.getAllAccounts();
   if(!accs.length) throw new Error('Not signed in');
-  return (await instance.acquireTokenSilent({scopes:SCOPES, account:accs[0]})).accessToken;
+  try{
+    return (await instance.acquireTokenSilent({scopes:SCOPES, account:accs[0]})).accessToken;
+  } catch(e){
+    // Silent failed — redirect to re-authenticate
+    await instance.acquireTokenRedirect({scopes:SCOPES, account:accs[0]});
+  }
 }
 async function onSignedIn(){
   const accs = getMsal().getAllAccounts(); if(!accs.length) return;
