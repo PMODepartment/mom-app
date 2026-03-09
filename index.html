@@ -10,12 +10,7 @@
   <title>PMO · MOM</title>
   <link rel="manifest" href="manifest.json"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Literata:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
-  <script type="module">
-    import * as msalModule from 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.0/dist/msal-browser.esm.min.js';
-    window.msal = msalModule;
-    window._msalReady = true;
-    window.dispatchEvent(new Event('msalloaded'));
-  </script>
+  <script src="./msal-browser.min.js"></script>
   <style>
     :root {
       --ink:    #16213e;
@@ -434,27 +429,20 @@ function getMsalLib(){
     return window.msal;
   return null;
 }
-function waitForMsal(ms=15000){
+function waitForMsal(){
   return new Promise((resolve, reject)=>{
     const lib = getMsalLib();
     if(lib) return resolve(lib);
-    // Listen for our custom event fired by the module script
-    const onLoaded = ()=>{
-      clearTimeout(timer);
-      const l = getMsalLib();
-      if(l) resolve(l);
-      else reject(new Error('MSAL module loaded but PublicClientApplication not found.'));
-    };
-    const timer = setTimeout(()=>{
-      window.removeEventListener('msalloaded', onLoaded);
-      reject(new Error('Microsoft login library timed out. Please refresh.'));
-    }, ms);
-    window.addEventListener('msalloaded', onLoaded, {once:true});
-    // Also poll as backup
+    // Poll briefly in case script hasn't finished parsing yet
+    let tries = 0;
     const poll = setInterval(()=>{
       const l = getMsalLib();
-      if(l){ clearInterval(poll); clearTimeout(timer); window.removeEventListener('msalloaded',onLoaded); resolve(l); }
-    }, 200);
+      if(l){ clearInterval(poll); resolve(l); }
+      else if(++tries > 50){
+        clearInterval(poll);
+        reject(new Error('msal-browser.min.js not found. Make sure you uploaded it to your GitHub repo.'));
+      }
+    }, 100);
   });
 }
 function getMsal() {
