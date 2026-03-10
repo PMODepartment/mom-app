@@ -393,7 +393,7 @@ async function loadData(){
   }
 }
 function applyRoleFromStorage(){currentRole=localStorage.getItem('mom_role')||'viewer';applyRoleUI();setState('table');}
-function applyRoleUI(){var chip=document.getElementById('roleChip');chip.textContent=cap(currentRole);chip.className='role-chip rc-'+currentRole;chip.style.display='';var canAdd=currentRole==='admin'||currentRole==='editor';document.getElementById('fab').style.display=canAdd?'flex':'none';document.getElementById('searchBarEl').style.display='';document.getElementById('desktopToolbar').style.display='';}
+function applyRoleUI(){var chip=document.getElementById('roleChip');chip.textContent=cap(currentRole);chip.className='role-chip rc-'+currentRole;chip.style.display='inline-block';var canAdd=currentRole==='admin'||currentRole==='editor';document.getElementById('fab').style.display=canAdd?'flex':'none';document.getElementById('searchBarEl').style.display='block';document.getElementById('desktopToolbar').style.display='';}
 
 // ROW HELPERS
 function itemToRow(item){return[item.no||'',item.category||'',item.issue||'',item.description||'',item.type||'',item.action_item||'',item.responsible||'',item.target_date||'',item.status||'',item.meeting_date||'',item.attachment_url||'',item.attachment_name||'',item.id];}
