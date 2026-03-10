@@ -724,17 +724,19 @@ function renderCards(){
   const pendingIds=new Set(lsGet(QUEUE_KEY,[]).map(q=>q.itemId));
   slice.forEach(({row,i})=>{
     const card=document.createElement('div');card.className='card';
-    card.innerHTML=`
-      ${pendingIds.has(row[11])?'<div class="pending-dot" title="Pending sync"></div>':''}
-      <div class="card-top"><span class="card-num">#${row[0]||'—'}</span><div class="card-badges">${typeBadge(row[4])}${statusBadge(row[8])}</div></div>
-      <div class="card-title">${esc(row[2]||'(No Agenda)')}</div>
-      ${row[3]?`<div class="card-desc">${esc(row[3])}</div>`:''}
-      <div class="card-meta">
-        ${row[1]?`<span class="card-meta-item">🏷 ${esc(row[1])}</span>`:''}
-        ${row[6]?`<span class="card-meta-item">👤 ${esc(row[6])}</span>`:''}
-        ${row[7]?`<span class="card-meta-item">📅 ${row[7]}</span>`:''}
-      </div>
-      ${(row[10]&&row[10].length)?`<span class="card-meta-item">📎 ${row[10].length} file${row[10].length>1?'s':''}</span>`:''}    card.onclick=()=>openDetail(i);
+    const pending=pendingIds.has(row[11])?'<div class="pending-dot" title="Pending sync"></div>':'';
+    const desc=row[3]?'<div class="card-desc">'+esc(row[3])+'</div>':'';
+    const catMeta=row[1]?'<span class="card-meta-item">🏷 '+esc(row[1])+'</span>':'';
+    const respMeta=row[6]?'<span class="card-meta-item">👤 '+esc(row[6])+'</span>':'';
+    const dateMeta=row[7]?'<span class="card-meta-item">📅 '+row[7]+'</span>':'';
+    const attMeta=(row[10]&&row[10].length)?'<span class="card-meta-item">📎 '+row[10].length+' file'+(row[10].length>1?'s':'')+'</span>':'';
+    card.innerHTML=
+      pending+
+      '<div class="card-top"><span class="card-num">#'+(row[0]||'—')+'</span><div class="card-badges">'+typeBadge(row[4])+statusBadge(row[8])+'</div></div>'+
+      '<div class="card-title">'+esc(row[2]||'(No Agenda)')+'</div>'+
+      desc+
+      '<div class="card-meta">'+catMeta+respMeta+dateMeta+attMeta+'</div>';
+    card.onclick=()=>openDetail(i);
     list.appendChild(card);
   });
   document.getElementById('loadMoreBtn').style.display=filtered.length>displayCount?'block':'none';
@@ -747,28 +749,27 @@ function renderTable(){
   const start=(dtPage-1)*DT_PER,end=start+DT_PER;
   const slice=filtered.slice(start,end);
   tbody.innerHTML='';
-  if(!slice.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:2rem;font-family:'DM Mono',monospace;font-size:0.73rem;color:var(--muted);">No items.</td></tr>`;return;}
+  if(!slice.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;font-family:monospace;font-size:0.73rem;color:#7a7468;">No items found.</td></tr>';return;}
   slice.forEach(({row,i})=>{
     const canEdit=currentRole==='admin'||currentRole==='editor';
     const canDel=currentRole==='admin';
     const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td style="font-family:'DM Mono',monospace;font-size:0.7rem;">${row[0]??''}</td>
-      <td class="trunc" style="max-width:115px;font-size:0.77rem;">${row[1]??''}</td>
-      <td class="trunc" style="max-width:175px;">${row[2]??''}</td>
-      <td>${typeBadge(row[4])}</td>
-      <td style="font-size:0.77rem;">${row[6]??''}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.7rem;white-space:nowrap;">${row[7]||'—'}</td>
-      <td>${statusBadge(row[8])}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.7rem;white-space:nowrap;">${row[9]||'—'}</td>
-      <td><div class="row-acts">
-        ${canEdit?`<button class="btn-edit-sm" onclick="openEditSheet(${i})">Edit</button>`:''}
-        ${canDel?`<button class="btn-del-sm" onclick="askDelete(${i})">Del</button>`:''}
-      </div></td>`;
+    const editBtn=canEdit?'<button class="btn-edit-sm" onclick="openEditSheet('+i+')">Edit</button>':'';
+    const delBtn=canDel?'<button class="btn-del-sm" onclick="askDelete('+i+')">Del</button>':'';
+    tr.innerHTML=
+      '<td style="font-family:monospace;font-size:0.7rem;">'+(row[0]??'')+'</td>'+
+      '<td class="trunc" style="max-width:115px;font-size:0.77rem;">'+(row[1]??'')+'</td>'+
+      '<td class="trunc" style="max-width:175px;">'+(row[2]??'')+'</td>'+
+      '<td>'+typeBadge(row[4])+'</td>'+
+      '<td style="font-size:0.77rem;">'+(row[6]??'')+'</td>'+
+      '<td style="font-family:monospace;font-size:0.7rem;white-space:nowrap;">'+(row[7]||'—')+'</td>'+
+      '<td>'+statusBadge(row[8])+'</td>'+
+      '<td style="font-family:monospace;font-size:0.7rem;white-space:nowrap;">'+(row[9]||'—')+'</td>'+
+      '<td><div class="row-acts">'+editBtn+delBtn+'</div></td>';
     tbody.appendChild(tr);
   });
   const total=filtered.length;
-  document.getElementById('pagerInfo').textContent=`${Math.min(start+1,total)}–${Math.min(end,total)} of ${total}`;
+  document.getElementById('pagerInfo').textContent=(Math.min(start+1,total))+'–'+(Math.min(end,total))+' of '+total;
   document.getElementById('prevBtn').disabled=dtPage<=1;
   document.getElementById('nextBtn').disabled=dtPage>=Math.ceil(total/DT_PER);
 }
@@ -792,24 +793,26 @@ function openDetail(idx){
   const row=allRows[idx];
   const canEdit=currentRole==='admin'||currentRole==='editor';
   const canDel=currentRole==='admin';
-  document.getElementById('detailBody').innerHTML=`
-    ${(canEdit||canDel)?`<div class="detail-actions">
-      ${canEdit?`<button class="btn-blue-sm" onclick="openEditSheet(${idx});closeDetail()">Edit</button>`:''}
-      ${canDel?`<button class="btn-del-inline" onclick="askDelete(${idx});closeDetail()">Delete</button>`:''}
-    </div>`:''}
-    <div class="dfield"><div class="dl">No.</div><div class="dv mono">${row[0]||'—'}</div></div>
-    <div class="dfield"><div class="dl">Category</div><div class="dv">${row[1]||'—'}</div></div>
-    <div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv">${esc(row[2]||'—')}</div></div>
-    <div class="dfield"><div class="dl">Description</div><div class="dv">${esc(row[3]||'—')}</div></div>
-    <div class="dfield"><div class="dl">Type</div><div class="dv">${typeBadge(row[4])}</div></div>
-    <div class="dfield"><div class="dl">Action Item</div><div class="dv">${esc(row[5]||'—')}</div></div>
-    <div class="dfield"><div class="dl">Responsible</div><div class="dv">${esc(row[6]||'—')}</div></div>
-    <div class="dfield"><div class="dl">Target Date</div><div class="dv mono">${row[7]||'—'}</div></div>
-    <div class="dfield"><div class="dl">Status</div><div class="dv">${statusBadge(row[8])}</div></div>
-    <div class="dfield"><div class="dl">Meeting Date</div><div class="dv mono">${row[9]||'—'}</div></div>
-    ${(row[10]&&row[10].length)?`<div class="dfield"><div class="dl">Attachments</div><div class="dv">${
-      row[10].map(a=>`<a href="${a.serverRelativeUrl||a.contentUrl||'#'}" target="_blank" style="display:block;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--blue);padding:0.28rem 0;text-decoration:none;">📎 ${a.name||'Attachment'}</a>`).join('')
-    }</div></div>`:''}`;
+  const editBtn=canEdit?'<button class="btn-blue-sm" onclick="openEditSheet('+idx+');closeDetail()">Edit</button>':'';
+  const delBtn=canDel?'<button class="btn-del-inline" onclick="askDelete('+idx+');closeDetail()">Delete</button>':'';
+  const actions=(canEdit||canDel)?'<div class="detail-actions">'+editBtn+delBtn+'</div>':'';
+  const attLinks=(row[10]&&row[10].length)?row[10].map(function(a){
+    return '<a href="'+(a.serverRelativeUrl||a.contentUrl||'#')+'" target="_blank" style="display:block;font-family:monospace;font-size:0.72rem;color:#1a5c8a;padding:0.28rem 0;text-decoration:none;">📎 '+(a.name||'Attachment')+'</a>';
+  }).join(''):'';
+  const attSection=attLinks?'<div class="dfield"><div class="dl">Attachments</div><div class="dv">'+attLinks+'</div></div>':'';
+  document.getElementById('detailBody').innerHTML=
+    actions+
+    '<div class="dfield"><div class="dl">No.</div><div class="dv mono">'+(row[0]||'—')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Category</div><div class="dv">'+(row[1]||'—')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv">'+esc(row[2]||'—')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Description</div><div class="dv">'+esc(row[3]||'—')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Type</div><div class="dv">'+typeBadge(row[4])+'</div></div>'+
+    '<div class="dfield"><div class="dl">Action Item</div><div class="dv">'+esc(row[5]||'—')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Responsible</div><div class="dv">'+esc(row[6]||'—')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Target Date</div><div class="dv mono">'+(row[7]||'—')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Status</div><div class="dv">'+statusBadge(row[8])+'</div></div>'+
+    '<div class="dfield"><div class="dl">Meeting Date</div><div class="dv mono">'+(row[9]||'—')+'</div></div>'+
+    attSection;
   openSheet('detailOverlay','detailSheet');
 }
 function closeDetail(){closeSheet('detailOverlay','detailSheet');}
