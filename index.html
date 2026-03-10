@@ -589,17 +589,49 @@ function applyFilters(){var q=(gv('searchQ')||gv('searchQD')).toLowerCase();var 
 function toggleFilters(){var d=document.getElementById('filterDrawer');var b=document.getElementById('filterToggle');var o=d.classList.toggle('open');b.classList.toggle('active',o);}
 
 // CARDS
+function fmtMeetingDate(d){
+  if(!d) return 'No Date';
+  var parts=d.split('-');
+  if(parts.length!==3) return d;
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var dt=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  return months[dt.getMonth()]+' '+dt.getDate()+', '+dt.getFullYear();
+}
 function renderCards(){
-  var list=document.getElementById('cardList');var slice=filtered.slice(0,displayCount);list.innerHTML='';
+  var list=document.getElementById('cardList');
+  var slice=filtered.slice(0,displayCount);
+  list.innerHTML='';
   if(!slice.length){list.innerHTML='<div class="empty-msg">No items found.</div>';document.getElementById('loadMoreBtn').style.display='none';return;}
   var pendingIds=new Set(lsGet(QUEUE_KEY,[]).map(function(q){return q.id;}));
+  // Group by meeting date
+  var groups={};var groupOrder=[];
   slice.forEach(function(o){
-    var row=o.row,i=o.i;var card=document.createElement('div');card.className='card';
-    var pending=pendingIds.has(row[12])?'<div class="pending-dot"></div>':'';
-    var desc=row[3]?'<div class="card-desc">'+esc(row[3])+'</div>':'';
-    var metas=(row[1]?'<span class="card-meta-item">'+esc(row[1])+'</span>':'')+(row[6]?'<span class="card-meta-item">'+esc(row[6])+'</span>':'')+(row[7]?'<span class="card-meta-item">'+row[7]+'</span>':'')+(row[10]?'<span class="card-meta-item">'+esc(row[11]||'file')+'</span>':'');
-    card.innerHTML=pending+'<div class="card-top"><span class="card-num">#'+(row[0]||'-')+'</span><div class="card-badges">'+typeBadge(row[4])+statusBadge(row[8])+'</div></div><div class="card-title">'+esc(row[2]||'(No Agenda)')+'</div>'+desc+'<div class="card-meta">'+metas+'</div>';
-    card.onclick=function(){openDetail(i);};list.appendChild(card);
+    var key=o.row[9]||'';
+    if(!groups[key]){groups[key]=[];groupOrder.push(key);}
+    groups[key].push(o);
+  });
+  // Sort groups: dated ones descending, undated last
+  groupOrder.sort(function(a,b){
+    if(!a) return 1;if(!b) return -1;
+    return b.localeCompare(a);
+  });
+  groupOrder.forEach(function(dateKey){
+    // Section header
+    var label=document.createElement('div');
+    label.className='list-section-label';
+    var count=groups[dateKey].length;
+    label.textContent=fmtMeetingDate(dateKey)+'  ·  '+count+' item'+(count>1?'s':'');
+    list.appendChild(label);
+    // Cards in group
+    groups[dateKey].forEach(function(o){
+      var row=o.row,i=o.i;
+      var card=document.createElement('div');card.className='card';
+      var pending=pendingIds.has(row[12])?'<div class="pending-dot"></div>':'';
+      var desc=row[3]?'<div class="card-desc">'+esc(row[3])+'</div>':'';
+      var metas=(row[1]?'<span class="card-meta-item">'+esc(row[1])+'</span>':'')+(row[6]?'<span class="card-meta-item">'+esc(row[6])+'</span>':'')+(row[7]?'<span class="card-meta-item">📅 '+row[7]+'</span>':'')+(row[10]?'<span class="card-meta-item">📎 '+esc(row[11]||'file')+'</span>':'');
+      card.innerHTML=pending+'<div class="card-top"><span class="card-num">#'+(row[0]||'-')+'</span><div class="card-badges">'+typeBadge(row[4])+statusBadge(row[8])+'</div></div><div class="card-title">'+esc(row[2]||'(No Agenda)')+'</div>'+desc+'<div class="card-meta">'+metas+'</div>';
+      card.onclick=function(){openDetail(i);};list.appendChild(card);
+    });
   });
   document.getElementById('loadMoreBtn').style.display=filtered.length>displayCount?'block':'none';
 }
