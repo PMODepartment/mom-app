@@ -33,7 +33,7 @@
     .hbtn{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.38rem 0.8rem;border-radius:3px;cursor:pointer;border:1px solid;transition:all 0.15s;}
     #loginBtn{border-color:var(--red);background:transparent;color:var(--ink);}
     #loginBtn:hover{background:var(--red);color:#fff;}
-    #logoutBtn{border-color:var(--border);background:transparent;color:var(--muted);display:none;}
+    #logoutBtn{border-color:var(--border);background:transparent;color:var(--muted);}
     #offlineBanner{display:none;background:var(--gold);color:#0f1923;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;text-align:center;padding:0.32rem;}
     #offlineBanner.show{display:block;}
     #syncInfo{display:none;font-family:'IBM Plex Mono',monospace;font-size:0.63rem;text-align:center;padding:0.3rem;background:rgba(200,149,42,0.12);color:var(--gold);border-bottom:1px solid rgba(200,149,42,0.2);}
@@ -174,12 +174,14 @@
     <span class="sub">Megawide · Carbon Market PSC</span>
   </div>
   <div class="hright">
-    <div id="userInfo" style="display:none;flex-direction:column;align-items:flex-end;gap:0.18rem;">
-      <span id="userNameLabel" style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--ink);letter-spacing:0.02em;"></span>
-      <span class="role-chip" id="roleChip"></span>
-    </div>
     <button class="hbtn" id="loginBtn" onclick="signIn()">Sign In</button>
-    <button class="hbtn" id="logoutBtn" onclick="signOut()">Sign Out</button>
+    <div id="userInfo" style="display:none;flex-direction:row;align-items:center;gap:0.65rem;">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.2rem;">
+        <span id="userNameLabel" style="font-family:'IBM Plex Mono',monospace;font-size:0.78rem;font-weight:500;color:var(--ink);letter-spacing:0.02em;"></span>
+        <span class="role-chip" id="roleChip"></span>
+      </div>
+      <button class="hbtn" id="logoutBtn" onclick="signOut()" style="display:block;">Sign Out</button>
+    </div>
   </div>
 </header>
 <div id="offlineBanner">Offline — showing cached data</div>
@@ -365,13 +367,13 @@ async function signIn(){
     await msalInstance.loginRedirect({scopes:SCOPES});
   }catch(e){console.error(e);flash('Sign-in error: '+e.message,true);document.getElementById('stateLogin').querySelector('p').innerHTML='<strong style="color:var(--red)">Error:</strong> '+e.message;}
 }
-function signOut(){try{if(msalInstance) msalInstance.logoutRedirect();}catch(e){}msalInstance=null;currentRole='';currentEmail='';document.getElementById('loginBtn').style.display='';document.getElementById('logoutBtn').style.display='none';document.getElementById('userInfo').style.display='none';document.getElementById('fab').style.display='none';document.getElementById('searchBarEl').style.display='none';document.getElementById('desktopToolbar').style.display='none';setState('login');}
+function signOut(){try{if(msalInstance) msalInstance.logoutRedirect();}catch(e){}msalInstance=null;currentRole='';currentEmail='';document.getElementById('loginBtn').style.display='';document.getElementById('userInfo').style.display='none';document.getElementById('fab').style.display='none';document.getElementById('searchBarEl').style.display='none';document.getElementById('desktopToolbar').style.display='none';setState('login');}
 async function onSignedIn(){
   if(!msalInstance) return;
   var accs=msalInstance.getAllAccounts();if(!accs.length) return;
   currentEmail=(accs[0].username||'').toLowerCase();
-  if(!currentEmail.endsWith(ALLOWED_DOMAIN)){document.getElementById('deniedEmail').textContent=currentEmail;document.getElementById('loginBtn').style.display='none';document.getElementById('logoutBtn').style.display='';setState('noAccess');return;}
-  document.getElementById('loginBtn').style.display='none';document.getElementById('logoutBtn').style.display='';
+  if(!currentEmail.endsWith(ALLOWED_DOMAIN)){document.getElementById('deniedEmail').textContent=currentEmail;document.getElementById('loginBtn').style.display='none';setState('noAccess');return;}
+  document.getElementById('loginBtn').style.display='none';
   await loadData();
 }
 
