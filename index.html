@@ -298,7 +298,7 @@
   <div id="screenProjects" style="display:none">
     <div class="proj-search-wrap">
       <span class="proj-search-icon">🔍</span>
-      <input type="text" id="projSearch" placeholder="Search meetings…" oninput="filterMeetings()"/>
+      <input type="text" id="projSearch" placeholder="Search projects…" oninput="filterProjects()"/>
     </div>
     <div class="carousel-label">Projects</div>
     <div class="carousel-wrap">
@@ -597,6 +597,16 @@ function selectProject(proj){
   filterMeetings();
 }
 
+function filterProjects(){
+  var q=(document.getElementById('projSearch').value||'').toLowerCase();
+  var carousel=document.getElementById('projectCarousel');
+  carousel.querySelectorAll('.proj-card').forEach(function(card){
+    var name=(card.querySelector('.proj-card-name')||{}).textContent||'';
+    var code=(card.querySelector('.proj-card-code')||{}).textContent||'';
+    var isAdd=name.trim()==='Add Project';
+    card.style.display=(!q||isAdd||name.toLowerCase().includes(q)||code.toLowerCase().includes(q))?'':'none';
+  });
+}
 function filterMeetings(){
   var q=(document.getElementById('projSearch').value||'').toLowerCase();
   var list=document.getElementById('meetingsList');list.innerHTML='';
