@@ -32,22 +32,22 @@
     body{font-family:var(--font);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;}
 
     /* HEADER */
-    header{background:rgba(242,242,247,0.9);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);padding:calc(var(--safe-top)+0.6rem) 1rem 0.6rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .brand h1{font-size:clamp(0.88rem,4vw,1rem);font-weight:700;color:var(--ink);letter-spacing:-0.02em;}
-    .brand h1 span{color:var(--blue);}
-    .brand .sub{font-size:0.58rem;font-weight:500;color:var(--muted);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;}
+    header{background:rgba(180,0,0,0.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);padding:calc(var(--safe-top)+0.6rem) 1rem 0.6rem;display:flex;align-items:center;justify-content:space-between;border-bottom:none;flex-shrink:0;}
+    .brand h1{font-size:clamp(0.88rem,4vw,1rem);font-weight:700;color:#fff;letter-spacing:-0.02em;}
+    .brand h1 span{color:rgba(255,255,255,0.7);}
+    .brand .sub{font-size:0.58rem;font-weight:500;color:rgba(255,255,255,0.6);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;}
     .hright{display:flex;align-items:center;gap:0.5rem;}
     #userInfo{display:none;flex-direction:row;align-items:center;gap:0.6rem;}
     .user-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
-    #userNameLabel{font-size:0.8rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
+    #userNameLabel{font-size:0.8rem;font-weight:600;color:#fff;letter-spacing:-0.01em;}
     .role-chip{font-size:0.58rem;font-weight:700;letter-spacing:0.02em;padding:0.1rem 0.5rem;border-radius:20px;display:inline-block;}
-    .rc-admin{background:var(--red-l);color:var(--red);}
+    .rc-admin{background:rgba(255,255,255,0.2);color:#fff;}
     .rc-editor{background:var(--green-l);color:#1a8f3a;}
     .rc-viewer{background:var(--blue-l);color:var(--blue);}
     .hbtn{font-size:0.8rem;font-weight:600;padding:0.4rem 1rem;border-radius:20px;cursor:pointer;border:none;letter-spacing:-0.01em;transition:all 0.15s;}
-    #loginBtn{background:var(--blue);color:#fff;}
-    #loginBtn:active{background:#0062cc;}
-    #logoutBtn{background:var(--surface3);color:var(--ink2);}
+    #loginBtn{background:rgba(128,128,128,0.6);color:#fff;border:none;}
+    #loginBtn:active{background:rgba(128,128,128,0.8);}
+    #logoutBtn{background:rgba(255,255,255,0.2);color:#fff;}
 
     /* BANNERS */
     #offlineBanner{display:none;background:var(--orange);color:#fff;font-size:0.7rem;font-weight:600;text-align:center;padding:0.38rem;}
@@ -252,8 +252,8 @@
 <!-- GLOBAL HEADER -->
 <header>
   <div class="brand">
-    <h1>PMO <span>·</span> Minutes of Meeting</h1>
-    <span class="sub">Megawide Construction Corp.</span>
+    <h1>Minutes of the Meetings</h1>
+    <span class="sub">Megawide Construction</span>
   </div>
   <div class="hright">
     <button class="hbtn" id="loginBtn" onclick="signIn()">Sign In</button>
@@ -278,7 +278,7 @@
     <div class="login-icon">📋</div>
     <h2>Minutes of Meeting</h2>
     <p>Sign in with your <strong>@megawide.com.ph</strong> Microsoft account to continue.</p>
-    <small>PMO · Megawide Construction Corp.</small>
+    <small>PMO · Megawide Construction</small>
   </div>
 
   <!-- LOADING -->
