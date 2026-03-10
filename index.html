@@ -13,432 +13,348 @@
   <script src="./msal-browser.min.js"></script>
   <style>
     :root{
-      --bg:#f2f2f7;
-      --surface:#ffffff;
-      --surface2:#f2f2f7;
-      --surface3:#e5e5ea;
-      --ink:#1c1c1e;
-      --ink2:#3a3a3c;
-      --muted:#8e8e93;
-      --border:rgba(60,60,67,0.12);
-      --border2:rgba(60,60,67,0.06);
-      --blue:#007aff;
-      --blue-light:rgba(0,122,255,0.1);
-      --green:#34c759;
-      --green-light:rgba(52,199,89,0.12);
-      --orange:#ff9500;
-      --orange-light:rgba(255,149,0,0.12);
-      --red:#ff3b30;
-      --red-light:rgba(255,59,48,0.1);
-      --purple:#af52de;
-      --purple-light:rgba(175,82,222,0.12);
-      --teal:#5ac8fa;
-      --teal-light:rgba(90,200,250,0.12);
-      --safe-top:env(safe-area-inset-top,0px);
-      --safe-bot:env(safe-area-inset-bottom,0px);
-      --radius-sm:8px;
-      --radius:12px;
-      --radius-lg:16px;
-      --radius-xl:20px;
-      --shadow-sm:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
-      --shadow:0 4px 16px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);
-      --shadow-lg:0 8px 32px rgba(0,0,0,0.12),0 2px 8px rgba(0,0,0,0.06);
+      --bg:#f2f2f7;--surface:#fff;--surface2:#f2f2f7;--surface3:#e5e5ea;
+      --ink:#1c1c1e;--ink2:#3a3a3c;--muted:#8e8e93;
+      --border:rgba(60,60,67,0.12);--border2:rgba(60,60,67,0.06);
+      --blue:#007aff;--blue-l:rgba(0,122,255,0.1);
+      --green:#34c759;--green-l:rgba(52,199,89,0.12);
+      --orange:#ff9500;--orange-l:rgba(255,149,0,0.12);
+      --red:#ff3b30;--red-l:rgba(255,59,48,0.1);
+      --purple:#af52de;--purple-l:rgba(175,82,222,0.12);
+      --r:12px;--rl:16px;--rxl:20px;
+      --sh:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+      --sh2:0 4px 16px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04);
+      --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
       --font:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
     html,body{height:100%;background:var(--bg);}
     body{font-family:var(--font);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;}
 
-    /* ── HEADER ── */
-    header{
-      background:rgba(242,242,247,0.85);
-      -webkit-backdrop-filter:blur(20px) saturate(180%);
-      backdrop-filter:blur(20px) saturate(180%);
-      padding:calc(var(--safe-top) + 0.6rem) 1rem 0.6rem;
-      display:flex;align-items:center;justify-content:space-between;
-      border-bottom:1px solid var(--border);
-      flex-shrink:0;position:sticky;top:0;z-index:50;
-    }
-    .brand{display:flex;flex-direction:column;gap:1px;}
-    .brand h1{font-size:clamp(0.9rem,4vw,1.05rem);font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1.2;}
+    /* HEADER */
+    header{background:rgba(242,242,247,0.9);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);padding:calc(var(--safe-top)+0.6rem) 1rem 0.6rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .brand h1{font-size:clamp(0.88rem,4vw,1rem);font-weight:700;color:var(--ink);letter-spacing:-0.02em;}
     .brand h1 span{color:var(--blue);}
-    .brand .sub{font-size:0.6rem;font-weight:500;color:var(--muted);letter-spacing:0.04em;text-transform:uppercase;}
+    .brand .sub{font-size:0.58rem;font-weight:500;color:var(--muted);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;}
     .hright{display:flex;align-items:center;gap:0.5rem;}
-    #userInfo{display:none;flex-direction:row;align-items:center;gap:0.65rem;}
+    #userInfo{display:none;flex-direction:row;align-items:center;gap:0.6rem;}
     .user-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
-    #userNameLabel{font-size:0.82rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
-    .role-chip{font-size:0.6rem;font-weight:600;letter-spacing:0.02em;padding:0.12rem 0.55rem;border-radius:20px;display:inline-block;}
-    .rc-admin{background:var(--red-light);color:var(--red);}
-    .rc-editor{background:var(--green-light);color:#1a8f3a;}
-    .rc-viewer{background:var(--blue-light);color:var(--blue);}
-    .hbtn{font-size:0.82rem;font-weight:600;padding:0.42rem 1rem;border-radius:20px;cursor:pointer;border:none;transition:all 0.15s;letter-spacing:-0.01em;}
+    #userNameLabel{font-size:0.8rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
+    .role-chip{font-size:0.58rem;font-weight:700;letter-spacing:0.02em;padding:0.1rem 0.5rem;border-radius:20px;display:inline-block;}
+    .rc-admin{background:var(--red-l);color:var(--red);}
+    .rc-editor{background:var(--green-l);color:#1a8f3a;}
+    .rc-viewer{background:var(--blue-l);color:var(--blue);}
+    .hbtn{font-size:0.8rem;font-weight:600;padding:0.4rem 1rem;border-radius:20px;cursor:pointer;border:none;letter-spacing:-0.01em;transition:all 0.15s;}
     #loginBtn{background:var(--blue);color:#fff;}
-    #loginBtn:active{background:#0062cc;transform:scale(0.97);}
+    #loginBtn:active{background:#0062cc;}
     #logoutBtn{background:var(--surface3);color:var(--ink2);}
-    #logoutBtn:active{background:#d1d1d6;transform:scale(0.97);}
 
-    /* ── BANNERS ── */
-    #offlineBanner{display:none;background:var(--orange);color:#fff;font-size:0.72rem;font-weight:600;text-align:center;padding:0.4rem;letter-spacing:0.01em;}
+    /* BANNERS */
+    #offlineBanner{display:none;background:var(--orange);color:#fff;font-size:0.7rem;font-weight:600;text-align:center;padding:0.38rem;}
     #offlineBanner.show{display:block;}
-    #syncInfo{display:none;font-size:0.7rem;font-weight:500;text-align:center;padding:0.35rem;background:var(--orange-light);color:var(--orange);border-bottom:1px solid rgba(255,149,0,0.15);}
+    #syncInfo{display:none;font-size:0.68rem;font-weight:500;text-align:center;padding:0.32rem;background:var(--orange-l);color:var(--orange);}
     #syncInfo.show{display:block;}
-    #flashBanner{display:none;font-size:0.75rem;font-weight:500;padding:0.55rem 1rem;background:var(--surface);color:var(--ink2);border-bottom:1px solid var(--border);flex-shrink:0;}
+    #flashBanner{display:none;font-size:0.75rem;font-weight:500;padding:0.5rem 1rem;background:var(--surface);color:var(--ink2);border-bottom:1px solid var(--border);flex-shrink:0;}
 
-    /* ── SEARCH BAR (mobile) ── */
-    #searchBarEl{display:none;flex-shrink:0;background:var(--bg);padding:0.6rem 1rem 0;}
-    .searchbar{display:flex;gap:0.5rem;align-items:center;}
-    .search-wrap{flex:1;position:relative;display:flex;align-items:center;}
-    .search-icon{position:absolute;left:0.7rem;font-size:0.85rem;pointer-events:none;opacity:0.4;}
-    .searchbar input{width:100%;font-family:var(--font);font-size:0.88rem;font-weight:400;padding:0.52rem 0.8rem 0.52rem 2.1rem;border:none;border-radius:var(--radius);background:var(--surface3);color:var(--ink);}
-    .searchbar input::placeholder{color:var(--muted);}
-    .searchbar input:focus{outline:none;background:var(--surface);box-shadow:0 0 0 3px var(--blue-light);}
-    .btn-filter{font-family:var(--font);font-size:0.8rem;font-weight:600;padding:0.5rem 0.85rem;border:none;border-radius:var(--radius);background:var(--surface3);color:var(--blue);cursor:pointer;white-space:nowrap;transition:background 0.12s;}
-    .btn-filter.active,.btn-filter:active{background:var(--blue-light);}
-    #filterDrawer{display:none;padding:0.65rem 1rem 0.75rem;background:var(--bg);}
-    #filterDrawer.open{display:block;}
-    .filter-row{display:flex;gap:0.45rem;flex-wrap:wrap;}
-    .filter-row select{font-family:var(--font);font-size:0.78rem;font-weight:500;padding:0.44rem 0.65rem;border:none;border-radius:var(--radius);background:var(--surface3);color:var(--ink);flex:1;min-width:110px;-webkit-appearance:none;}
-
-    /* ── DESKTOP TOOLBAR ── */
-    #desktopToolbar{display:none;flex-wrap:wrap;align-items:center;gap:0.65rem;padding:0.9rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;}
-    #desktopToolbar input[type="text"]{font-family:var(--font);font-size:0.84rem;padding:0.48rem 0.9rem;border:none;border-radius:var(--radius);background:var(--surface3);color:var(--ink);width:210px;}
-    #desktopToolbar input:focus{outline:none;box-shadow:0 0 0 3px var(--blue-light);}
-    #desktopToolbar select{font-family:var(--font);font-size:0.78rem;font-weight:500;padding:0.48rem 0.75rem;border:none;border-radius:var(--radius);background:var(--surface3);color:var(--ink);-webkit-appearance:none;}
-    #desktopAddBtn{display:none;font-family:var(--font);font-size:0.82rem;font-weight:600;padding:0.5rem 1.25rem;background:var(--blue);color:#fff;border:none;border-radius:20px;cursor:pointer;margin-left:auto;letter-spacing:-0.01em;transition:background 0.12s;}
-    #desktopAddBtn:hover{background:#0062cc;}
-
-    /* ── SCROLL ── */
+    /* SCROLL */
     .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
-    /* ── CENTERED STATES ── */
+    /* STATES */
     .centered{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:65vh;padding:2rem 1.5rem;text-align:center;}
-    .login-icon{font-size:3.5rem;margin-bottom:1.2rem;filter:drop-shadow(0 4px 12px rgba(0,122,255,0.2));}
+    .login-icon{font-size:3.5rem;margin-bottom:1.2rem;}
     .centered h2{font-size:1.3rem;font-weight:700;color:var(--ink);margin-bottom:0.5rem;letter-spacing:-0.02em;}
     .centered p{font-size:0.88rem;line-height:1.7;color:var(--muted);max-width:280px;}
     .centered p strong{color:var(--ink);}
-    .centered small{font-size:0.7rem;margin-top:0.5rem;display:block;color:var(--muted);opacity:0.7;}
+    .centered small{font-size:0.68rem;margin-top:0.5rem;display:block;color:var(--muted);opacity:0.7;}
     .spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 1rem;}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .denied-box{margin:2rem 1rem;background:var(--surface);border-radius:var(--radius-lg);padding:1.75rem;box-shadow:var(--shadow);}
-    .denied-box h3{font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;color:var(--red);letter-spacing:-0.02em;}
+    .denied-box{margin:2rem 1rem;background:var(--surface);border-radius:var(--rl);padding:1.75rem;box-shadow:var(--sh2);}
+    .denied-box h3{font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;color:var(--red);}
     .denied-box p{font-size:0.84rem;color:var(--muted);line-height:1.7;}
     .denied-box code{font-size:0.75rem;background:var(--surface2);padding:0.15rem 0.4rem;border-radius:6px;color:var(--red);word-break:break-all;}
 
-    /* ── CARDS ── */
-    .card-list{padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.65rem;}
-    .card{
-      background:var(--surface);
-      border-radius:var(--radius-lg);
-      padding:1rem 1.1rem;
-      cursor:pointer;
-      position:relative;
-      box-shadow:var(--shadow-sm);
-      transition:transform 0.15s,box-shadow 0.15s;
-      border:1px solid var(--border2);
+    /* ── SCREEN: PROJECTS ── */
+    #screenProjects{display:none;}
+    .screen-pad{padding:0 1rem;}
+
+    /* Search */
+    .proj-search-wrap{padding:0.75rem 1rem 0.5rem;position:relative;display:flex;align-items:center;}
+    .proj-search-icon{position:absolute;left:1.85rem;font-size:0.85rem;pointer-events:none;opacity:0.4;}
+    .proj-search-wrap input{width:100%;font-family:var(--font);font-size:0.88rem;padding:0.55rem 0.85rem 0.55rem 2.1rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);}
+    .proj-search-wrap input::placeholder{color:var(--muted);}
+    .proj-search-wrap input:focus{outline:none;box-shadow:0 0 0 3px var(--blue-l);}
+
+    /* Carousel */
+    .carousel-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.5rem 1rem 0.35rem;}
+    .carousel-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 1rem 0.85rem;scrollbar-width:none;}
+    .carousel-wrap::-webkit-scrollbar{display:none;}
+    .carousel{display:flex;gap:0.75rem;width:max-content;}
+    .proj-card{
+      display:flex;flex-direction:column;align-items:center;gap:0.5rem;
+      padding:0.85rem 0.75rem;border-radius:var(--rl);background:var(--surface);
+      box-shadow:var(--sh);border:2px solid transparent;
+      cursor:pointer;transition:all 0.18s;width:100px;
+      -webkit-tap-highlight-color:transparent;
     }
-    .card:active{transform:scale(0.98);box-shadow:none;}
+    .proj-card:active{transform:scale(0.95);}
+    .proj-card.active{border-color:var(--blue);background:#fff;}
+    .proj-avatar{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+    .proj-avatar img{width:100%;height:100%;object-fit:cover;}
+    .proj-card-name{font-size:0.72rem;font-weight:600;color:var(--ink);text-align:center;line-height:1.3;word-break:break-word;}
+    .proj-card-code{font-size:0.6rem;font-weight:500;color:var(--muted);text-align:center;}
+
+    /* Meetings list */
+    .meetings-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.6rem 1rem 0.35rem;display:flex;align-items:center;justify-content:space-between;}
+    .meetings-label span{font-size:0.7rem;font-weight:600;color:var(--blue);cursor:pointer;}
+    .meetings-list{padding:0 1rem 5rem;display:flex;flex-direction:column;gap:0.5rem;}
+    .meeting-row{
+      background:var(--surface);border-radius:var(--rl);padding:1rem 1.1rem;
+      cursor:pointer;box-shadow:var(--sh);border:1px solid var(--border2);
+      display:flex;align-items:center;justify-content:space-between;gap:0.75rem;
+      transition:transform 0.15s;
+    }
+    .meeting-row:active{transform:scale(0.98);}
+    .meeting-row-left{flex:1;min-width:0;}
+    .meeting-row-title{font-size:0.95rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em;margin-bottom:0.18rem;}
+    .meeting-row-meta{font-size:0.72rem;font-weight:500;color:var(--muted);}
+    .meeting-row-right{display:flex;flex-direction:column;align-items:flex-end;gap:0.22rem;flex-shrink:0;}
+    .meeting-count{font-size:0.7rem;font-weight:600;color:var(--blue);background:var(--blue-l);padding:0.12rem 0.5rem;border-radius:20px;white-space:nowrap;}
+    .meeting-chevron{color:var(--muted);font-size:0.8rem;}
+    .empty-msg{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.88rem;}
+
+    /* ── SCREEN: ITEMS ── */
+    #screenItems{display:none;flex-direction:column;height:100%;}
+    .items-header{
+      background:rgba(242,242,247,0.9);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+      padding:0.65rem 1rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:0.75rem;flex-shrink:0;
+    }
+    .back-btn{font-size:0.82rem;font-weight:600;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:0.2rem;padding:0.3rem 0;white-space:nowrap;}
+    .items-header-info{flex:1;min-width:0;}
+    .items-header-title{font-size:0.95rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .items-header-sub{font-size:0.65rem;font-weight:500;color:var(--muted);}
+
+    /* Items search */
+    #itemsSearchBar{background:var(--bg);padding:0.6rem 1rem 0;flex-shrink:0;}
+    .isb-inner{display:flex;gap:0.5rem;align-items:center;}
+    .isb-wrap{flex:1;position:relative;display:flex;align-items:center;}
+    .isb-icon{position:absolute;left:0.7rem;font-size:0.85rem;pointer-events:none;opacity:0.4;}
+    #itemsSearchBar input{width:100%;font-family:var(--font);font-size:0.88rem;padding:0.52rem 0.8rem 0.52rem 2.1rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);}
+    #itemsSearchBar input:focus{outline:none;box-shadow:0 0 0 3px var(--blue-l);}
+    .btn-filter{font-size:0.78rem;font-weight:600;padding:0.5rem 0.85rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--blue);cursor:pointer;}
+    .btn-filter.active{background:var(--blue-l);}
+    #filterDrawer{display:none;padding:0.65rem 1rem 0.75rem;background:var(--bg);}
+    #filterDrawer.open{display:block;}
+    .filter-row{display:flex;gap:0.45rem;flex-wrap:wrap;}
+    .filter-row select{font-family:var(--font);font-size:0.78rem;font-weight:500;padding:0.44rem 0.65rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);flex:1;min-width:110px;-webkit-appearance:none;}
+
+    /* Items scroll */
+    .items-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    .card-list{padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.65rem;}
+    .card{background:var(--surface);border-radius:var(--rl);padding:1rem 1.1rem;cursor:pointer;position:relative;box-shadow:var(--sh);border:1px solid var(--border2);transition:transform 0.15s;}
+    .card:active{transform:scale(0.98);}
     .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem;margin-bottom:0.4rem;}
-    .card-num{font-size:0.65rem;font-weight:600;color:var(--muted);padding-top:2px;white-space:nowrap;letter-spacing:0.02em;}
+    .card-num{font-size:0.65rem;font-weight:600;color:var(--muted);padding-top:2px;white-space:nowrap;}
     .card-badges{display:flex;gap:0.3rem;flex-wrap:wrap;justify-content:flex-end;}
     .card-title{font-size:0.95rem;font-weight:600;line-height:1.4;color:var(--ink);margin-bottom:0.25rem;letter-spacing:-0.01em;}
-    .card-desc{font-size:0.78rem;color:var(--muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:0.35rem;font-weight:400;}
-    .card-meta{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.1rem;}
+    .card-desc{font-size:0.78rem;color:var(--muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:0.35rem;}
+    .card-meta{display:flex;flex-wrap:wrap;gap:0.5rem;}
     .card-meta-item{font-size:0.68rem;font-weight:500;color:var(--muted);}
     .pending-dot{position:absolute;top:0.85rem;right:0.85rem;width:7px;height:7px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 2px var(--surface);}
-    .empty-msg{text-align:center;padding:4rem 1rem;color:var(--muted);font-size:0.88rem;}
-    #loadMoreBtn{
-      display:none;width:calc(100% - 2rem);margin:0 1rem 1.5rem;
-      font-family:var(--font);font-size:0.84rem;font-weight:600;
-      padding:0.7rem;border:none;background:var(--surface);
-      color:var(--blue);border-radius:var(--radius-lg);cursor:pointer;
-      box-shadow:var(--shadow-sm);letter-spacing:-0.01em;
-    }
+    .section-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.5rem 0 0.3rem;}
+    .empty-items{text-align:center;padding:4rem 1rem;color:var(--muted);font-size:0.88rem;}
+    #loadMoreBtn{display:none;width:100%;margin:0 0 1.5rem;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.7rem;border:none;background:var(--surface);color:var(--blue);border-radius:var(--rl);cursor:pointer;box-shadow:var(--sh);}
 
-    /* ── DESKTOP TABLE ── */
-    #tableWrap{display:none;}
-    .tbl-outer{overflow-x:auto;border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow-sm);border:1px solid var(--border2);}
-    table{width:100%;border-collapse:collapse;font-size:0.84rem;}
-    thead tr{background:var(--surface2);}
-    thead th{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);padding:0.8rem 1rem;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
-    thead th:hover{color:var(--ink);}
-    tbody tr{border-bottom:1px solid var(--border2);cursor:pointer;transition:background 0.1s;}
-    tbody tr:hover{background:var(--surface2);}
-    tbody td{padding:0.7rem 1rem;vertical-align:middle;color:var(--ink2);}
-    .trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .row-acts{display:flex;gap:0.35rem;}
-    .btn-edit-sm{font-size:0.7rem;font-weight:600;padding:0.26rem 0.65rem;border:none;background:var(--blue-light);color:var(--blue);border-radius:20px;cursor:pointer;transition:background 0.1s;}
-    .btn-edit-sm:hover{background:rgba(0,122,255,0.2);}
-    .btn-del-sm{font-size:0.7rem;font-weight:600;padding:0.26rem 0.65rem;border:none;background:var(--red-light);color:var(--red);border-radius:20px;cursor:pointer;transition:background 0.1s;}
-    .btn-del-sm:hover{background:rgba(255,59,48,0.2);}
-    .pager{display:flex;align-items:center;justify-content:space-between;margin-top:0.85rem;font-size:0.75rem;font-weight:500;color:var(--muted);}
-    .pager-btns button{font-family:var(--font);font-size:0.78rem;font-weight:600;padding:0.32rem 0.85rem;border:none;background:var(--surface3);color:var(--blue);border-radius:20px;cursor:pointer;margin-left:0.4rem;transition:background 0.1s;}
-    .pager-btns button:hover:not(:disabled){background:var(--blue-light);}
-    .pager-btns button:disabled{opacity:0.35;cursor:not-allowed;}
-
-    /* ── BADGES ── */
+    /* BADGES */
     .badge{display:inline-block;font-size:0.62rem;font-weight:700;letter-spacing:0.02em;padding:0.18rem 0.55rem;border-radius:20px;white-space:nowrap;}
-    .b-open{background:var(--green-light);color:#1a8f3a;}
+    .b-open{background:var(--green-l);color:#1a8f3a;}
     .b-closed{background:rgba(142,142,147,0.12);color:var(--muted);}
-    .b-onhold{background:var(--orange-light);color:#b06800;}
-    .b-issue{background:var(--red-light);color:var(--red);}
-    .b-fyi{background:var(--blue-light);color:var(--blue);}
-    .b-report{background:var(--purple-light);color:var(--purple);}
+    .b-onhold{background:var(--orange-l);color:#b06800;}
+    .b-issue{background:var(--red-l);color:var(--red);}
+    .b-fyi{background:var(--blue-l);color:var(--blue);}
+    .b-report{background:var(--purple-l);color:var(--purple);}
 
-    /* ── FAB ── */
-    #fab{
-      position:fixed;bottom:calc(var(--safe-bot) + 1.25rem);right:1.25rem;
-      width:56px;height:56px;background:var(--blue);color:#fff;border:none;
-      border-radius:50%;font-size:1.6rem;cursor:pointer;
-      box-shadow:0 4px 24px rgba(0,122,255,0.4),0 2px 8px rgba(0,0,0,0.1);
-      display:none;align-items:center;justify-content:center;z-index:80;
-      transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.2s;
-    }
-    #fab:active{transform:scale(0.9);box-shadow:0 2px 12px rgba(0,122,255,0.3);}
+    /* FAB */
+    #fab{position:fixed;bottom:calc(var(--safe-bot)+1.25rem);right:1.25rem;width:56px;height:56px;background:var(--blue);color:#fff;border:none;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 24px rgba(0,122,255,0.4);display:none;align-items:center;justify-content:center;z-index:80;transition:transform 0.2s cubic-bezier(0.34,1.56,0.64,1);}
+    #fab:active{transform:scale(0.9);}
 
-    /* ── BOTTOM SHEETS ── */
+    /* BOTTOM SHEETS */
     .sh-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
     .sh-overlay.open{display:block;}
-    .bsheet{
-      position:fixed;left:0;right:0;bottom:0;z-index:201;
-      background:var(--surface2);
-      border-radius:var(--radius-xl) var(--radius-xl) 0 0;
-      max-height:93vh;
-      transform:translateY(100%);
-      transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);
-      display:flex;flex-direction:column;
-      padding-bottom:var(--safe-bot);
-    }
+    .bsheet{position:fixed;left:0;right:0;bottom:0;z-index:201;background:var(--surface2);border-radius:var(--rxl) var(--rxl) 0 0;max-height:93vh;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;padding-bottom:var(--safe-bot);}
     .bsheet.open{transform:translateY(0);}
-    .sh-handle{width:36px;height:5px;background:var(--surface3);border-radius:3px;margin:0.65rem auto 0;flex-shrink:0;}
-    .sh-head{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:0.85rem 1.1rem 0.75rem;
-      border-bottom:1px solid var(--border);
-      flex-shrink:0;background:var(--surface2);
-    }
+    .sh-handle{width:36px;height:5px;background:var(--surface3);border-radius:3px;margin:0.6rem auto 0;flex-shrink:0;}
+    .sh-head{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.1rem 0.7rem;border-bottom:1px solid var(--border);flex-shrink:0;}
     .sh-head h2{font-size:1.05rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em;}
-    .sh-x{
-      width:28px;height:28px;border-radius:50%;background:var(--surface3);
-      border:none;color:var(--muted);cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      font-size:0.75rem;font-weight:700;transition:background 0.12s;
-    }
-    .sh-x:active{background:var(--border);}
-    .sh-body{overflow-y:auto;flex:1;padding:1rem 1.1rem;-webkit-overflow-scrolling:touch;background:var(--surface2);}
-    .sh-foot{display:flex;gap:0.6rem;padding:0.8rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface2);}
+    .sh-x{width:28px;height:28px;border-radius:50%;background:var(--surface3);border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;}
+    .sh-body{overflow-y:auto;flex:1;padding:1rem 1.1rem;-webkit-overflow-scrolling:touch;}
+    .sh-foot{display:flex;gap:0.6rem;padding:0.8rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0;}
 
-    /* ── FORM ── */
+    /* FORM */
     .ff{display:flex;flex-direction:column;gap:0.3rem;margin-bottom:0.85rem;}
-    .ff label{font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;padding-left:0.25rem;}
-    .ff input,.ff select,.ff textarea{
-      font-family:var(--font);font-size:0.9rem;font-weight:400;
-      padding:0.62rem 0.85rem;border:none;
-      border-radius:var(--radius);
-      background:var(--surface);color:var(--ink);width:100%;
-      -webkit-appearance:none;
-      box-shadow:0 0 0 1px var(--border);
-      transition:box-shadow 0.15s;
-    }
-    .ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;box-shadow:0 0 0 3px var(--blue-light),0 0 0 1px var(--blue);}
+    .ff label{font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;padding-left:0.25rem;}
+    .ff input,.ff select,.ff textarea{font-family:var(--font);font-size:0.9rem;padding:0.62rem 0.85rem;border:none;border-radius:var(--r);background:var(--surface);color:var(--ink);width:100%;-webkit-appearance:none;box-shadow:0 0 0 1px var(--border);transition:box-shadow 0.15s;}
+    .ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;box-shadow:0 0 0 3px var(--blue-l),0 0 0 1px var(--blue);}
     .ff textarea{resize:none;min-height:80px;line-height:1.55;}
     .frow{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
-
-    /* ── FILE ATTACHMENT ── */
-    .att-label{font-size:0.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.4rem;display:block;padding-left:0.25rem;}
+    .att-label{font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.4rem;display:block;padding-left:0.25rem;}
     .att-btns{display:flex;gap:0.5rem;margin-bottom:0.5rem;}
-    .btn-att{
-      flex:1;font-family:var(--font);font-size:0.8rem;font-weight:600;
-      padding:0.65rem 0.5rem;border:2px dashed var(--surface3);
-      border-radius:var(--radius);background:var(--surface);color:var(--blue);
-      cursor:pointer;text-align:center;transition:all 0.15s;
-    }
-    .btn-att:active{background:var(--blue-light);border-color:var(--blue);}
-    #fileWrap{
-      display:none;padding:0.55rem 0.85rem;
-      background:var(--surface);border-radius:var(--radius);
-      box-shadow:0 0 0 1px var(--border);
-      align-items:center;justify-content:space-between;margin-bottom:0.5rem;
-    }
+    .btn-att{flex:1;font-family:var(--font);font-size:0.8rem;font-weight:600;padding:0.65rem 0.5rem;border:2px dashed var(--surface3);border-radius:var(--r);background:var(--surface);color:var(--blue);cursor:pointer;text-align:center;}
+    .btn-att:active{background:var(--blue-l);}
+    #fileWrap{display:none;padding:0.55rem 0.85rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border);align-items:center;justify-content:space-between;margin-bottom:0.5rem;}
     #fileWrap.show{display:flex;}
     #fileNameLabel{font-size:0.78rem;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     #removeFile{background:var(--surface3);border:none;color:var(--muted);cursor:pointer;width:22px;height:22px;border-radius:50%;font-size:0.7rem;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
     #existingAtt{margin-top:0.5rem;}
     #fileInput{display:none;}
+    #projPhotoInput{display:none;}
 
-    /* ── BUTTONS ── */
-    .btn-cancel{
-      flex:1;font-family:var(--font);font-size:0.88rem;font-weight:600;
-      padding:0.7rem;border:none;border-radius:var(--radius-lg);
-      background:var(--surface3);color:var(--ink2);cursor:pointer;
-      letter-spacing:-0.01em;transition:background 0.12s;
-    }
-    .btn-cancel:active{background:var(--border);}
-    .btn-save{
-      flex:2;font-family:var(--font);font-size:0.88rem;font-weight:600;
-      padding:0.7rem;background:var(--blue);color:#fff;border:none;
-      border-radius:var(--radius-lg);cursor:pointer;
-      letter-spacing:-0.01em;transition:background 0.12s;
-    }
-    .btn-save:active{background:#0062cc;}
+    /* BUTTONS */
+    .btn-cancel{flex:1;font-family:var(--font);font-size:0.88rem;font-weight:600;padding:0.7rem;border:none;border-radius:var(--rl);background:var(--surface3);color:var(--ink2);cursor:pointer;}
+    .btn-save{flex:2;font-family:var(--font);font-size:0.88rem;font-weight:600;padding:0.7rem;background:var(--blue);color:#fff;border:none;border-radius:var(--rl);cursor:pointer;}
     .btn-save:disabled{background:var(--surface3);color:var(--muted);cursor:not-allowed;}
-    .btn-danger{
-      flex:2;font-family:var(--font);font-size:0.88rem;font-weight:600;
-      padding:0.7rem;background:var(--red);color:#fff;border:none;
-      border-radius:var(--radius-lg);cursor:pointer;letter-spacing:-0.01em;
-    }
-    .btn-danger:active{background:#cc2a22;}
-    .btn-del-inline{
-      font-family:var(--font);font-size:0.84rem;font-weight:600;
-      padding:0.7rem 1rem;border:none;background:var(--red-light);
-      color:var(--red);border-radius:var(--radius-lg);cursor:pointer;
-      letter-spacing:-0.01em;transition:background 0.12s;
-    }
-    .btn-del-inline:active{background:rgba(255,59,48,0.2);}
-    .btn-blue-sm{
-      flex:1;font-family:var(--font);font-size:0.84rem;font-weight:600;
-      padding:0.7rem;border:none;background:var(--blue-light);
-      color:var(--blue);border-radius:var(--radius-lg);cursor:pointer;
-      letter-spacing:-0.01em;transition:background 0.12s;
-    }
-    .btn-blue-sm:active{background:rgba(0,122,255,0.2);}
+    .btn-danger{flex:2;font-family:var(--font);font-size:0.88rem;font-weight:600;padding:0.7rem;background:var(--red);color:#fff;border:none;border-radius:var(--rl);cursor:pointer;}
+    .btn-del-inline{font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.7rem 1rem;border:none;background:var(--red-l);color:var(--red);border-radius:var(--rl);cursor:pointer;}
+    .btn-blue-sm{flex:1;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.7rem;border:none;background:var(--blue-l);color:var(--blue);border-radius:var(--rl);cursor:pointer;}
 
-    /* ── DETAIL ── */
-    .dfield{
-      background:var(--surface);border-radius:var(--radius);
-      padding:0.75rem 0.9rem;margin-bottom:0.5rem;
-      box-shadow:0 0 0 1px var(--border2);
-    }
-    .dl{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);margin-bottom:0.22rem;}
-    .dv{font-size:0.9rem;line-height:1.55;color:var(--ink);font-weight:400;}
+    /* DETAIL */
+    .dfield{background:var(--surface);border-radius:var(--r);padding:0.75rem 0.9rem;margin-bottom:0.5rem;box-shadow:0 0 0 1px var(--border2);}
+    .dl{font-size:0.62rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);margin-bottom:0.2rem;}
+    .dv{font-size:0.9rem;line-height:1.55;color:var(--ink);}
     .dv.mono{font-size:0.82rem;font-weight:500;color:var(--ink2);}
     .detail-actions{display:flex;gap:0.6rem;margin-bottom:0.85rem;}
     .att-link{display:flex;align-items:center;gap:0.4rem;font-size:0.82rem;font-weight:500;color:var(--blue);padding:0.2rem 0;text-decoration:none;}
 
-    /* ── SECTION HEADERS ── */
-    .list-section-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.75rem 1rem 0.3rem;margin-top:0.25rem;}
+    /* PROJECT PHOTO PREVIEW */
+    .proj-photo-preview{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:#fff;margin:0 auto 0.75rem;overflow:hidden;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+    .proj-photo-preview img{width:100%;height:100%;object-fit:cover;}
+    .proj-photo-hint{text-align:center;font-size:0.72rem;font-weight:500;color:var(--blue);margin-bottom:1rem;cursor:pointer;}
 
-    /* ── RESPONSIVE ── */
+    /* MEETING SHEET FORM */
+    .meeting-form-proj{display:flex;align-items:center;gap:0.6rem;padding:0.7rem 0.85rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border);margin-bottom:0.85rem;}
+    .meeting-form-proj-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:#fff;overflow:hidden;flex-shrink:0;}
+    .meeting-form-proj-avatar img{width:100%;height:100%;object-fit:cover;}
+    .meeting-form-proj-name{font-size:0.84rem;font-weight:600;color:var(--ink);}
+
     @media(min-width:560px){
-      .card-list{max-width:540px;margin:0 auto;}
+      .carousel-wrap{padding:0 calc(50vw - 260px) 0.85rem;}
       .bsheet{max-width:560px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);}
       .bsheet.open{transform:translateX(-50%) translateY(0);}
       #fab{right:calc(50% - 270px + 1.25rem);}
     }
-    @media(min-width:900px){
-      .card-list{display:none;}
-      #loadMoreBtn{display:none !important;}
-      #tableWrap{display:block;}
-      #fab{display:none !important;}
-      #desktopAddBtn{display:block;}
-      #desktopToolbar{display:flex;}
-      #searchBarEl{display:none !important;}
-      main{padding:1.5rem;}
-    }
-    main{padding:0;}
-
-    /* ── SCROLLBAR ── */
     ::-webkit-scrollbar{width:4px;}
     ::-webkit-scrollbar-track{background:transparent;}
     ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
   </style>
 </head>
 <body>
+
+<!-- GLOBAL HEADER -->
 <header>
   <div class="brand">
     <h1>PMO <span>·</span> Minutes of Meeting</h1>
-    <span class="sub">Megawide · Carbon Market PSC</span>
+    <span class="sub">Megawide Construction Corp.</span>
   </div>
   <div class="hright">
     <button class="hbtn" id="loginBtn" onclick="signIn()">Sign In</button>
-    <div id="userInfo" style="display:none;flex-direction:row;align-items:center;gap:0.65rem;">
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.2rem;">
-        <span id="userNameLabel" style="font-family:'IBM Plex Mono',monospace;font-size:0.78rem;font-weight:500;color:var(--ink);letter-spacing:0.02em;"></span>
+    <div id="userInfo">
+      <div class="user-meta">
+        <span id="userNameLabel"></span>
         <span class="role-chip" id="roleChip"></span>
       </div>
       <button class="hbtn" id="logoutBtn" onclick="signOut()" style="display:block;">Sign Out</button>
     </div>
   </div>
 </header>
+
 <div id="offlineBanner">Offline — showing cached data</div>
 <div id="syncInfo"></div>
 <div id="flashBanner"></div>
-<div id="searchBarEl">
-  <div class="searchbar">
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchQ" placeholder="Search items…" oninput="applyFilters()"/>
-    </div>
-    <button class="btn-filter" id="filterToggle" onclick="toggleFilters()">Filter</button>
-  </div>
-  <div id="filterDrawer">
-    <div class="filter-row">
-      <select id="fCat" onchange="applyFilters()"><option value="">All Categories</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Other Matters</option></select>
-      <select id="fType" onchange="applyFilters()"><option value="">All Types</option><option>Issue</option><option>FYI</option><option>Report</option></select>
-      <select id="fStat" onchange="applyFilters()"><option value="">All Statuses</option><option>Open</option><option>Closed</option><option>On Hold</option></select>
-    </div>
-  </div>
-</div>
-<div id="desktopToolbar">
-  <input type="text" id="searchQD" placeholder="Search…" oninput="applyFilters()"/>
-  <select id="fCatD" onchange="applyFilters()"><option value="">All Categories</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Other Matters</option></select>
-  <select id="fTypeD" onchange="applyFilters()"><option value="">All Types</option><option>Issue</option><option>FYI</option><option>Report</option></select>
-  <select id="fStatD" onchange="applyFilters()"><option value="">All Statuses</option><option>Open</option><option>Closed</option><option>On Hold</option></select>
-  <button id="desktopAddBtn" onclick="openEditSheet(-1)">+ Add Item</button>
-</div>
-<div class="scroll-area" id="scrollArea">
+
+<div class="scroll-area" id="mainScroll">
+
+  <!-- LOGIN -->
   <div id="stateLogin" class="centered">
     <div class="login-icon">📋</div>
     <h2>Minutes of Meeting</h2>
     <p>Sign in with your <strong>@megawide.com.ph</strong> Microsoft account to continue.</p>
     <small>PMO · Megawide Construction Corp.</small>
   </div>
-  <div id="stateLoading" style="display:none" class="centered"><div class="spinner"></div><p>Loading data…</p></div>
+
+  <!-- LOADING -->
+  <div id="stateLoading" style="display:none" class="centered">
+    <div class="spinner"></div><p>Loading…</p>
+  </div>
+
+  <!-- NO ACCESS -->
   <div id="stateNoAccess" style="display:none">
     <div class="denied-box">
       <h3>Access Not Granted</h3>
-      <p>Your account <code id="deniedEmail"></code> has not been assigned a role.</p>
-      <br/><p>Ask the Admin to add you to the <strong>mom_users</strong> table in Supabase.</p>
+      <p>Your account <code id="deniedEmail"></code> has not been assigned a role. Ask the Admin to add you in Supabase.</p>
     </div>
   </div>
-  <div id="stateTable" style="display:none">
-    <main>
-      <div class="card-list" id="cardList"></div>
-      <button id="loadMoreBtn" onclick="loadMore()">Load more</button>
-      <div id="tableWrap">
-        <div class="tbl-outer">
-          <table>
-            <thead><tr>
-              <th onclick="sortBy(0)"># ⇅</th>
-              <th onclick="sortBy(1)">Category ⇅</th>
-              <th onclick="sortBy(2)">Issue / Agenda ⇅</th>
-              <th onclick="sortBy(4)">Type ⇅</th>
-              <th onclick="sortBy(6)">Responsible ⇅</th>
-              <th onclick="sortBy(7)">Target Date ⇅</th>
-              <th onclick="sortBy(8)">Status ⇅</th>
-              <th onclick="sortBy(9)">Meeting Date ⇅</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody id="dtBody"></tbody>
-          </table>
-        </div>
-        <div class="pager">
-          <span id="pagerInfo"></span>
-          <div class="pager-btns">
-            <button id="prevBtn" onclick="changePage(-1)">Prev</button>
-            <button id="nextBtn" onclick="changePage(1)">Next</button>
-          </div>
-        </div>
+
+  <!-- PROJECTS SCREEN -->
+  <div id="screenProjects" style="display:none">
+    <div class="proj-search-wrap">
+      <span class="proj-search-icon">🔍</span>
+      <input type="text" id="projSearch" placeholder="Search meetings…" oninput="filterMeetings()"/>
+    </div>
+    <div class="carousel-label">Projects</div>
+    <div class="carousel-wrap">
+      <div class="carousel" id="projectCarousel"></div>
+    </div>
+    <div class="meetings-label">
+      <span id="meetingsTitle">Meetings</span>
+      <span id="addMeetingBtn" style="display:none" onclick="openMeetingSheet(-1)">+ New Meeting</span>
+    </div>
+    <div class="meetings-list" id="meetingsList"></div>
+  </div>
+
+</div><!-- end mainScroll -->
+
+<!-- ITEMS SCREEN (separate layer) -->
+<div id="screenItems">
+  <div class="items-header">
+    <div class="back-btn" onclick="goBack()">&#8249; Back</div>
+    <div class="items-header-info">
+      <div class="items-header-title" id="itemsTitle"></div>
+      <div class="items-header-sub" id="itemsSub"></div>
+    </div>
+  </div>
+  <div id="itemsSearchBar">
+    <div class="isb-inner">
+      <div class="isb-wrap">
+        <span class="isb-icon">🔍</span>
+        <input type="text" id="searchQ" placeholder="Search items…" oninput="applyFilters()"/>
       </div>
-    </main>
+      <button class="btn-filter" id="filterToggle" onclick="toggleFilters()">Filter</button>
+    </div>
+    <div id="filterDrawer">
+      <div class="filter-row">
+        <select id="fCat" onchange="applyFilters()"><option value="">All Categories</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Other Matters</option></select>
+        <select id="fType" onchange="applyFilters()"><option value="">All Types</option><option>Issue</option><option>FYI</option><option>Report</option></select>
+        <select id="fStat" onchange="applyFilters()"><option value="">All Statuses</option><option>Open</option><option>Closed</option><option>On Hold</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="items-scroll" id="itemsScroll">
+    <div class="card-list" id="cardList"></div>
+    <button id="loadMoreBtn" onclick="loadMore()">Load more</button>
   </div>
 </div>
+
 <button id="fab" onclick="openEditSheet(-1)" aria-label="Add">＋</button>
+
+<!-- DETAIL SHEET -->
 <div class="sh-overlay" id="detailOverlay" onclick="closeDetail()"></div>
 <div class="bsheet" id="detailSheet">
   <div class="sh-handle"></div>
   <div class="sh-head"><h2>Item Details</h2><button class="sh-x" onclick="closeDetail()">✕</button></div>
   <div class="sh-body" id="detailBody"></div>
 </div>
+
+<!-- EDIT ITEM SHEET -->
 <div class="sh-overlay" id="editOverlay" onclick="closeEdit()"></div>
 <div class="bsheet" id="editSheet">
   <div class="sh-handle"></div>
@@ -459,7 +375,6 @@
       <div class="ff"><label>Responsible</label><input type="text" id="fResp" placeholder="Name / team"/></div>
       <div class="ff"><label>Target Date</label><input type="date" id="fTarget"/></div>
     </div>
-    <div class="ff"><label>Meeting Date</label><input type="date" id="fMeeting"/></div>
     <div style="margin-bottom:0.75rem">
       <span class="att-label">File Attachment</span>
       <div class="att-btns">
@@ -477,266 +392,497 @@
     <button class="btn-save" id="saveBtn" onclick="saveItem()">Save</button>
   </div>
 </div>
+
+<!-- MEETING SHEET -->
+<div class="sh-overlay" id="meetingOverlay" onclick="closeMeetingSheet()"></div>
+<div class="bsheet" id="meetingSheet">
+  <div class="sh-handle"></div>
+  <div class="sh-head"><h2 id="meetingSheetTitle">New Meeting</h2><button class="sh-x" onclick="closeMeetingSheet()">✕</button></div>
+  <div class="sh-body">
+    <div class="meeting-form-proj" id="meetingFormProj"></div>
+    <div class="ff"><label>Meeting Title</label><input type="text" id="mTitle" placeholder="e.g. Site Progress Meeting"/></div>
+    <div class="ff"><label>Meeting Date</label><input type="date" id="mDate"/></div>
+    <div class="ff"><label>Location / Platform</label><input type="text" id="mLocation" placeholder="e.g. Site Office / MS Teams"/></div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn-cancel" onclick="closeMeetingSheet()">Cancel</button>
+    <button class="btn-del-inline" id="meetingDelBtn" style="display:none" onclick="askDeleteMeeting()">Delete</button>
+    <button class="btn-save" id="meetingSaveBtn" onclick="saveMeeting()">Save</button>
+  </div>
+</div>
+
+<!-- PROJECT SHEET -->
+<div class="sh-overlay" id="projOverlay" onclick="closeProjSheet()"></div>
+<div class="bsheet" id="projSheet">
+  <div class="sh-handle"></div>
+  <div class="sh-head"><h2 id="projSheetTitle">New Project</h2><button class="sh-x" onclick="closeProjSheet()">✕</button></div>
+  <div class="sh-body">
+    <div id="projPhotoPreview" class="proj-photo-preview" onclick="document.getElementById('projPhotoInput').click()"></div>
+    <div class="proj-photo-hint" onclick="document.getElementById('projPhotoInput').click()">Tap to set photo</div>
+    <input type="file" id="projPhotoInput" accept="image/*" onchange="handleProjPhoto(event)"/>
+    <div class="ff"><label>Project Name</label><input type="text" id="pName" placeholder="Carbon Market PSC"/></div>
+    <div class="frow">
+      <div class="ff"><label>Short Name</label><input type="text" id="pShort" placeholder="CMPS"/></div>
+      <div class="ff"><label>Project Code</label><input type="text" id="pCode" placeholder="EPC-001"/></div>
+    </div>
+    <div class="ff"><label>Color (for avatar)</label>
+      <select id="pColor">
+        <option value="#007aff">Blue</option><option value="#34c759">Green</option>
+        <option value="#ff9500">Orange</option><option value="#ff3b30">Red</option>
+        <option value="#af52de">Purple</option><option value="#5ac8fa">Teal</option>
+        <option value="#ff2d55">Pink</option><option value="#1c1c1e">Black</option>
+      </select>
+    </div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn-cancel" onclick="closeProjSheet()">Cancel</button>
+    <button class="btn-del-inline" id="projDelBtn" style="display:none" onclick="askDeleteProject()">Delete</button>
+    <button class="btn-save" id="projSaveBtn" onclick="saveProject()">Save</button>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
 <div class="sh-overlay" id="confirmOverlay" onclick="closeConfirm()"></div>
 <div class="bsheet" id="confirmSheet">
   <div class="sh-handle"></div>
-  <div class="sh-head"><h2>Delete Item?</h2><button class="sh-x" onclick="closeConfirm()">✕</button></div>
+  <div class="sh-head"><h2 id="confirmTitle">Delete?</h2><button class="sh-x" onclick="closeConfirm()">✕</button></div>
   <div class="sh-body">
-    <p style="font-size:0.84rem;color:var(--muted);line-height:1.75;">This will permanently delete the item and its attachment. Cannot be undone.</p>
-    <p id="delPreview" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--red);margin-top:0.5rem;"></p>
+    <p style="font-size:0.84rem;color:var(--muted);line-height:1.75;">This cannot be undone.</p>
+    <p id="delPreview" style="font-size:0.78rem;font-weight:600;color:var(--red);margin-top:0.5rem;"></p>
   </div>
   <div class="sh-foot">
     <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
-    <button class="btn-danger" onclick="confirmDelete()">Yes, Delete</button>
+    <button class="btn-danger" id="confirmBtn" onclick="confirmDelete()">Delete</button>
   </div>
 </div>
 
 <script>
 // CONFIG
-var SUPABASE_URL   = 'https://wmhothmuzghtvpckxfzk.supabase.co';
-var SUPABASE_ANON  = 'sb_publishable_oAFf-7awZLxdVTGA2mxp0g_bnzistDx';
-var TABLE_MOM      = 'mom_items';
-var TABLE_ROLES    = 'mom_users';
-var STORAGE_BUCKET = 'mom-attachments';
-var ALLOWED_DOMAIN = '@megawide.com.ph';
-var CLIENT_ID      = '4288144d-c7e4-4c8c-8eed-85447fa46342';
-var TENANT_ID      = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';
-var SCOPES         = ['User.Read'];
+var SUPABASE_URL    = 'https://wmhothmuzghtvpckxfzk.supabase.co';
+var SUPABASE_ANON   = 'sb_publishable_oAFf-7awZLxdVTGA2mxp0g_bnzistDx';
+var TABLE_PROJECTS  = 'projects';
+var TABLE_MEETINGS  = 'meetings';
+var TABLE_MOM       = 'mom_items';
+var TABLE_ROLES     = 'mom_users';
+var STORAGE_BUCKET  = 'mom-attachments';
+var ALLOWED_DOMAIN  = '@megawide.com.ph';
+var CLIENT_ID       = '4288144d-c7e4-4c8c-8eed-85447fa46342';
+var TENANT_ID       = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';
+var SCOPES          = ['User.Read'];
 
 // SUPABASE
-function sbH(){return {'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':'application/json','Prefer':'return=representation'};}
-async function sbGet(tbl,q){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl+'?'+(q||''),{headers:sbH()});if(!r.ok) throw new Error(await r.text());return r.json();}
-async function sbPost(tbl,body){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl,{method:'POST',headers:sbH(),body:JSON.stringify(body)});if(!r.ok) throw new Error(await r.text());return r.json();}
-async function sbPatch(tbl,id,body){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl+'?id=eq.'+id,{method:'PATCH',headers:sbH(),body:JSON.stringify(body)});if(!r.ok) throw new Error(await r.text());return r.json();}
-async function sbDelete(tbl,id){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl+'?id=eq.'+id,{method:'DELETE',headers:sbH()});if(!r.ok) throw new Error(await r.text());}
-async function sbUpload(path,file){
-  var r=await fetch(SUPABASE_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+path,{
-    method:'POST',headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':file.type||'application/octet-stream','x-upsert':'true'},body:file
-  });
-  if(!r.ok) throw new Error(await r.text());
-  return SUPABASE_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+path;
-}
+function sbH(){return{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':'application/json','Prefer':'return=representation'};}
+async function sbGet(tbl,q){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl+'?'+(q||''),{headers:sbH()});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function sbPost(tbl,body){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl,{method:'POST',headers:sbH(),body:JSON.stringify(body)});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function sbPatch(tbl,id,body){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl+'?id=eq.'+id,{method:'PATCH',headers:sbH(),body:JSON.stringify(body)});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function sbDelete(tbl,id){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl+'?id=eq.'+id,{method:'DELETE',headers:sbH()});if(!r.ok)throw new Error(await r.text());}
+async function sbUpload(path,file){var r=await fetch(SUPABASE_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+path,{method:'POST',headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':file.type||'application/octet-stream','x-upsert':'true'},body:file});if(!r.ok)throw new Error(await r.text());return SUPABASE_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+path;}
 
 // MSAL
 var msalInstance=null;
-function getMsalLib(){if(typeof window.msal!=='undefined'&&window.msal.PublicClientApplication) return window.msal;return null;}
-function waitForMsal(){return new Promise(function(resolve,reject){var lib=getMsalLib();if(lib) return resolve(lib);var tries=0;var poll=setInterval(function(){var l=getMsalLib();if(l){clearInterval(poll);resolve(l);}else if(++tries>50){clearInterval(poll);reject(new Error('msal-browser.min.js not found.'));}},100);});}
+function getMsalLib(){if(typeof window.msal!=='undefined'&&window.msal.PublicClientApplication)return window.msal;return null;}
+function waitForMsal(){return new Promise(function(resolve,reject){var lib=getMsalLib();if(lib)return resolve(lib);var tries=0;var poll=setInterval(function(){var l=getMsalLib();if(l){clearInterval(poll);resolve(l);}else if(++tries>50){clearInterval(poll);reject(new Error('msal-browser.min.js not found'));}},100);});}
 
 // STATE
-var allRows=[],filtered=[],displayCount=20,dtPage=1,DT_PER=20;
-var currentRole='',currentEmail='';
-var editIdx=-1,deleteIdx=-1,sortCol=-1,sortAsc=true;
-var isOnline=navigator.onLine,pendingFile=null;
-
-// CACHE
-var CACHE_KEY='mom_v8',QUEUE_KEY='mom_v8_q';
+var currentRole='',currentEmail='',currentProjectCodes=null;
+var allProjects=[],allMeetings=[],allItems=[],filteredItems=[],displayCount=20;
+var selectedProject=null,selectedMeeting=null;
+var editItemIdx=-1,editMeetingId=null,editProjectId=null,deleteTarget=null,deleteType='';
+var pendingFile=null,pendingProjPhoto=null;
+var isOnline=navigator.onLine;
+var QUEUE_KEY='mom_v9_q';
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function lsGet(k,d){try{return JSON.parse(localStorage.getItem(k))||d;}catch(e){return d;}}
 function enqueue(op){var q=lsGet(QUEUE_KEY,[]);q.push(op);lsSet(QUEUE_KEY,q);updateSyncBadge();}
 function updateSyncBadge(){var q=lsGet(QUEUE_KEY,[]);var el=document.getElementById('syncInfo');if(q.length){el.textContent=q.length+' change(s) pending sync';el.classList.add('show');}else el.classList.remove('show');}
-async function syncQueue(){var q=lsGet(QUEUE_KEY,[]);if(!q.length||!isOnline) return;var rem=[];for(var i=0;i<q.length;i++){var op=q[i];try{if(op.action==='add') await sbPost(TABLE_MOM,op.data);else if(op.action==='update') await sbPatch(TABLE_MOM,op.id,op.data);else if(op.action==='delete') await sbDelete(TABLE_MOM,op.id);}catch(e){rem.push(op);}}lsSet(QUEUE_KEY,rem);updateSyncBadge();}
-window.addEventListener('online',function(){isOnline=true;updateOfflineBanner();syncQueue();});
+window.addEventListener('online',function(){isOnline=true;updateOfflineBanner();});
 window.addEventListener('offline',function(){isOnline=false;updateOfflineBanner();});
 function updateOfflineBanner(){document.getElementById('offlineBanner').classList.toggle('show',!isOnline);}
 
 // AUTH
 async function signIn(){
   try{
-    if(!msalInstance){var lib=await waitForMsal();msalInstance=new lib.PublicClientApplication({auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:'localStorage'}});if(typeof msalInstance.initialize==='function') await msalInstance.initialize();}
+    if(!msalInstance){var lib=await waitForMsal();msalInstance=new lib.PublicClientApplication({auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:'localStorage'}});if(typeof msalInstance.initialize==='function')await msalInstance.initialize();}
     await msalInstance.loginRedirect({scopes:SCOPES});
-  }catch(e){console.error(e);flash('Sign-in error: '+e.message,true);document.getElementById('stateLogin').querySelector('p').innerHTML='<strong style="color:var(--red)">Error:</strong> '+e.message;}
+  }catch(e){console.error(e);flash('Sign-in error: '+e.message,true);}
 }
-function signOut(){try{if(msalInstance) msalInstance.logoutRedirect();}catch(e){}msalInstance=null;currentRole='';currentEmail='';document.getElementById('loginBtn').style.display='';document.getElementById('userInfo').style.display='none';document.getElementById('fab').style.display='none';document.getElementById('searchBarEl').style.display='none';document.getElementById('desktopToolbar').style.display='none';setState('login');}
+function signOut(){try{if(msalInstance)msalInstance.logoutRedirect();}catch(e){}msalInstance=null;currentRole='';currentEmail='';document.getElementById('loginBtn').style.display='';document.getElementById('userInfo').style.display='none';document.getElementById('fab').style.display='none';setState('login');}
 async function onSignedIn(){
-  if(!msalInstance) return;
-  var accs=msalInstance.getAllAccounts();if(!accs.length) return;
+  if(!msalInstance)return;
+  var accs=msalInstance.getAllAccounts();if(!accs.length)return;
   currentEmail=(accs[0].username||'').toLowerCase();
   if(!currentEmail.endsWith(ALLOWED_DOMAIN)){document.getElementById('deniedEmail').textContent=currentEmail;document.getElementById('loginBtn').style.display='none';setState('noAccess');return;}
   document.getElementById('loginBtn').style.display='none';
-  await loadData();
+  await loadAll();
 }
 
-// LOAD
-async function loadData(){
+// LOAD ALL
+async function loadAll(){
   setState('loading');
-  var cached=lsGet(CACHE_KEY,[]);
-  if(cached.length){allRows=cached.slice();applyFilters();setState('table');}
-  if(!isOnline){applyRoleFromStorage();return;}
   try{
-    var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(currentEmail)+'&select=email,role');
+    // 1. Role
+    var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(currentEmail)+'&select=*');
     var user=users[0];
     if(!user||!['admin','editor','viewer'].includes((user.role||'').toLowerCase())){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
-    currentRole=user.role.toLowerCase();localStorage.setItem('mom_role',currentRole);applyRoleUI();
-    var items=await sbGet(TABLE_MOM,'order=no.asc,created_at.asc&select=*');
-    allRows=items.map(itemToRow);lsSet(CACHE_KEY,allRows);
-    applyFilters();setState('table');updateSyncBadge();await syncQueue();
-    flash('Loaded '+allRows.length+' items · '+cap(currentRole));
+    currentRole=user.role.toLowerCase();
+    currentProjectCodes=(currentRole==='admin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().toLowerCase();}):null);
+    localStorage.setItem('mom_role',currentRole);
+    applyUserUI();
+
+    // 2. Projects
+    var projs=await sbGet(TABLE_PROJECTS,'order=name.asc&select=*');
+    allProjects=projs;
+    if(currentProjectCodes){
+      allProjects=allProjects.filter(function(p){return currentProjectCodes.indexOf((p.code||'').toLowerCase())>=0;});
+    }
+
+    // 3. Meetings
+    var meets=await sbGet(TABLE_MEETINGS,'order=meeting_date.desc&select=*');
+    allMeetings=meets;
+
+    // 4. Items (lightweight - just ids and meeting_id for counts)
+    var items=await sbGet(TABLE_MOM,'select=id,meeting_id');
+    allItems=items;
+
+    setState('projects');
+    renderProjects();
+    if(allProjects.length>0) selectProject(allProjects[0]);
+    flash('Loaded '+allProjects.length+' project(s).');
   }catch(e){
-    if(cached.length){applyRoleFromStorage();flash('Offline — showing cached data');}
-    else{setState('login');document.getElementById('stateLogin').querySelector('p').innerHTML='<strong style="color:var(--red)">Error:</strong> '+e.message;}
+    setState('login');
+    document.getElementById('stateLogin').querySelector('p').innerHTML='<strong style="color:var(--red)">Error:</strong> '+e.message;
   }
 }
-function applyRoleFromStorage(){currentRole=localStorage.getItem('mom_role')||'viewer';applyRoleUI();setState('table');}
-function applyRoleUI(){var chip=document.getElementById('roleChip');chip.textContent=cap(currentRole);chip.className='role-chip rc-'+currentRole;chip.style.display='inline-block';var info=document.getElementById('userInfo');info.style.display='flex';var nameParts=currentEmail.split('@')[0].split('.');var displayName=nameParts.map(function(p){return p.charAt(0).toUpperCase()+p.slice(1);}).join(' ');document.getElementById('userNameLabel').textContent=displayName;var canAdd=currentRole==='admin'||currentRole==='editor';document.getElementById('fab').style.display=canAdd?'flex':'none';document.getElementById('searchBarEl').style.display='block';document.getElementById('desktopToolbar').style.display='';}
 
-// ROW HELPERS
-function itemToRow(item){return[item.no||'',item.category||'',item.issue||'',item.description||'',item.type||'',item.action_item||'',item.responsible||'',item.target_date||'',item.status||'',item.meeting_date||'',item.attachment_url||'',item.attachment_name||'',item.id];}
-function rowToData(){return{no:document.getElementById('fNo').value||null,category:document.getElementById('fCat2').value||null,issue:document.getElementById('fIssue').value||null,description:document.getElementById('fDesc').value||null,type:document.getElementById('fType2').value||null,action_item:document.getElementById('fAction').value||null,responsible:document.getElementById('fResp').value||null,target_date:document.getElementById('fTarget').value||null,status:document.getElementById('fStat2').value||null,meeting_date:document.getElementById('fMeeting').value||null};}
+function applyUserUI(){
+  var chip=document.getElementById('roleChip');chip.textContent=cap(currentRole);chip.className='role-chip rc-'+currentRole;
+  var info=document.getElementById('userInfo');info.style.display='flex';
+  var parts=currentEmail.split('@')[0].split('.');
+  document.getElementById('userNameLabel').textContent=parts.map(function(p){return p.charAt(0).toUpperCase()+p.slice(1);}).join(' ');
+  var canAdd=currentRole==='admin';
+  document.getElementById('addMeetingBtn').style.display=canAdd?'':'none';
+}
 
-// FILTERS
-function gv(id){var el=document.getElementById(id);return el?el.value:'';}
-function applyFilters(){var q=(gv('searchQ')||gv('searchQD')).toLowerCase();var cat=(gv('fCat')||gv('fCatD')).toLowerCase();var typ=(gv('fType')||gv('fTypeD')).toLowerCase();var sts=(gv('fStat')||gv('fStatD')).toLowerCase();filtered=allRows.map(function(row,i){return{row:row,i:i};}).filter(function(o){var txt=[o.row[2],o.row[3],o.row[5],o.row[6]].join(' ').toLowerCase();return(!q||txt.includes(q))&&(!cat||(o.row[1]||'').toLowerCase()===cat)&&(!typ||(o.row[4]||'').toLowerCase()===typ)&&(!sts||(o.row[8]||'').toLowerCase()===sts);});if(sortCol>=0) doSort();displayCount=20;dtPage=1;renderCards();renderTable();}
+// PROJECTS SCREEN
+function renderProjects(){
+  var carousel=document.getElementById('projectCarousel');
+  carousel.innerHTML='';
+  // Add project card for admin
+  if(currentRole==='admin'){
+    var addCard=document.createElement('div');addCard.className='proj-card';
+    addCard.innerHTML='<div class="proj-avatar" style="background:var(--surface3);color:var(--muted);font-size:1.5rem;">+</div><div class="proj-card-name" style="color:var(--blue)">Add Project</div>';
+    addCard.onclick=function(){openProjSheet(null);};
+    carousel.appendChild(addCard);
+  }
+  allProjects.forEach(function(proj){
+    var card=document.createElement('div');card.className='proj-card';card.id='proj-card-'+proj.id;
+    var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
+    card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>';
+    card.onclick=function(){selectProject(proj);};
+    if(currentRole==='admin'){card.onlongpress=function(){openProjSheet(proj);};}
+    carousel.appendChild(card);
+  });
+}
+
+function selectProject(proj){
+  selectedProject=proj;
+  // Update active state
+  document.querySelectorAll('.proj-card').forEach(function(c){c.classList.remove('active');});
+  var card=document.getElementById('proj-card-'+proj.id);
+  if(card)card.classList.add('active');
+  document.getElementById('meetingsTitle').textContent=proj.name+' · Meetings';
+  filterMeetings();
+}
+
+function filterMeetings(){
+  var q=(document.getElementById('projSearch').value||'').toLowerCase();
+  var list=document.getElementById('meetingsList');list.innerHTML='';
+  if(!selectedProject){list.innerHTML='<div class="empty-msg">Select a project above.</div>';return;}
+  var meets=allMeetings.filter(function(m){
+    if(m.project_id!==selectedProject.id)return false;
+    if(q&&!(m.title||'').toLowerCase().includes(q)&&!(m.meeting_date||'').includes(q))return false;
+    return true;
+  });
+  if(!meets.length){list.innerHTML='<div class="empty-msg">No meetings yet. Tap + New Meeting to add one.</div>';return;}
+  meets.forEach(function(meeting,idx){
+    var itemCount=allItems.filter(function(it){return it.meeting_id===meeting.id;}).length;
+    var row=document.createElement('div');row.className='meeting-row';
+    row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title">'+esc(meeting.title||'Untitled Meeting')+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span><span class="meeting-chevron">›</span></div>';
+    row.onclick=function(){openMeetingItems(meeting);};
+    if(currentRole==='admin'){
+      row.addEventListener('contextmenu',function(e){e.preventDefault();openMeetingSheet(meeting);});
+    }
+    list.appendChild(row);
+  });
+}
+
+// MEETING ITEMS SCREEN
+async function openMeetingItems(meeting){
+  selectedMeeting=meeting;
+  var proj=allProjects.find(function(p){return p.id===meeting.project_id;})||{name:'',color:'#007aff',short_name:''};
+  document.getElementById('itemsTitle').textContent=meeting.title||'Meeting';
+  document.getElementById('itemsSub').textContent=fmtDate(meeting.meeting_date)+(meeting.location?' · '+meeting.location:'');
+  // Show items screen
+  document.getElementById('mainScroll').style.display='none';
+  var si=document.getElementById('screenItems');si.style.display='flex';
+  var canAdd=currentRole==='admin'||currentRole==='editor';
+  document.getElementById('fab').style.display=canAdd?'flex':'none';
+  // Load items for this meeting
+  setState2('loading');
+  try{
+    var items=await sbGet(TABLE_MOM,'meeting_id=eq.'+meeting.id+'&order=no.asc,created_at.asc&select=*');
+    allItems=allItems.filter(function(it){return it.meeting_id!==meeting.id;});
+    allItems=allItems.concat(items.map(function(i){return{id:i.id,meeting_id:i.meeting_id};}));
+    window._meetingItems=items;
+    applyFilters();
+    setState2('table');
+  }catch(e){flash('Error loading items: '+e.message,true);setState2('table');}
+}
+
+function setState2(s){
+  var list=document.getElementById('cardList');
+  if(s==='loading'){list.innerHTML='<div class="centered" style="min-height:40vh"><div class="spinner"></div><p>Loading…</p></div>';}
+}
+
+function goBack(){
+  document.getElementById('mainScroll').style.display='';
+  document.getElementById('screenItems').style.display='none';
+  document.getElementById('fab').style.display='none';
+  selectedMeeting=null;window._meetingItems=[];
+  filterMeetings(); // refresh counts
+}
+
+// ITEMS RENDER
+function applyFilters(){
+  var items=window._meetingItems||[];
+  var q=(document.getElementById('searchQ').value||'').toLowerCase();
+  var cat=(document.getElementById('fCat').value||'').toLowerCase();
+  var typ=(document.getElementById('fType').value||'').toLowerCase();
+  var sts=(document.getElementById('fStat').value||'').toLowerCase();
+  filteredItems=items.filter(function(item){
+    var txt=[item.issue,item.description,item.action_item,item.responsible].join(' ').toLowerCase();
+    return(!q||txt.includes(q))&&(!cat||(item.category||'').toLowerCase()===cat)&&(!typ||(item.type||'').toLowerCase()===typ)&&(!sts||(item.status||'').toLowerCase()===sts);
+  });
+  displayCount=20;renderCards();
+}
 function toggleFilters(){var d=document.getElementById('filterDrawer');var b=document.getElementById('filterToggle');var o=d.classList.toggle('open');b.classList.toggle('active',o);}
 
-// CARDS
-function fmtMeetingDate(d){
-  if(!d) return 'No Date';
-  var parts=d.split('-');
-  if(parts.length!==3) return d;
-  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var dt=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
-  return months[dt.getMonth()]+' '+dt.getDate()+', '+dt.getFullYear();
-}
 function renderCards(){
-  var list=document.getElementById('cardList');
-  var slice=filtered.slice(0,displayCount);
-  list.innerHTML='';
-  if(!slice.length){list.innerHTML='<div class="empty-msg">No items found.</div>';document.getElementById('loadMoreBtn').style.display='none';return;}
-  var pendingIds=new Set(lsGet(QUEUE_KEY,[]).map(function(q){return q.id;}));
-  // Group by meeting date
-  var groups={};var groupOrder=[];
-  slice.forEach(function(o){
-    var key=o.row[9]||'';
-    if(!groups[key]){groups[key]=[];groupOrder.push(key);}
-    groups[key].push(o);
+  var list=document.getElementById('cardList');list.innerHTML='';
+  var slice=filteredItems.slice(0,displayCount);
+  if(!slice.length){list.innerHTML='<div class="empty-items">No items found.</div>';document.getElementById('loadMoreBtn').style.display='none';return;}
+  slice.forEach(function(item,localIdx){
+    var realIdx=filteredItems.indexOf(item);
+    var card=document.createElement('div');card.className='card';
+    var desc=item.description?'<div class="card-desc">'+esc(item.description)+'</div>':'';
+    var metas=(item.category?'<span class="card-meta-item">'+esc(item.category)+'</span>':'')+(item.responsible?'<span class="card-meta-item">'+esc(item.responsible)+'</span>':'')+(item.target_date?'<span class="card-meta-item">'+item.target_date+'</span>':'')+(item.attachment_url?'<span class="card-meta-item">📎 '+esc(item.attachment_name||'file')+'</span>':'');
+    card.innerHTML='<div class="card-top"><span class="card-num">#'+(item.no||'-')+'</span><div class="card-badges">'+typeBadge(item.type)+statusBadge(item.status)+'</div></div><div class="card-title">'+esc(item.issue||'(No Agenda)')+'</div>'+desc+'<div class="card-meta">'+metas+'</div>';
+    card.onclick=function(){openDetail(realIdx);};list.appendChild(card);
   });
-  // Sort groups: dated ones descending, undated last
-  groupOrder.sort(function(a,b){
-    if(!a) return 1;if(!b) return -1;
-    return b.localeCompare(a);
-  });
-  groupOrder.forEach(function(dateKey){
-    // Section header
-    var label=document.createElement('div');
-    label.className='list-section-label';
-    var count=groups[dateKey].length;
-    label.textContent=fmtMeetingDate(dateKey)+'  ·  '+count+' item'+(count>1?'s':'');
-    list.appendChild(label);
-    // Cards in group
-    groups[dateKey].forEach(function(o){
-      var row=o.row,i=o.i;
-      var card=document.createElement('div');card.className='card';
-      var pending=pendingIds.has(row[12])?'<div class="pending-dot"></div>':'';
-      var desc=row[3]?'<div class="card-desc">'+esc(row[3])+'</div>':'';
-      var metas=(row[1]?'<span class="card-meta-item">'+esc(row[1])+'</span>':'')+(row[6]?'<span class="card-meta-item">'+esc(row[6])+'</span>':'')+(row[7]?'<span class="card-meta-item">📅 '+row[7]+'</span>':'')+(row[10]?'<span class="card-meta-item">📎 '+esc(row[11]||'file')+'</span>':'');
-      card.innerHTML=pending+'<div class="card-top"><span class="card-num">#'+(row[0]||'-')+'</span><div class="card-badges">'+typeBadge(row[4])+statusBadge(row[8])+'</div></div><div class="card-title">'+esc(row[2]||'(No Agenda)')+'</div>'+desc+'<div class="card-meta">'+metas+'</div>';
-      card.onclick=function(){openDetail(i);};list.appendChild(card);
-    });
-  });
-  document.getElementById('loadMoreBtn').style.display=filtered.length>displayCount?'block':'none';
+  document.getElementById('loadMoreBtn').style.display=filteredItems.length>displayCount?'block':'none';
 }
 function loadMore(){displayCount+=20;renderCards();}
 
-// TABLE
-function renderTable(){
-  var tbody=document.getElementById('dtBody');if(!tbody) return;
-  var start=(dtPage-1)*DT_PER,end=start+DT_PER,slice=filtered.slice(start,end);tbody.innerHTML='';
-  if(!slice.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;font-family:monospace;color:#6b8a9a;">No items found.</td></tr>';return;}
-  slice.forEach(function(o){
-    var row=o.row,i=o.i;var canEdit=currentRole==='admin'||currentRole==='editor';var canDel=currentRole==='admin';
-    var tr=document.createElement('tr');
-    tr.innerHTML='<td style="font-family:monospace;font-size:0.7rem;">'+(row[0]||'')+'</td><td class="trunc" style="max-width:120px;font-size:0.78rem;">'+(row[1]||'')+'</td><td class="trunc" style="max-width:180px;">'+(row[2]||'')+'</td><td>'+typeBadge(row[4])+'</td><td style="font-size:0.78rem;">'+(row[6]||'')+'</td><td style="font-family:monospace;font-size:0.7rem;">'+(row[7]||'-')+'</td><td>'+statusBadge(row[8])+'</td><td style="font-family:monospace;font-size:0.7rem;">'+(row[9]||'-')+'</td><td><div class="row-acts">'+(canEdit?'<button class="btn-edit-sm" onclick="openEditSheet('+i+')">Edit</button>':'')+(canDel?'<button class="btn-del-sm" onclick="askDelete('+i+')">Del</button>':'')+'</div></td>';
-    tbody.appendChild(tr);
-  });
-  var total=filtered.length;
-  document.getElementById('pagerInfo').textContent=Math.min(start+1,total)+'-'+Math.min(end,total)+' of '+total;
-  document.getElementById('prevBtn').disabled=dtPage<=1;document.getElementById('nextBtn').disabled=dtPage>=Math.ceil(total/DT_PER);
-}
-function sortBy(col){if(sortCol===col) sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}doSort();renderTable();}
-function doSort(){filtered.sort(function(a,b){var va=a.row[sortCol]||'',vb=b.row[sortCol]||'';if(va!==''&&vb!==''&&!isNaN(va)&&!isNaN(vb)) return sortAsc?va-vb:vb-va;return sortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));});}
-function changePage(d){dtPage+=d;renderTable();}
-
 // DETAIL
 function openDetail(idx){
-  var row=allRows[idx];var canEdit=currentRole==='admin'||currentRole==='editor';var canDel=currentRole==='admin';
-  var actions=(canEdit||canDel)?'<div class="detail-actions">'+(canEdit?'<button class="btn-blue-sm" onclick="openEditSheet('+idx+');closeDetail()">Edit</button>':'')+(canDel?'<button class="btn-del-inline" onclick="askDelete('+idx+');closeDetail()">Delete</button>':'')+'</div>':'';
-  var att=row[10]?'<div class="dfield"><div class="dl">Attachment</div><div class="dv"><a href="'+row[10]+'" target="_blank" class="att-link">'+esc(row[11]||'Download')+'</a></div></div>':'';
-  document.getElementById('detailBody').innerHTML=actions+'<div class="dfield"><div class="dl">No.</div><div class="dv mono">'+(row[0]||'-')+'</div></div><div class="dfield"><div class="dl">Category</div><div class="dv">'+(row[1]||'-')+'</div></div><div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv">'+esc(row[2]||'-')+'</div></div><div class="dfield"><div class="dl">Description</div><div class="dv">'+esc(row[3]||'-')+'</div></div><div class="dfield"><div class="dl">Type</div><div class="dv">'+typeBadge(row[4])+'</div></div><div class="dfield"><div class="dl">Action Item</div><div class="dv">'+esc(row[5]||'-')+'</div></div><div class="dfield"><div class="dl">Responsible</div><div class="dv">'+esc(row[6]||'-')+'</div></div><div class="dfield"><div class="dl">Target Date</div><div class="dv mono">'+(row[7]||'-')+'</div></div><div class="dfield"><div class="dl">Status</div><div class="dv">'+statusBadge(row[8])+'</div></div><div class="dfield"><div class="dl">Meeting Date</div><div class="dv mono">'+(row[9]||'-')+'</div></div>'+att;
+  var item=filteredItems[idx];if(!item)return;
+  var canEdit=currentRole==='admin'||currentRole==='editor';
+  var canDel=currentRole==='admin';
+  var globalIdx=(window._meetingItems||[]).indexOf(item);
+  var actions=(canEdit||canDel)?'<div class="detail-actions">'+(canEdit?'<button class="btn-blue-sm" onclick="openEditSheet('+globalIdx+');closeDetail()">Edit</button>':'')+(canDel?'<button class="btn-del-inline" onclick="askDeleteItem('+globalIdx+');closeDetail()">Delete</button>':'')+'</div>':'';
+  var att=item.attachment_url?'<div class="dfield"><div class="dl">Attachment</div><div class="dv"><a href="'+item.attachment_url+'" target="_blank" class="att-link">'+esc(item.attachment_name||'Download')+'</a></div></div>':'';
+  document.getElementById('detailBody').innerHTML=actions+'<div class="dfield"><div class="dl">No.</div><div class="dv mono">'+(item.no||'-')+'</div></div><div class="dfield"><div class="dl">Category</div><div class="dv">'+(item.category||'-')+'</div></div><div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv">'+esc(item.issue||'-')+'</div></div><div class="dfield"><div class="dl">Description</div><div class="dv">'+esc(item.description||'-')+'</div></div><div class="dfield"><div class="dl">Type</div><div class="dv">'+typeBadge(item.type)+'</div></div><div class="dfield"><div class="dl">Action Item</div><div class="dv">'+esc(item.action_item||'-')+'</div></div><div class="dfield"><div class="dl">Responsible</div><div class="dv">'+esc(item.responsible||'-')+'</div></div><div class="dfield"><div class="dl">Target Date</div><div class="dv mono">'+(item.target_date||'-')+'</div></div><div class="dfield"><div class="dl">Status</div><div class="dv">'+statusBadge(item.status)+'</div></div>'+att;
   openSheet('detailOverlay','detailSheet');
 }
 function closeDetail(){closeSheet('detailOverlay','detailSheet');}
 
-// EDIT
+// EDIT ITEM
 function openEditSheet(idx){
-  if(currentRole==='viewer') return;editIdx=idx;
+  if(currentRole==='viewer')return;
+  editItemIdx=idx;
+  var item=(idx===-1)?{}:(window._meetingItems||[])[idx]||{};
   document.getElementById('editTitle').textContent=idx===-1?'Add New Item':'Edit Item';
-  var row=idx===-1?[]:allRows[idx];
-  document.getElementById('fNo').value=row[0]||'';document.getElementById('fCat2').value=row[1]||'';document.getElementById('fIssue').value=row[2]||'';document.getElementById('fDesc').value=row[3]||'';document.getElementById('fType2').value=row[4]||'';document.getElementById('fAction').value=row[5]||'';document.getElementById('fResp').value=row[6]||'';document.getElementById('fTarget').value=row[7]||'';document.getElementById('fStat2').value=row[8]||'';document.getElementById('fMeeting').value=row[9]||'';
+  document.getElementById('fNo').value=item.no||'';
+  document.getElementById('fCat2').value=item.category||'';
+  document.getElementById('fIssue').value=item.issue||'';
+  document.getElementById('fDesc').value=item.description||'';
+  document.getElementById('fType2').value=item.type||'';
+  document.getElementById('fAction').value=item.action_item||'';
+  document.getElementById('fResp').value=item.responsible||'';
+  document.getElementById('fTarget').value=item.target_date||'';
+  document.getElementById('fStat2').value=item.status||'';
   pendingFile=null;updateFileWrap();
   var ea=document.getElementById('existingAtt');
-  if(row[10]) ea.innerHTML='<div style="font-family:monospace;font-size:0.6rem;color:var(--muted);margin-bottom:0.2rem;">CURRENT FILE</div><a href="'+row[10]+'" target="_blank" class="att-link">'+esc(row[11]||'View file')+'</a>';
+  if(item.attachment_url)ea.innerHTML='<a href="'+item.attachment_url+'" target="_blank" class="att-link">'+esc(item.attachment_name||'View file')+'</a>';
   else ea.innerHTML='';
   document.getElementById('delBtn').style.display=(currentRole==='admin'&&idx>=0)?'':'none';
   openSheet('editOverlay','editSheet');
 }
-function closeEdit(){closeSheet('editOverlay','editSheet');editIdx=-1;pendingFile=null;updateFileWrap();}
+function closeEdit(){closeSheet('editOverlay','editSheet');editItemIdx=-1;pendingFile=null;updateFileWrap();}
 
 async function saveItem(){
-  if(currentRole==='viewer') return;
+  if(currentRole==='viewer')return;
+  if(!selectedMeeting){flash('No meeting selected',true);return;}
   var btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Saving...';
-  var isNew=editIdx===-1;var itemId=isNew?null:allRows[editIdx][12];
-  var data=rowToData();
-  if(isOnline){
-    try{
-      if(pendingFile){var path=currentEmail.replace('@','_')+'/'+Date.now()+'_'+pendingFile.name;data.attachment_url=await sbUpload(path,pendingFile);data.attachment_name=pendingFile.name;}
-      var saved=isNew?await sbPost(TABLE_MOM,data):await sbPatch(TABLE_MOM,itemId,data);
-      var newRow=itemToRow(Array.isArray(saved)?saved[0]:saved);
-      if(isNew) allRows.push(newRow);else allRows[editIdx]=newRow;
-      lsSet(CACHE_KEY,allRows);applyFilters();flash('Item '+(isNew?'added':'updated')+'.');
-    }catch(e){
-      var nr=[data.no||'',data.category||'',data.issue||'',data.description||'',data.type||'',data.action_item||'',data.responsible||'',data.target_date||'',data.status||'',data.meeting_date||'',isNew?'':(allRows[editIdx][10]||''),isNew?'':(allRows[editIdx][11]||''),itemId||'pending'];
-      if(isNew) allRows.push(nr);else allRows[editIdx]=nr;
-      lsSet(CACHE_KEY,allRows);applyFilters();
-      enqueue(isNew?{action:'add',data:data}:{action:'update',id:itemId,data:data});
-      flash('Saved offline.');
-    }
-  }else{
-    var nr2=[data.no||'',data.category||'',data.issue||'',data.description||'',data.type||'',data.action_item||'',data.responsible||'',data.target_date||'',data.status||'',data.meeting_date||'',isNew?'':(allRows[editIdx][10]||''),isNew?'':(allRows[editIdx][11]||''),itemId||'pending'];
-    if(isNew) allRows.push(nr2);else allRows[editIdx]=nr2;
-    lsSet(CACHE_KEY,allRows);applyFilters();
-    enqueue(isNew?{action:'add',data:data}:{action:'update',id:itemId,data:data});
-    flash('Saved offline.');
-  }
+  var isNew=editItemIdx===-1;
+  var existing=(isNew?{}:(window._meetingItems||[])[editItemIdx])||{};
+  var data={
+    no:document.getElementById('fNo').value||null,
+    category:document.getElementById('fCat2').value||null,
+    issue:document.getElementById('fIssue').value||null,
+    description:document.getElementById('fDesc').value||null,
+    type:document.getElementById('fType2').value||null,
+    action_item:document.getElementById('fAction').value||null,
+    responsible:document.getElementById('fResp').value||null,
+    target_date:document.getElementById('fTarget').value||null,
+    status:document.getElementById('fStat2').value||null,
+    meeting_id:selectedMeeting.id,
+    project_id:selectedMeeting.project_id
+  };
+  try{
+    if(pendingFile){var path=currentEmail.replace('@','_')+'/'+Date.now()+'_'+pendingFile.name;data.attachment_url=await sbUpload(path,pendingFile);data.attachment_name=pendingFile.name;}
+    var saved=isNew?await sbPost(TABLE_MOM,data):await sbPatch(TABLE_MOM,existing.id,data);
+    var newItem=Array.isArray(saved)?saved[0]:saved;
+    var items=window._meetingItems||[];
+    if(isNew)items.push(newItem);else items[editItemIdx]=newItem;
+    window._meetingItems=items;
+    // Update counts
+    allItems=allItems.filter(function(it){return it.meeting_id!==selectedMeeting.id;});
+    allItems=allItems.concat(items.map(function(i){return{id:i.id,meeting_id:i.meeting_id};}));
+    applyFilters();flash('Item '+(isNew?'added':'updated')+'.');
+  }catch(e){flash('Error: '+e.message,true);}
   closeEdit();pendingFile=null;btn.disabled=false;btn.textContent='Save';
 }
 
-// DELETE
-function askDelete(idx){if(currentRole!=='admin') return;deleteIdx=idx;var row=allRows[idx];document.getElementById('delPreview').textContent='#'+(row[0]||'-')+' - '+(row[2]||'(no agenda)');openSheet('confirmOverlay','confirmSheet');}
-function askDeleteCurrent(){closeEdit();askDelete(editIdx);}
-function closeConfirm(){closeSheet('confirmOverlay','confirmSheet');deleteIdx=-1;}
+// DELETE ITEM
+function askDeleteItem(idx){
+  if(currentRole!=='admin')return;
+  deleteTarget=idx;deleteType='item';
+  var item=(window._meetingItems||[])[idx]||{};
+  document.getElementById('confirmTitle').textContent='Delete Item?';
+  document.getElementById('delPreview').textContent='#'+(item.no||'-')+' · '+(item.issue||'(no agenda)');
+  openSheet('confirmOverlay','confirmSheet');
+}
+function askDeleteCurrent(){closeEdit();askDeleteItem(editItemIdx);}
+function closeConfirm(){closeSheet('confirmOverlay','confirmSheet');deleteTarget=null;deleteType='';}
 async function confirmDelete(){
-  if(currentRole!=='admin'||deleteIdx<0) return;
-  var id=allRows[deleteIdx][12];allRows.splice(deleteIdx,1);lsSet(CACHE_KEY,allRows);applyFilters();closeConfirm();
-  if(isOnline){try{await sbDelete(TABLE_MOM,id);flash('Item deleted.');}catch(e){enqueue({action:'delete',id:id});flash('Deleted offline.');}}
-  else{enqueue({action:'delete',id:id});flash('Deleted offline.');}
+  if(deleteType==='item') await doDeleteItem();
+  else if(deleteType==='meeting') await doDeleteMeeting();
+  else if(deleteType==='project') await doDeleteProject();
+  closeConfirm();
+}
+async function doDeleteItem(){
+  var idx=deleteTarget;var item=(window._meetingItems||[])[idx];if(!item)return;
+  var items=window._meetingItems||[];items.splice(idx,1);window._meetingItems=items;
+  allItems=allItems.filter(function(it){return it.id!==item.id;});
+  applyFilters();
+  try{await sbDelete(TABLE_MOM,item.id);flash('Item deleted.');}catch(e){flash('Error: '+e.message,true);}
+}
+
+// MEETING CRUD
+function openMeetingSheet(meeting){
+  editMeetingId=meeting?meeting.id:null;
+  document.getElementById('meetingSheetTitle').textContent=meeting?'Edit Meeting':'New Meeting';
+  document.getElementById('mTitle').value=meeting?meeting.title||'':'';
+  document.getElementById('mDate').value=meeting?meeting.meeting_date||'':'';
+  document.getElementById('mLocation').value=meeting?meeting.location||'':'';
+  document.getElementById('meetingDelBtn').style.display=(currentRole==='admin'&&meeting)?'':'none';
+  // Show current project
+  var proj=selectedProject||allProjects[0];
+  if(proj){
+    var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
+    document.getElementById('meetingFormProj').innerHTML='<div class="meeting-form-proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><span class="meeting-form-proj-name">'+esc(proj.name)+'</span>';
+  }
+  openSheet('meetingOverlay','meetingSheet');
+}
+function closeMeetingSheet(){closeSheet('meetingOverlay','meetingSheet');editMeetingId=null;}
+async function saveMeeting(){
+  var btn=document.getElementById('meetingSaveBtn');btn.disabled=true;btn.textContent='Saving...';
+  var proj=selectedProject||allProjects[0];if(!proj){flash('Select a project first',true);btn.disabled=false;btn.textContent='Save';return;}
+  var data={title:document.getElementById('mTitle').value||'Untitled',meeting_date:document.getElementById('mDate').value||null,location:document.getElementById('mLocation').value||null,project_id:proj.id};
+  try{
+    var saved=editMeetingId?await sbPatch(TABLE_MEETINGS,editMeetingId,data):await sbPost(TABLE_MEETINGS,data);
+    var m=Array.isArray(saved)?saved[0]:saved;
+    if(editMeetingId){allMeetings=allMeetings.map(function(x){return x.id===editMeetingId?m:x;});}
+    else{allMeetings.unshift(m);}
+    closeMeetingSheet();filterMeetings();flash('Meeting saved.');
+  }catch(e){flash('Error: '+e.message,true);}
+  btn.disabled=false;btn.textContent='Save';
+}
+function askDeleteMeeting(){deleteTarget=editMeetingId;deleteType='meeting';document.getElementById('confirmTitle').textContent='Delete Meeting?';document.getElementById('delPreview').textContent='This will delete the meeting and all its items.';closeMeetingSheet();openSheet('confirmOverlay','confirmSheet');}
+async function doDeleteMeeting(){
+  var id=deleteTarget;
+  allMeetings=allMeetings.filter(function(m){return m.id!==id;});
+  filterMeetings();
+  try{await sbDelete(TABLE_MEETINGS,id);flash('Meeting deleted.');}catch(e){flash('Error: '+e.message,true);}
+}
+
+// PROJECT CRUD
+function openProjSheet(proj){
+  editProjectId=proj?proj.id:null;
+  document.getElementById('projSheetTitle').textContent=proj?'Edit Project':'New Project';
+  document.getElementById('pName').value=proj?proj.name||'':'';
+  document.getElementById('pShort').value=proj?proj.short_name||'':'';
+  document.getElementById('pCode').value=proj?proj.code||'':'';
+  document.getElementById('pColor').value=proj?proj.color||'#007aff':'#007aff';
+  document.getElementById('projDelBtn').style.display=(currentRole==='admin'&&proj)?'':'none';
+  pendingProjPhoto=null;
+  var preview=document.getElementById('projPhotoPreview');
+  if(proj&&proj.photo_url)preview.innerHTML='<img src="'+proj.photo_url+'" alt=""/>';
+  else{var c=proj?proj.color||'#007aff':'#007aff';preview.style.background=c;preview.textContent=proj?proj.short_name||proj.name.charAt(0):'+';}
+  openSheet('projOverlay','projSheet');
+}
+function closeProjSheet(){closeSheet('projOverlay','projSheet');editProjectId=null;pendingProjPhoto=null;}
+function handleProjPhoto(e){
+  var file=e.target.files[0];if(!file)return;pendingProjPhoto=file;
+  var reader=new FileReader();reader.onload=function(ev){var preview=document.getElementById('projPhotoPreview');preview.innerHTML='<img src="'+ev.target.result+'" alt=""/>';};reader.readAsDataURL(file);
+  e.target.value='';
+}
+async function saveProject(){
+  var btn=document.getElementById('projSaveBtn');btn.disabled=true;btn.textContent='Saving...';
+  var data={name:document.getElementById('pName').value||'Unnamed',short_name:document.getElementById('pShort').value||null,code:document.getElementById('pCode').value||null,color:document.getElementById('pColor').value||'#007aff'};
+  try{
+    if(pendingProjPhoto){var path='projects/'+Date.now()+'_'+pendingProjPhoto.name;data.photo_url=await sbUpload(path,pendingProjPhoto);}
+    var saved=editProjectId?await sbPatch(TABLE_PROJECTS,editProjectId,data):await sbPost(TABLE_PROJECTS,data);
+    var p=Array.isArray(saved)?saved[0]:saved;
+    if(editProjectId){allProjects=allProjects.map(function(x){return x.id===editProjectId?p:x;});}
+    else{allProjects.push(p);}
+    closeProjSheet();renderProjects();if(allProjects.length===1)selectProject(allProjects[0]);flash('Project saved.');
+  }catch(e){flash('Error: '+e.message,true);}
+  btn.disabled=false;btn.textContent='Save';
+}
+function askDeleteProject(){deleteTarget=editProjectId;deleteType='project';document.getElementById('confirmTitle').textContent='Delete Project?';document.getElementById('delPreview').textContent='This will delete the project and all its meetings and items.';closeProjSheet();openSheet('confirmOverlay','confirmSheet');}
+async function doDeleteProject(){
+  var id=deleteTarget;
+  allProjects=allProjects.filter(function(p){return p.id!==id;});
+  allMeetings=allMeetings.filter(function(m){return m.project_id!==id;});
+  renderProjects();filterMeetings();
+  try{await sbDelete(TABLE_PROJECTS,id);flash('Project deleted.');}catch(e){flash('Error: '+e.message,true);}
 }
 
 // FILE
 function triggerCamera(){var inp=document.getElementById('fileInput');inp.accept='image/*';inp.capture='environment';inp.click();}
-function handleFile(e){var file=e.target.files[0];if(!file) return;pendingFile=file;updateFileWrap();e.target.value='';}
+function handleFile(e){var file=e.target.files[0];if(!file)return;pendingFile=file;updateFileWrap();e.target.value='';}
 function clearFile(){pendingFile=null;updateFileWrap();}
 function updateFileWrap(){var w=document.getElementById('fileWrap');var l=document.getElementById('fileNameLabel');if(pendingFile){l.textContent=pendingFile.name;w.classList.add('show');}else{w.classList.remove('show');l.textContent='';}}
 
-// HELPERS
-function openSheet(ov,sh){document.getElementById(ov).classList.add('open');document.getElementById(sh).classList.add('open');document.getElementById('scrollArea').style.overflow='hidden';}
-function closeSheet(ov,sh){document.getElementById(ov).classList.remove('open');document.getElementById(sh).classList.remove('open');document.getElementById('scrollArea').style.overflow='';}
-function statusBadge(s){if(!s) return '';var m={'open':'b-open','closed':'b-closed','on hold':'b-onhold'};return '<span class="badge '+(m[String(s).toLowerCase()]||'')+'">' +s+'</span>';}
-function typeBadge(t){if(!t) return '';var m={'issue':'b-issue','fyi':'b-fyi','report':'b-report'};return '<span class="badge '+(m[String(t).toLowerCase()]||'')+'">' +t+'</span>';}
+// SHEET HELPERS
+function openSheet(ov,sh){document.getElementById(ov).classList.add('open');document.getElementById(sh).classList.add('open');}
+function closeSheet(ov,sh){document.getElementById(ov).classList.remove('open');document.getElementById(sh).classList.remove('open');}
+
+// MISC
+function statusBadge(s){if(!s)return'';var m={'open':'b-open','closed':'b-closed','on hold':'b-onhold'};return'<span class="badge '+(m[String(s).toLowerCase()]||'')+'">'+s+'</span>';}
+function typeBadge(t){if(!t)return'';var m={'issue':'b-issue','fyi':'b-fyi','report':'b-report'};return'<span class="badge '+(m[String(t).toLowerCase()]||'')+'">'+t+'</span>';}
 function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function setState(s){['stateLogin','stateLoading','stateNoAccess','stateTable'].forEach(function(id){document.getElementById(id).style.display='none';});var m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',table:'stateTable'};if(m[s]) document.getElementById(m[s]).style.display='';}
+function fmtDate(d){if(!d)return'No date';var p=d.split('-');if(p.length!==3)return d;var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return months[parseInt(p[1])-1]+' '+parseInt(p[2])+', '+p[0];}
+function setState(s){
+  ['stateLogin','stateLoading','stateNoAccess','screenProjects'].forEach(function(id){document.getElementById(id).style.display='none';});
+  var m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',projects:'screenProjects'};
+  if(m[s])document.getElementById(m[s]).style.display='';
+}
 var bTimer;
-function flash(msg,err){var b=document.getElementById('flashBanner');b.textContent=msg;b.style.borderLeftColor=err?'var(--red)':'var(--gold)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(function(){b.style.display='none';},4500);}
+function flash(msg,err){var b=document.getElementById('flashBanner');b.textContent=msg;b.style.color=err?'var(--red)':'var(--ink2)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(function(){b.style.display='none';},4000);}
 
 // INIT
 (async function(){
@@ -744,13 +890,13 @@ function flash(msg,err){var b=document.getElementById('flashBanner');b.textConte
   try{
     var lib=await waitForMsal();
     msalInstance=new lib.PublicClientApplication({auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:'localStorage'}});
-    if(typeof msalInstance.initialize==='function') await msalInstance.initialize();
+    if(typeof msalInstance.initialize==='function')await msalInstance.initialize();
     await msalInstance.handleRedirectPromise();
-    if(msalInstance.getAllAccounts().length) await onSignedIn();
+    if(msalInstance.getAllAccounts().length)await onSignedIn();
     else setState('login');
   }catch(e){setState('login');flash('Load error: '+e.message,true);}
 })();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 </script>
 </body>
 </html>
