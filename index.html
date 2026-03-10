@@ -477,8 +477,9 @@ function updateOfflineBanner(){document.getElementById('offlineBanner').classLis
 // ── AUTH ──────────────────────────────────────────────
 async function signIn(){
   try{
-    const lib=await waitForMsal();
+    // Always reuse the instance initialized at startup
     if(!msalInstance){
+      const lib=await waitForMsal();
       msalInstance=new lib.PublicClientApplication({
         auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},
         cache:{cacheLocation:'localStorage'}
@@ -486,7 +487,11 @@ async function signIn(){
       if(typeof msalInstance.initialize==='function') await msalInstance.initialize();
     }
     await msalInstance.loginRedirect({scopes:SCOPES});
-  }catch(e){flash('Sign-in error: '+e.message,true);}
+  }catch(e){
+    console.error('Sign-in error:', e);
+    flash('Sign-in error: '+e.message, true);
+    document.getElementById('stateLogin').querySelector('p').innerHTML=`<strong style="color:var(--accent)">Sign-in failed:</strong> ${e.message}`;
+  }
 }
 function signOut(){
   try{getMsal().logoutRedirect();}catch(e){}
