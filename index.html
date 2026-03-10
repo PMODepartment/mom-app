@@ -12,6 +12,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="./msal-browser.min.js"></script>
   <style>
+
+    /* HAMBURGER MENU */
+    #hamburgerBtn{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:0.4rem;border-radius:8px;}
+    #hamburgerBtn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all 0.2s;}
+    #hamburgerBtn:active{background:rgba(255,255,255,0.15);}
+    #hamburgerMenu{display:none;position:absolute;top:calc(100% + 4px);right:0.75rem;background:var(--surface);border-radius:var(--rl);box-shadow:var(--sh2);padding:0.75rem;min-width:180px;z-index:500;border:1px solid var(--border);}
+    #hamburgerMenu.open{display:block;}
+    .hm-name{font-size:0.88rem;font-weight:700;color:var(--ink);margin-bottom:0.3rem;}
+    .hm-divider{height:1px;background:var(--border);margin:0.5rem 0;}
+    .hm-signout{width:100%;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.55rem 0.75rem;border:none;border-radius:var(--r);background:var(--red-l);color:var(--red);cursor:pointer;text-align:left;}
+    @media(max-width:599px){
+      #userInfo{display:none !important;}
+      #hamburgerBtn{display:flex;}
+    }
+    @media(min-width:600px){
+      #hamburgerBtn{display:none !important;}
+      #hamburgerMenu{display:none !important;}
+    }
+
     :root{
       --bg:#f2f2f7;--surface:#fff;--surface2:#f2f2f7;--surface3:#e5e5ea;
       --ink:#1c1c1e;--ink2:#3a3a3c;--muted:#8e8e93;
@@ -254,7 +273,7 @@
   <div style="flex:1;text-align:center;">
     <div style="font-size:0.95rem;font-weight:700;color:#fff;letter-spacing:-0.01em;">Minutes of the Meetings</div>
   </div>
-  <div class="hright">
+  <div class="hright" style="position:relative;">
     <button class="hbtn" id="loginBtn" onclick="signIn()">Sign In</button>
     <div id="userInfo">
       <div class="user-meta">
@@ -262,6 +281,15 @@
         <span class="role-chip" id="roleChip"></span>
       </div>
       <button class="hbtn" id="logoutBtn" onclick="signOut()" style="display:block;">Sign Out</button>
+    </div>
+    <button id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="hamburgerMenu">
+      <div class="hm-name" id="hmName"></div>
+      <span class="role-chip" id="hmChip"></span>
+      <div class="hm-divider"></div>
+      <button class="hm-signout" onclick="signOut()">Sign Out</button>
     </div>
   </div>
 </header>
@@ -560,7 +588,7 @@ function applyUserUI(){
   var chip=document.getElementById('roleChip');chip.textContent=cap(currentRole);chip.className='role-chip rc-'+currentRole;
   var info=document.getElementById('userInfo');info.style.display='flex';
   var parts=currentEmail.split('@')[0].split('.');
-  document.getElementById('userNameLabel').textContent=parts.map(function(p){return p.charAt(0).toUpperCase()+p.slice(1);}).join(' ');
+  var displayName=parts.map(function(p){return p.charAt(0).toUpperCase()+p.slice(1);}).join(' ');document.getElementById('userNameLabel').textContent=displayName;var hmName=document.getElementById('hmName');if(hmName)hmName.textContent=displayName;var hmChip=document.getElementById('hmChip');if(hmChip){hmChip.textContent=cap(currentRole);hmChip.className='role-chip rc-'+currentRole;}
   var canAdd=currentRole==='admin';
   document.getElementById('addMeetingBtn').style.display=canAdd?'':'none';
 }
@@ -895,6 +923,19 @@ function setState(s){
 }
 var bTimer;
 function flash(msg,err){var b=document.getElementById('flashBanner');b.textContent=msg;b.style.color=err?'var(--red)':'var(--ink2)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(function(){b.style.display='none';},4000);}
+
+// HAMBURGER
+function toggleHamburger(){
+  var m=document.getElementById('hamburgerMenu');
+  m.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  var btn=document.getElementById('hamburgerBtn');
+  var menu=document.getElementById('hamburgerMenu');
+  if(menu&&btn&&!btn.contains(e.target)&&!menu.contains(e.target)){
+    menu.classList.remove('open');
+  }
+});
 
 // INIT
 (async function(){
