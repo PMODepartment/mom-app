@@ -13,207 +13,189 @@
   <script src="./msal-browser.min.js"></script>
   <style>
     :root {
-      --ink:    #16213e;
-      --paper:  #f7f3ec;
-      --cream:  #ede8dc;
-      --accent: #b5341a;
-      --blue:   #1a5c8a;
-      --gold:   #9a7000;
-      --muted:  #7a7468;
-      --border: #d8d2c6;
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bot: env(safe-area-inset-bottom, 0px);
+      --ink:#16213e; --paper:#f7f3ec; --cream:#ede8dc; --accent:#b5341a;
+      --blue:#1a5c8a; --gold:#9a7000; --muted:#7a7468; --border:#d8d2c6;
+      --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-    body {
-      font-family: 'Literata', Georgia, serif;
-      background: var(--paper); color: var(--ink);
-      display: flex; flex-direction: column; overflow: hidden;
-    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;}
+    body{font-family:'Literata',Georgia,serif;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;}
 
-    /* ── HEADER ── */
-    header {
-      background: var(--ink);
-      padding: calc(var(--safe-top) + 0.6rem) 1rem 0.6rem;
-      display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 2.5px solid var(--accent);
-      flex-shrink: 0; z-index: 50;
-    }
-    .brand h1 { font-family:'DM Serif Display',serif; font-size:clamp(0.88rem,4vw,1.1rem); color:var(--paper); }
-    .brand .sub { font-family:'DM Mono',monospace; font-size:0.55rem; color:#5a7080; letter-spacing:0.12em; text-transform:uppercase; }
-    .hright { display:flex; align-items:center; gap:0.45rem; }
-    .role-chip { font-family:'DM Mono',monospace; font-size:0.54rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.17rem 0.42rem; border-radius:2px; display:none; }
-    .rc-admin  { background:#2a1a3e; color:#ce93d8; border:1px solid #6a1b9a; }
-    .rc-editor { background:#1a2e1a; color:#81c784; border:1px solid #2e7d32; }
-    .rc-viewer { background:#1a2a3e; color:#90caf9; border:1px solid #1a5c8a; }
-    .hbtn { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase; padding:0.35rem 0.72rem; border-radius:3px; cursor:pointer; border:1.5px solid; -webkit-tap-highlight-color:transparent; }
-    #loginBtn  { border-color:var(--accent); background:transparent; color:var(--paper); }
-    #loginBtn:active { background:var(--accent); }
-    #logoutBtn { border-color:#334; background:transparent; color:#5a7080; display:none; }
+    /* HEADER */
+    header{background:var(--ink);padding:calc(var(--safe-top) + 0.6rem) 1rem 0.6rem;display:flex;align-items:center;justify-content:space-between;border-bottom:2.5px solid var(--accent);flex-shrink:0;z-index:50;}
+    .brand h1{font-family:'DM Serif Display',serif;font-size:clamp(0.88rem,4vw,1.1rem);color:var(--paper);}
+    .brand .sub{font-family:'DM Mono',monospace;font-size:0.55rem;color:#5a7080;letter-spacing:0.12em;text-transform:uppercase;}
+    .hright{display:flex;align-items:center;gap:0.45rem;}
+    .role-chip{font-family:'DM Mono',monospace;font-size:0.54rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.17rem 0.42rem;border-radius:2px;display:none;}
+    .rc-admin{background:#2a1a3e;color:#ce93d8;border:1px solid #6a1b9a;}
+    .rc-editor{background:#1a2e1a;color:#81c784;border:1px solid #2e7d32;}
+    .rc-viewer{background:#1a2a3e;color:#90caf9;border:1px solid #1a5c8a;}
+    .hbtn{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.35rem 0.72rem;border-radius:3px;cursor:pointer;border:1.5px solid;-webkit-tap-highlight-color:transparent;}
+    #loginBtn{border-color:var(--accent);background:transparent;color:var(--paper);}
+    #loginBtn:active{background:var(--accent);}
+    #logoutBtn{border-color:#334;background:transparent;color:#5a7080;display:none;}
 
-    /* ── BANNERS ── */
-    #offlineBanner { display:none; background:var(--gold); color:#fff; font-family:'DM Mono',monospace; font-size:0.67rem; text-align:center; padding:0.3rem; letter-spacing:0.05em; }
-    #offlineBanner.show { display:block; }
-    #syncInfo { display:none; font-family:'DM Mono',monospace; font-size:0.65rem; text-align:center; padding:0.3rem; background:#fff8e1; color:var(--gold); border-bottom:1px solid #ffe082; }
-    #syncInfo.show { display:block; }
-    #flashBanner { display:none; font-family:'DM Mono',monospace; font-size:0.7rem; padding:0.46rem 1rem; border-left:4px solid var(--gold); background:var(--ink); color:var(--paper); flex-shrink:0; }
+    /* BANNERS */
+    #offlineBanner{display:none;background:var(--gold);color:#fff;font-family:'DM Mono',monospace;font-size:0.67rem;text-align:center;padding:0.3rem;letter-spacing:0.05em;}
+    #offlineBanner.show{display:block;}
+    #syncInfo{display:none;font-family:'DM Mono',monospace;font-size:0.65rem;text-align:center;padding:0.3rem;background:#fff8e1;color:var(--gold);border-bottom:1px solid #ffe082;}
+    #syncInfo.show{display:block;}
+    #flashBanner{display:none;font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.46rem 1rem;border-left:4px solid var(--gold);background:var(--ink);color:var(--paper);flex-shrink:0;}
 
-    /* ── MOBILE SEARCH ── */
-    #searchBarEl { display:none; flex-shrink:0; }
-    .searchbar { padding:0.55rem 0.85rem; background:var(--cream); border-bottom:1px solid var(--border); display:flex; gap:0.45rem; align-items:center; }
-    .searchbar input { flex:1; font-family:'DM Mono',monospace; font-size:0.76rem; padding:0.46rem 0.72rem; border:1.5px solid var(--border); border-radius:20px; background:var(--paper); color:var(--ink); }
-    .searchbar input:focus { outline:none; border-color:var(--blue); }
-    .btn-filter { font-family:'DM Mono',monospace; font-size:0.62rem; padding:0.43rem 0.68rem; border:1.5px solid var(--border); border-radius:20px; background:var(--paper); color:var(--muted); cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent; }
-    .btn-filter.active { border-color:var(--blue); color:var(--blue); background:#e8f0fb; }
-    #filterDrawer { display:none; background:var(--cream); border-bottom:1px solid var(--border); padding:0.62rem 0.85rem; }
-    #filterDrawer.open { display:block; }
-    .filter-row { display:flex; gap:0.42rem; flex-wrap:wrap; }
-    .filter-row select { font-family:'DM Mono',monospace; font-size:0.68rem; padding:0.36rem 0.52rem; border:1.5px solid var(--border); border-radius:16px; background:var(--paper); color:var(--ink); flex:1; min-width:115px; }
+    /* MOBILE SEARCH */
+    #searchBarEl{display:none;flex-shrink:0;}
+    .searchbar{padding:0.55rem 0.85rem;background:var(--cream);border-bottom:1px solid var(--border);display:flex;gap:0.45rem;align-items:center;}
+    .searchbar input{flex:1;font-family:'DM Mono',monospace;font-size:0.76rem;padding:0.46rem 0.72rem;border:1.5px solid var(--border);border-radius:20px;background:var(--paper);color:var(--ink);}
+    .searchbar input:focus{outline:none;border-color:var(--blue);}
+    .btn-filter{font-family:'DM Mono',monospace;font-size:0.62rem;padding:0.43rem 0.68rem;border:1.5px solid var(--border);border-radius:20px;background:var(--paper);color:var(--muted);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+    .btn-filter.active{border-color:var(--blue);color:var(--blue);background:#e8f0fb;}
+    #filterDrawer{display:none;background:var(--cream);border-bottom:1px solid var(--border);padding:0.62rem 0.85rem;}
+    #filterDrawer.open{display:block;}
+    .filter-row{display:flex;gap:0.42rem;flex-wrap:wrap;}
+    .filter-row select{font-family:'DM Mono',monospace;font-size:0.68rem;padding:0.36rem 0.52rem;border:1.5px solid var(--border);border-radius:16px;background:var(--paper);color:var(--ink);flex:1;min-width:115px;}
 
-    /* ── DESKTOP TOOLBAR ── */
-    #desktopToolbar { display:none; flex-wrap:wrap; align-items:center; gap:0.62rem; padding:0.76rem 1.5rem; background:var(--cream); border-bottom:1px solid var(--border); flex-shrink:0; }
-    #desktopToolbar input[type="text"] { font-family:'DM Mono',monospace; font-size:0.75rem; padding:0.42rem 0.78rem; border:1.5px solid var(--border); border-radius:2px; background:var(--paper); color:var(--ink); width:195px; }
-    #desktopToolbar input:focus { outline:none; border-color:var(--blue); }
-    #desktopToolbar select { font-family:'DM Mono',monospace; font-size:0.7rem; padding:0.42rem 0.62rem; border:1.5px solid var(--border); border-radius:2px; background:var(--paper); color:var(--ink); }
-    #desktopAddBtn { display:none; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.07em; text-transform:uppercase; padding:0.44rem 1.05rem; background:var(--accent); color:#fff; border:none; border-radius:2px; cursor:pointer; margin-left:auto; }
-    #desktopAddBtn:hover { background:#8f2810; }
+    /* DESKTOP TOOLBAR */
+    #desktopToolbar{display:none;flex-wrap:wrap;align-items:center;gap:0.62rem;padding:0.76rem 1.5rem;background:var(--cream);border-bottom:1px solid var(--border);flex-shrink:0;}
+    #desktopToolbar input[type="text"]{font-family:'DM Mono',monospace;font-size:0.75rem;padding:0.42rem 0.78rem;border:1.5px solid var(--border);border-radius:2px;background:var(--paper);color:var(--ink);width:195px;}
+    #desktopToolbar input:focus{outline:none;border-color:var(--blue);}
+    #desktopToolbar select{font-family:'DM Mono',monospace;font-size:0.7rem;padding:0.42rem 0.62rem;border:1.5px solid var(--border);border-radius:2px;background:var(--paper);color:var(--ink);}
+    #desktopAddBtn{display:none;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.07em;text-transform:uppercase;padding:0.44rem 1.05rem;background:var(--accent);color:#fff;border:none;border-radius:2px;cursor:pointer;margin-left:auto;}
+    #desktopAddBtn:hover{background:#8f2810;}
 
-    /* ── SCROLL ── */
-    .scroll-area { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    /* SCROLL */
+    .scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
-    /* ── STATES ── */
-    .centered { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; padding:2rem 1.5rem; text-align:center; color:var(--muted); }
-    .centered .icon { font-size:2.6rem; opacity:0.14; margin-bottom:0.65rem; }
-    .centered p { font-size:0.84rem; line-height:1.8; }
-    .centered small { font-family:'DM Mono',monospace; font-size:0.65rem; }
-    .spinner { width:26px; height:26px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 0.7rem; }
-    @keyframes spin { to{transform:rotate(360deg)} }
-    .denied-box { margin:1.5rem 1rem; background:#fff; border:1px solid var(--border); border-top:4px solid var(--accent); border-radius:8px; padding:1.4rem; box-shadow:0 2px 10px rgba(22,33,62,0.07); }
-    .denied-box h3 { font-family:'DM Serif Display',serif; font-size:1.05rem; margin-bottom:0.4rem; }
-    .denied-box p { font-size:0.8rem; color:var(--muted); line-height:1.75; }
-    .denied-box code { font-family:'DM Mono',monospace; font-size:0.72rem; background:var(--cream); padding:0.1rem 0.35rem; border-radius:3px; color:var(--accent); word-break:break-all; }
+    /* STATES */
+    .centered{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:2rem 1.5rem;text-align:center;color:var(--muted);}
+    .centered .icon{font-size:2.6rem;opacity:0.14;margin-bottom:0.65rem;}
+    .centered p{font-size:0.84rem;line-height:1.8;}
+    .centered small{font-family:'DM Mono',monospace;font-size:0.65rem;}
+    .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 0.7rem;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .denied-box{margin:1.5rem 1rem;background:#fff;border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:8px;padding:1.4rem;}
+    .denied-box h3{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:0.4rem;}
+    .denied-box p{font-size:0.8rem;color:var(--muted);line-height:1.75;}
+    .denied-box code{font-family:'DM Mono',monospace;font-size:0.72rem;background:var(--cream);padding:0.1rem 0.35rem;border-radius:3px;color:var(--accent);word-break:break-all;}
 
-    /* ── CARDS ── */
-    .card-list { padding:0.62rem; display:flex; flex-direction:column; gap:0.52rem; }
-    .card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:0.82rem; box-shadow:0 1px 5px rgba(22,33,62,0.06); cursor:pointer; -webkit-tap-highlight-color:transparent; position:relative; }
-    .card:active { background:#f5f0e8; }
-    .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:0.4rem; margin-bottom:0.32rem; }
-    .card-num { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--muted); padding-top:2px; white-space:nowrap; }
-    .card-badges { display:flex; gap:0.28rem; flex-wrap:wrap; justify-content:flex-end; }
-    .card-title { font-size:0.87rem; font-weight:600; line-height:1.4; color:var(--ink); margin-bottom:0.22rem; }
-    .card-desc { font-size:0.75rem; color:var(--muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .card-meta { display:flex; flex-wrap:wrap; gap:0.42rem; margin-top:0.48rem; }
-    .card-meta-item { font-family:'DM Mono',monospace; font-size:0.59rem; color:var(--muted); }
-    .card-thumb { width:32px; height:32px; border-radius:4px; object-fit:cover; border:1px solid var(--border); margin-top:0.42rem; }
-    .pending-dot { position:absolute; top:0.68rem; right:0.68rem; width:7px; height:7px; border-radius:50%; background:var(--gold); }
-    .empty-msg { text-align:center; padding:2.5rem 1rem; color:var(--muted); font-size:0.82rem; }
-    #loadMoreBtn { display:none; width:calc(100% - 1.25rem); margin:0 0.62rem 1rem; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase; padding:0.58rem; border:1.5px solid var(--border); background:#fff; color:var(--muted); border-radius:6px; cursor:pointer; }
+    /* CARDS */
+    .card-list{padding:0.62rem;display:flex;flex-direction:column;gap:0.52rem;}
+    .card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:0.82rem;box-shadow:0 1px 5px rgba(22,33,62,0.06);cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative;}
+    .card:active{background:#f5f0e8;}
+    .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:0.4rem;margin-bottom:0.32rem;}
+    .card-num{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);padding-top:2px;white-space:nowrap;}
+    .card-badges{display:flex;gap:0.28rem;flex-wrap:wrap;justify-content:flex-end;}
+    .card-title{font-size:0.87rem;font-weight:600;line-height:1.4;color:var(--ink);margin-bottom:0.22rem;}
+    .card-desc{font-size:0.75rem;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .card-meta{display:flex;flex-wrap:wrap;gap:0.42rem;margin-top:0.48rem;}
+    .card-meta-item{font-family:'DM Mono',monospace;font-size:0.59rem;color:var(--muted);}
+    .card-thumb{width:32px;height:32px;border-radius:4px;object-fit:cover;border:1px solid var(--border);margin-top:0.42rem;}
+    .pending-dot{position:absolute;top:0.68rem;right:0.68rem;width:7px;height:7px;border-radius:50%;background:var(--gold);}
+    .empty-msg{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:0.82rem;}
+    #loadMoreBtn{display:none;width:calc(100% - 1.25rem);margin:0 0.62rem 1rem;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.58rem;border:1.5px solid var(--border);background:#fff;color:var(--muted);border-radius:6px;cursor:pointer;}
 
-    /* ── DESKTOP TABLE ── */
-    #tableWrap { display:none; }
-    .tbl-outer { overflow-x:auto; border:1px solid var(--border); border-radius:3px; box-shadow:0 2px 14px rgba(22,33,62,0.08); background:#fff; }
-    table { width:100%; border-collapse:collapse; font-size:0.83rem; }
-    thead tr { background:var(--ink); }
-    thead th { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--paper); padding:0.74rem 0.88rem; text-align:left; white-space:nowrap; border-right:1px solid rgba(255,255,255,0.06); cursor:pointer; user-select:none; }
-    thead th:hover { background:#252840; }
-    tbody tr { border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s; }
-    tbody tr:hover { background:#f0ebe0; }
-    tbody td { padding:0.62rem 0.88rem; vertical-align:top; }
-    .trunc { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .row-acts { display:flex; gap:0.32rem; }
-    .btn-edit-sm { font-family:'DM Mono',monospace; font-size:0.59rem; padding:0.22rem 0.52rem; border:1.5px solid var(--blue); color:var(--blue); background:transparent; border-radius:2px; cursor:pointer; }
-    .btn-edit-sm:hover { background:var(--blue); color:#fff; }
-    .btn-del-sm  { font-family:'DM Mono',monospace; font-size:0.59rem; padding:0.22rem 0.52rem; border:1.5px solid var(--accent); color:var(--accent); background:transparent; border-radius:2px; cursor:pointer; }
-    .btn-del-sm:hover  { background:var(--accent); color:#fff; }
-    .pager { display:flex; align-items:center; justify-content:space-between; margin-top:0.72rem; font-family:'DM Mono',monospace; font-size:0.67rem; color:var(--muted); }
-    .pager-btns button { font-family:'DM Mono',monospace; font-size:0.64rem; padding:0.26rem 0.66rem; border:1.5px solid var(--border); background:#fff; color:var(--ink); border-radius:2px; cursor:pointer; margin-left:0.38rem; }
-    .pager-btns button:hover:not(:disabled) { border-color:var(--blue); color:var(--blue); }
-    .pager-btns button:disabled { opacity:0.3; cursor:not-allowed; }
+    /* DESKTOP TABLE */
+    #tableWrap{display:none;}
+    .tbl-outer{overflow-x:auto;border:1px solid var(--border);border-radius:3px;box-shadow:0 2px 14px rgba(22,33,62,0.08);background:#fff;}
+    table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+    thead tr{background:var(--ink);}
+    thead th{font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--paper);padding:0.74rem 0.88rem;text-align:left;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);cursor:pointer;user-select:none;}
+    thead th:hover{background:#252840;}
+    tbody tr{border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
+    tbody tr:hover{background:#f0ebe0;}
+    tbody td{padding:0.62rem 0.88rem;vertical-align:top;}
+    .trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .row-acts{display:flex;gap:0.32rem;}
+    .btn-edit-sm{font-family:'DM Mono',monospace;font-size:0.59rem;padding:0.22rem 0.52rem;border:1.5px solid var(--blue);color:var(--blue);background:transparent;border-radius:2px;cursor:pointer;}
+    .btn-edit-sm:hover{background:var(--blue);color:#fff;}
+    .btn-del-sm{font-family:'DM Mono',monospace;font-size:0.59rem;padding:0.22rem 0.52rem;border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:2px;cursor:pointer;}
+    .btn-del-sm:hover{background:var(--accent);color:#fff;}
+    .pager{display:flex;align-items:center;justify-content:space-between;margin-top:0.72rem;font-family:'DM Mono',monospace;font-size:0.67rem;color:var(--muted);}
+    .pager-btns button{font-family:'DM Mono',monospace;font-size:0.64rem;padding:0.26rem 0.66rem;border:1.5px solid var(--border);background:#fff;color:var(--ink);border-radius:2px;cursor:pointer;margin-left:0.38rem;}
+    .pager-btns button:hover:not(:disabled){border-color:var(--blue);color:var(--blue);}
+    .pager-btns button:disabled{opacity:0.3;cursor:not-allowed;}
 
-    /* ── BADGES ── */
-    .badge { display:inline-block; font-family:'DM Mono',monospace; font-size:0.57rem; letter-spacing:0.05em; text-transform:uppercase; padding:0.13rem 0.4rem; border-radius:3px; white-space:nowrap; }
-    .b-open   { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
-    .b-closed { background:#f0f0f0; color:#555;    border:1px solid #ccc; }
-    .b-onhold { background:#fff8e1; color:#9a7000; border:1px solid #ffe082; }
-    .b-issue  { background:#fdecea; color:#b5341a; border:1px solid #f5c6c0; }
-    .b-fyi    { background:#e3f0fb; color:#1a5c8a; border:1px solid #b3d4f0; }
-    .b-report { background:#f3e5f5; color:#6a1b9a; border:1px solid #ce93d8; }
+    /* BADGES */
+    .badge{display:inline-block;font-family:'DM Mono',monospace;font-size:0.57rem;letter-spacing:0.05em;text-transform:uppercase;padding:0.13rem 0.4rem;border-radius:3px;white-space:nowrap;}
+    .b-open{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
+    .b-closed{background:#f0f0f0;color:#555;border:1px solid #ccc;}
+    .b-onhold{background:#fff8e1;color:#9a7000;border:1px solid #ffe082;}
+    .b-issue{background:#fdecea;color:#b5341a;border:1px solid #f5c6c0;}
+    .b-fyi{background:#e3f0fb;color:#1a5c8a;border:1px solid #b3d4f0;}
+    .b-report{background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;}
 
-    /* ── FAB ── */
-    #fab { position:fixed; bottom:calc(var(--safe-bot) + 1.1rem); right:1.1rem; width:52px; height:52px; background:var(--accent); color:#fff; border:none; border-radius:50%; font-size:1.45rem; cursor:pointer; box-shadow:0 4px 16px rgba(181,52,26,0.42); display:none; align-items:center; justify-content:center; z-index:80; -webkit-tap-highlight-color:transparent; }
-    #fab:active { transform:scale(0.92); }
+    /* FAB */
+    #fab{position:fixed;bottom:calc(var(--safe-bot) + 1.1rem);right:1.1rem;width:52px;height:52px;background:var(--accent);color:#fff;border:none;border-radius:50%;font-size:1.45rem;cursor:pointer;box-shadow:0 4px 16px rgba(181,52,26,0.42);display:none;align-items:center;justify-content:center;z-index:80;-webkit-tap-highlight-color:transparent;}
+    #fab:active{transform:scale(0.92);}
 
-    /* ── BOTTOM SHEETS ── */
-    .sh-overlay { display:none; position:fixed; inset:0; background:rgba(22,33,62,0.46); z-index:200; }
-    .sh-overlay.open { display:block; }
-    .bsheet { position:fixed; left:0; right:0; bottom:0; z-index:201; background:var(--paper); border-radius:14px 14px 0 0; border-top:3px solid var(--accent); max-height:93vh; transform:translateY(100%); transition:transform 0.26s cubic-bezier(0.32,0.72,0,1); display:flex; flex-direction:column; padding-bottom:var(--safe-bot); }
-    .bsheet.open { transform:translateY(0); }
-    .sh-handle { width:34px; height:4px; background:var(--border); border-radius:2px; margin:0.52rem auto 0; flex-shrink:0; }
-    .sh-head { display:flex; align-items:center; justify-content:space-between; padding:0.68rem 1rem 0.58rem; border-bottom:1px solid var(--border); flex-shrink:0; }
-    .sh-head h2 { font-family:'DM Serif Display',serif; font-size:1.05rem; }
-    .sh-x { font-family:'DM Mono',monospace; font-size:0.88rem; background:none; border:none; color:var(--muted); cursor:pointer; padding:0.2rem; }
-    .sh-body { overflow-y:auto; flex:1; padding:0.88rem 1rem; -webkit-overflow-scrolling:touch; }
-    .sh-foot { display:flex; gap:0.52rem; padding:0.68rem 1rem; border-top:1px solid var(--border); flex-shrink:0; }
+    /* BOTTOM SHEETS */
+    .sh-overlay{display:none;position:fixed;inset:0;background:rgba(22,33,62,0.46);z-index:200;}
+    .sh-overlay.open{display:block;}
+    .bsheet{position:fixed;left:0;right:0;bottom:0;z-index:201;background:var(--paper);border-radius:14px 14px 0 0;border-top:3px solid var(--accent);max-height:93vh;transform:translateY(100%);transition:transform 0.26s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;padding-bottom:var(--safe-bot);}
+    .bsheet.open{transform:translateY(0);}
+    .sh-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0.52rem auto 0;flex-shrink:0;}
+    .sh-head{display:flex;align-items:center;justify-content:space-between;padding:0.68rem 1rem 0.58rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .sh-head h2{font-family:'DM Serif Display',serif;font-size:1.05rem;}
+    .sh-x{font-family:'DM Mono',monospace;font-size:0.88rem;background:none;border:none;color:var(--muted);cursor:pointer;padding:0.2rem;}
+    .sh-body{overflow-y:auto;flex:1;padding:0.88rem 1rem;-webkit-overflow-scrolling:touch;}
+    .sh-foot{display:flex;gap:0.52rem;padding:0.68rem 1rem;border-top:1px solid var(--border);flex-shrink:0;}
 
-    /* ── FORM ── */
-    .ff { display:flex; flex-direction:column; gap:0.2rem; margin-bottom:0.75rem; }
-    .ff label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
-    .ff input, .ff select, .ff textarea { font-family:'Literata',serif; font-size:0.85rem; padding:0.48rem 0.68rem; border:1.5px solid var(--border); border-radius:6px; background:#fff; color:var(--ink); width:100%; -webkit-appearance:none; }
-    .ff input:focus, .ff select:focus, .ff textarea:focus { outline:none; border-color:var(--blue); }
-    .ff textarea { resize:none; min-height:68px; }
-    .frow { display:grid; grid-template-columns:1fr 1fr; gap:0.62rem; }
+    /* FORM */
+    .ff{display:flex;flex-direction:column;gap:0.2rem;margin-bottom:0.75rem;}
+    .ff label{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+    .ff input,.ff select,.ff textarea{font-family:'Literata',serif;font-size:0.85rem;padding:0.48rem 0.68rem;border:1.5px solid var(--border);border-radius:6px;background:#fff;color:var(--ink);width:100%;-webkit-appearance:none;}
+    .ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--blue);}
+    .ff textarea{resize:none;min-height:68px;}
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:0.62rem;}
 
-    /* ── PHOTO ── */
-    .photo-lbl { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.26rem; display:block; }
-    .photo-btns { display:flex; gap:0.42rem; margin-bottom:0.42rem; }
-    .btn-cam { flex:1; font-family:'DM Mono',monospace; font-size:0.64rem; text-transform:uppercase; padding:0.48rem 0.4rem; border:1.5px dashed var(--border); border-radius:6px; background:var(--cream); color:var(--muted); cursor:pointer; text-align:center; -webkit-tap-highlight-color:transparent; }
-    .btn-cam:active { border-color:var(--blue); color:var(--blue); }
-    #photoWrap { display:none; position:relative; margin-bottom:0.48rem; }
-    #photoWrap img { width:100%; max-height:130px; object-fit:cover; border-radius:6px; border:1px solid var(--border); }
-    #removePhoto { position:absolute; top:0.32rem; right:0.32rem; background:rgba(22,33,62,0.68); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:0.64rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-    #photoInput { display:none; }
+    /* PHOTO */
+    .photo-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.26rem;display:block;}
+    .photo-btns{display:flex;gap:0.42rem;margin-bottom:0.42rem;}
+    .btn-cam{flex:1;font-family:'DM Mono',monospace;font-size:0.64rem;text-transform:uppercase;padding:0.48rem 0.4rem;border:1.5px dashed var(--border);border-radius:6px;background:var(--cream);color:var(--muted);cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;}
+    .btn-cam:active{border-color:var(--blue);color:var(--blue);}
+    #photoWrap{display:none;position:relative;margin-bottom:0.48rem;}
+    #photoWrap img{width:100%;max-height:130px;object-fit:cover;border-radius:6px;border:1px solid var(--border);}
+    #removePhoto{position:absolute;top:0.32rem;right:0.32rem;background:rgba(22,33,62,0.68);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:0.64rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    #photoInput{display:none;}
 
-    /* ── BUTTONS ── */
-    .btn-cancel   { flex:1; font-family:'DM Mono',monospace; font-size:0.67rem; letter-spacing:0.05em; text-transform:uppercase; padding:0.56rem; border:1.5px solid var(--border); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; }
-    .btn-save     { flex:2; font-family:'DM Mono',monospace; font-size:0.67rem; letter-spacing:0.05em; text-transform:uppercase; padding:0.56rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; }
-    .btn-save:active { background:#8f2810; }
-    .btn-save:disabled { background:var(--muted); }
-    .btn-danger   { flex:2; font-family:'DM Mono',monospace; font-size:0.67rem; letter-spacing:0.05em; text-transform:uppercase; padding:0.56rem; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; }
-    .btn-del-inline { font-family:'DM Mono',monospace; font-size:0.67rem; text-transform:uppercase; padding:0.56rem 0.88rem; border:1.5px solid var(--accent); color:var(--accent); background:transparent; border-radius:6px; cursor:pointer; }
-    .btn-blue-sm  { flex:1; font-family:'DM Mono',monospace; font-size:0.67rem; text-transform:uppercase; padding:0.56rem; border:1.5px solid var(--blue); color:var(--blue); background:transparent; border-radius:6px; cursor:pointer; }
+    /* BUTTONS */
+    .btn-cancel{flex:1;font-family:'DM Mono',monospace;font-size:0.67rem;letter-spacing:0.05em;text-transform:uppercase;padding:0.56rem;border:1.5px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;}
+    .btn-save{flex:2;font-family:'DM Mono',monospace;font-size:0.67rem;letter-spacing:0.05em;text-transform:uppercase;padding:0.56rem;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;}
+    .btn-save:active{background:#8f2810;}
+    .btn-save:disabled{background:var(--muted);}
+    .btn-danger{flex:2;font-family:'DM Mono',monospace;font-size:0.67rem;letter-spacing:0.05em;text-transform:uppercase;padding:0.56rem;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;}
+    .btn-del-inline{font-family:'DM Mono',monospace;font-size:0.67rem;text-transform:uppercase;padding:0.56rem 0.88rem;border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:6px;cursor:pointer;}
+    .btn-blue-sm{flex:1;font-family:'DM Mono',monospace;font-size:0.67rem;text-transform:uppercase;padding:0.56rem;border:1.5px solid var(--blue);color:var(--blue);background:transparent;border-radius:6px;cursor:pointer;}
 
-    /* ── DETAIL ── */
-    .dfield { margin-bottom:0.88rem; }
-    .dl { font-family:'DM Mono',monospace; font-size:0.57rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.14rem; }
-    .dv { font-size:0.85rem; line-height:1.55; }
-    .dv.mono { font-family:'DM Mono',monospace; font-size:0.77rem; }
-    .detail-photo { width:100%; border-radius:7px; border:1px solid var(--border); margin-top:0.22rem; }
-    .detail-actions { display:flex; gap:0.52rem; margin-bottom:0.95rem; }
+    /* DETAIL */
+    .dfield{margin-bottom:0.88rem;}
+    .dl{font-family:'DM Mono',monospace;font-size:0.57rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.14rem;}
+    .dv{font-size:0.85rem;line-height:1.55;}
+    .dv.mono{font-family:'DM Mono',monospace;font-size:0.77rem;}
+    .detail-photo{width:100%;border-radius:7px;border:1px solid var(--border);margin-top:0.22rem;}
+    .detail-actions{display:flex;gap:0.52rem;margin-bottom:0.95rem;}
 
-    /* ── RESPONSIVE ── */
+    /* RESPONSIVE */
     @media(min-width:560px){
-      .card-list { max-width:560px; margin:0 auto; }
-      .bsheet { max-width:580px; left:50%; right:auto; transform:translateX(-50%) translateY(100%); }
-      .bsheet.open { transform:translateX(-50%) translateY(0); }
-      #fab { right:calc(50% - 280px + 1.1rem); }
+      .card-list{max-width:560px;margin:0 auto;}
+      .bsheet{max-width:580px;left:50%;right:auto;transform:translateX(-50%) translateY(100%);}
+      .bsheet.open{transform:translateX(-50%) translateY(0);}
+      #fab{right:calc(50% - 280px + 1.1rem);}
     }
     @media(min-width:900px){
-      .card-list { display:none; }
-      #loadMoreBtn { display:none !important; }
-      #tableWrap { display:block; }
-      #fab { display:none !important; }
-      #desktopAddBtn { display:block; }
-      #desktopToolbar { display:flex; }
-      #searchBarEl { display:none !important; }
-      main { padding:1.35rem 1.5rem; }
+      .card-list{display:none;}
+      #loadMoreBtn{display:none !important;}
+      #tableWrap{display:block;}
+      #fab{display:none !important;}
+      #desktopAddBtn{display:block;}
+      #desktopToolbar{display:flex;}
+      #searchBarEl{display:none !important;}
+      main{padding:1.35rem 1.5rem;}
     }
-    main { padding:0; }
+    main{padding:0;}
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
   <div class="brand">
     <h1>PMO · Minutes of Meeting</h1>
@@ -221,7 +203,7 @@
   </div>
   <div class="hright">
     <span class="role-chip" id="roleChip"></span>
-    <button class="hbtn" id="loginBtn"  onclick="signIn()">Sign In</button>
+    <button class="hbtn" id="loginBtn" onclick="signIn()">Sign In</button>
     <button class="hbtn" id="logoutBtn" onclick="signOut()">Sign Out</button>
   </div>
 </header>
@@ -274,25 +256,22 @@
   <button id="desktopAddBtn" onclick="openEditSheet(-1)">+ Add Item</button>
 </div>
 
-<!-- SCROLL AREA -->
 <div class="scroll-area" id="scrollArea">
-
   <div id="stateLogin" class="centered">
     <div class="icon">📋</div>
-    <p>Sign in with your <strong>@megawideph.com</strong><br/>Microsoft account to continue.</p>
-    <br/><small>Data stored in OneDrive · Excel</small>
+    <p>Sign in with your <strong>@megawide.com.ph</strong><br/>Microsoft account to continue.</p>
+    <br/><small>Data stored in Microsoft Lists · SharePoint</small>
   </div>
   <div id="stateLoading" style="display:none" class="centered">
-    <div class="spinner"></div><p>Loading from OneDrive…</p>
+    <div class="spinner"></div><p>Loading from SharePoint…</p>
   </div>
   <div id="stateNoAccess" style="display:none">
     <div class="denied-box">
       <h3>Access Not Granted</h3>
       <p>Your account <code id="deniedEmail"></code> has not been assigned a role.</p>
-      <br/><p>Ask the Admin to add you to the <strong>User Roles</strong> sheet in the Excel file.</p>
+      <br/><p>Ask the Admin to add you to the <strong>EPC. PMO. MOM Users. 2026 03 10</strong> list in SharePoint.</p>
     </div>
   </div>
-
   <div id="stateTable" style="display:none">
     <main>
       <div class="card-list" id="cardList"></div>
@@ -302,14 +281,14 @@
           <table>
             <thead>
               <tr>
-                <th onclick="sortBy(0)"># ⇅</th>
-                <th onclick="sortBy(1)">Category ⇅</th>
-                <th onclick="sortBy(2)">Issue / Agenda ⇅</th>
-                <th onclick="sortBy(4)">Type ⇅</th>
-                <th onclick="sortBy(6)">Responsible ⇅</th>
-                <th onclick="sortBy(7)">Target Date ⇅</th>
-                <th onclick="sortBy(8)">Status ⇅</th>
-                <th onclick="sortBy(9)">Meeting Date ⇅</th>
+                <th onclick="sortBy('No')"># ⇅</th>
+                <th onclick="sortBy('Category')">Category ⇅</th>
+                <th onclick="sortBy('Issue')">Issue / Agenda ⇅</th>
+                <th onclick="sortBy('Type')">Type ⇅</th>
+                <th onclick="sortBy('Responsible')">Responsible ⇅</th>
+                <th onclick="sortBy('TargetDate')">Target Date ⇅</th>
+                <th onclick="sortBy('Status')">Status ⇅</th>
+                <th onclick="sortBy('MeetingDate')">Meeting Date ⇅</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -328,7 +307,6 @@
   </div>
 </div>
 
-<!-- FAB -->
 <button id="fab" onclick="openEditSheet(-1)" aria-label="Add">＋</button>
 
 <!-- DETAIL SHEET -->
@@ -372,18 +350,20 @@
       <div class="ff"><label>Target Date</label><input type="date" id="fTarget"/></div>
     </div>
     <div class="ff"><label>Meeting Date</label><input type="date" id="fMeeting"/></div>
-    <!-- PHOTO -->
     <div style="margin-bottom:0.75rem">
-      <span class="photo-lbl">📷 Photo Attachment</span>
+      <span class="photo-lbl">📎 File Attachment</span>
       <div class="photo-btns">
-        <button class="btn-cam" onclick="triggerCamera('camera')">📸 Camera</button>
-        <button class="btn-cam" onclick="triggerCamera('gallery')">🖼 Gallery</button>
+        <button class="btn-cam" onclick="document.getElementById('photoInput').click()">📎 Choose File</button>
+        <button class="btn-cam" onclick="triggerCamera('camera')">📸 Take Photo</button>
       </div>
-      <div id="photoWrap">
-        <img id="photoImg" src="" alt=""/>
-        <button id="removePhoto" onclick="clearPhoto()">✕</button>
+      <div id="photoWrap" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0.75rem;background:var(--cream);border:1.5px solid var(--border);border-radius:6px;">
+          <span id="fileNameLabel" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+          <button id="removePhoto" onclick="clearPhoto()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.8rem;padding:0 0.25rem;flex-shrink:0;">✕</button>
+        </div>
       </div>
-      <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)"/>
+      <div id="existingAttachments" style="display:none;margin-top:0.4rem;"></div>
+      <input type="file" id="photoInput" accept="*/*" onchange="handlePhoto(event)"/>
     </div>
   </div>
   <div class="sh-foot">
@@ -410,113 +390,107 @@
 
 <script>
 // ╔══════════════════════════════════════════════════════╗
-// ║  CONFIG — fill these in after setup                 ║
+// ║  CONFIG                                             ║
 // ╚══════════════════════════════════════════════════════╝
-const CLIENT_ID   = '4288144d-c7e4-4c8c-8eed-85447fa46342';  // Azure App Registration
-const TENANT_ID   = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';  // Azure Tenant ID
-const FILE_NAME   = 'EPC. PMO. MOM Database. 2026 03 06.xlsx';
-const FOLDER_PATH = 'PMO Department 2/My Files/010 Database'; // no leading slash
-const SHEET_MOM   = 'MOM Data';
-const SHEET_ROLES = 'User Role';
-const COLS        = 11; // A–K (col K = photo)
+const CLIENT_ID    = '4288144d-c7e4-4c8c-8eed-85447fa46342';
+const TENANT_ID    = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';
+const SITE_HOST    = 'megawideph.sharepoint.com';
+const SITE_PATH    = '/sites/PMOWholeTeam';
+const LIST_MOM     = 'EPC. PMO. MOM Database. 2026 03 09';
+const LIST_ROLES   = 'EPC. PMO. MOM Users. 2026 03 10';
+const ALLOWED_DOMAIN = '@megawide.com.ph';
+
+// MS List field names — adjust if your list uses different internal names
+const F = {
+  no:          'No',
+  category:    'Category',
+  issue:       'Issue_x002f_Agenda',   // SharePoint replaces / with _x002f_
+  description: 'Description',
+  type:        'Type_',
+  action:      'Action_x0020_Item',    // SharePoint replaces space with _x0020_
+  responsible: 'Responsible',
+  targetDate:  'Target_x0020_Date',
+  status:      'Status',
+  meetingDate: 'Meeting_x0020_Date',
+};
+// Attachments are handled via SharePoint's native attachment API (not a list field)
 
 // ── MSAL ──────────────────────────────────────────────
-const SCOPES = ['Files.ReadWrite', 'User.Read'];
+const SCOPES = ['Sites.ReadWrite.All', 'User.Read'];
 let msalInstance = null;
 
 function getMsalLib(){
-  if (typeof window.msal !== 'undefined' && window.msal.PublicClientApplication)
-    return window.msal;
+  if(typeof window.msal!=='undefined'&&window.msal.PublicClientApplication) return window.msal;
   return null;
 }
 function waitForMsal(){
-  return new Promise((resolve, reject)=>{
-    const lib = getMsalLib();
-    if(lib) return resolve(lib);
-    // Poll briefly in case script hasn't finished parsing yet
-    let tries = 0;
-    const poll = setInterval(()=>{
-      const l = getMsalLib();
-      if(l){ clearInterval(poll); resolve(l); }
-      else if(++tries > 50){
-        clearInterval(poll);
-        reject(new Error('msal-browser.min.js not found. Make sure you uploaded it to your GitHub repo.'));
-      }
-    }, 100);
+  return new Promise((resolve,reject)=>{
+    const lib=getMsalLib(); if(lib) return resolve(lib);
+    let tries=0;
+    const poll=setInterval(()=>{
+      const l=getMsalLib();
+      if(l){clearInterval(poll);resolve(l);}
+      else if(++tries>50){clearInterval(poll);reject(new Error('msal-browser.min.js not found. Upload it to your GitHub repo.'));}
+    },100);
   });
 }
-function getMsal() {
-  if (msalInstance) return msalInstance;
-  const lib = getMsalLib();
-  if (!lib) throw new Error('Microsoft login library not ready yet. Please try again.');
-  msalInstance = new lib.PublicClientApplication({
-    auth: {
-      clientId: CLIENT_ID,
-      authority: 'https://login.microsoftonline.com/' + TENANT_ID,
-      redirectUri: window.location.origin + window.location.pathname
-    },
-    cache: { cacheLocation: 'localStorage' }
-  });
-  return msalInstance;
+function getMsal(){
+  if(msalInstance) return msalInstance;
+  throw new Error('MSAL not initialized');
 }
 
 // ── STATE ─────────────────────────────────────────────
 let allRows=[], filtered=[], displayCount=20, dtPage=1;
-const DT_PER = 20;
+const DT_PER=20;
 let currentRole='', currentEmail='';
 let editIdx=-1, deleteIdx=-1;
-let sortCol=0, sortAsc=true;
+let sortField='', sortAsc=true;
 let isOnline=navigator.onLine;
-let photoDataUrl=null;
-let fileId='', tableId='';
+let pendingFile=null; // {name, arrayBuffer} for attachment upload
+let siteId='';
 
 // ── CACHE / QUEUE ─────────────────────────────────────
-const CACHE_KEY='mom_rows_v1', QUEUE_KEY='mom_queue_v1';
-const lsSet=(k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} };
-const lsGet=(k,d)=>{ try{return JSON.parse(localStorage.getItem(k))||d;}catch(e){return d;} };
-function enqueue(op){ const q=lsGet(QUEUE_KEY,[]); q.push(op); lsSet(QUEUE_KEY,q); updateSyncBadge(); }
+const CACHE_KEY='mom_rows_v2', QUEUE_KEY='mom_queue_v2';
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d;}catch(e){return d;}};
+function enqueue(op){const q=lsGet(QUEUE_KEY,[]);q.push(op);lsSet(QUEUE_KEY,q);updateSyncBadge();}
 function updateSyncBadge(){
   const q=lsGet(QUEUE_KEY,[]);
   const el=document.getElementById('syncInfo');
-  if(q.length){ el.textContent=`⏳ ${q.length} change${q.length>1?'s':''} pending sync`; el.classList.add('show'); }
+  if(q.length){el.textContent=`⏳ ${q.length} change${q.length>1?'s':''} pending sync`;el.classList.add('show');}
   else el.classList.remove('show');
 }
 async function syncQueue(){
   const q=lsGet(QUEUE_KEY,[]);
   if(!q.length||!isOnline) return;
   const rem=[];
-  for(const op of q){ try{ await graphOp(op); }catch(e){ rem.push(op); } }
-  lsSet(QUEUE_KEY,rem); updateSyncBadge();
+  for(const op of q){try{await listOp(op);}catch(e){rem.push(op);}}
+  lsSet(QUEUE_KEY,rem);updateSyncBadge();
   if(rem.length<q.length) flash(`✓ Synced ${q.length-rem.length} offline change(s).`);
 }
 
 // ── NETWORK ───────────────────────────────────────────
-window.addEventListener('online',  ()=>{ isOnline=true;  updateOfflineBanner(); syncQueue(); });
-window.addEventListener('offline', ()=>{ isOnline=false; updateOfflineBanner(); });
-function updateOfflineBanner(){ document.getElementById('offlineBanner').classList.toggle('show',!isOnline); }
+window.addEventListener('online',()=>{isOnline=true;updateOfflineBanner();syncQueue();});
+window.addEventListener('offline',()=>{isOnline=false;updateOfflineBanner();});
+function updateOfflineBanner(){document.getElementById('offlineBanner').classList.toggle('show',!isOnline);}
 
 // ── AUTH ──────────────────────────────────────────────
 async function signIn(){
   try{
-    const lib = await waitForMsal();
+    const lib=await waitForMsal();
     if(!msalInstance){
-      msalInstance = new lib.PublicClientApplication({
-        auth: {
-          clientId: CLIENT_ID,
-          authority: 'https://login.microsoftonline.com/' + TENANT_ID,
-          redirectUri: window.location.origin + window.location.pathname
-        },
-        cache: { cacheLocation: 'localStorage' }
+      msalInstance=new lib.PublicClientApplication({
+        auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},
+        cache:{cacheLocation:'localStorage'}
       });
-      if(typeof msalInstance.initialize === 'function') await msalInstance.initialize();
+      if(typeof msalInstance.initialize==='function') await msalInstance.initialize();
     }
     await msalInstance.loginRedirect({scopes:SCOPES});
-  } catch(e){ flash('Sign-in error: '+e.message, true); }
+  }catch(e){flash('Sign-in error: '+e.message,true);}
 }
 function signOut(){
-  try{ getMsal().logoutRedirect(); } catch(e){}
-  msalInstance = null;
-  currentRole=''; currentEmail=''; fileId=''; driveId=''; tableId='';
+  try{getMsal().logoutRedirect();}catch(e){}
+  msalInstance=null;currentRole='';currentEmail='';siteId='';
   document.getElementById('loginBtn').style.display='';
   document.getElementById('logoutBtn').style.display='none';
   document.getElementById('roleChip').style.display='none';
@@ -526,24 +500,19 @@ function signOut(){
   setState('login');
 }
 async function getToken(){
-  const instance = getMsal();
-  const accs = instance.getAllAccounts();
-  if(!accs.length) throw new Error('Not signed in');
-  try{
-    return (await instance.acquireTokenSilent({scopes:SCOPES, account:accs[0]})).accessToken;
-  } catch(e){
-    // Silent failed — redirect to re-authenticate
-    await instance.acquireTokenRedirect({scopes:SCOPES, account:accs[0]});
-  }
+  const instance=getMsal();
+  const accs=instance.getAllAccounts();if(!accs.length) throw new Error('Not signed in');
+  try{return(await instance.acquireTokenSilent({scopes:SCOPES,account:accs[0]})).accessToken;}
+  catch(e){await instance.acquireTokenRedirect({scopes:SCOPES,account:accs[0]});}
 }
 async function onSignedIn(){
-  const accs = getMsal().getAllAccounts(); if(!accs.length) return;
+  const accs=getMsal().getAllAccounts();if(!accs.length) return;
   currentEmail=(accs[0].username||'').toLowerCase();
-  if(!currentEmail.endsWith('@megawide.com.ph')){
+  if(!currentEmail.endsWith(ALLOWED_DOMAIN)){
     document.getElementById('deniedEmail').textContent=currentEmail;
     document.getElementById('loginBtn').style.display='none';
     document.getElementById('logoutBtn').style.display='';
-    setState('noAccess'); return;
+    setState('noAccess');return;
   }
   document.getElementById('loginBtn').style.display='none';
   document.getElementById('logoutBtn').style.display='';
@@ -551,134 +520,174 @@ async function onSignedIn(){
 }
 
 // ── GRAPH API ─────────────────────────────────────────
-async function graph(method, path, body){
+async function graph(method,path,body){
   const token=await getToken();
-  const opts={ method, headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' } };
+  const opts={method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'}};
   if(body!==undefined) opts.body=JSON.stringify(body);
-  const r=await fetch('https://graph.microsoft.com/v1.0'+path, opts);
+  const r=await fetch('https://graph.microsoft.com/v1.0'+path,opts);
   if(!r.ok) throw new Error(await r.text());
   if(r.status===204) return null;
   return r.json();
 }
 
-// ── FIND FILE ─────────────────────────────────────────
-// Direct SharePoint URL of the file (no admin permissions needed via sharing token)
-const FILE_SHAREURL = 'https://megawideph-my.sharepoint.com/personal/pmodepartment2_megawide_com_ph/Documents/010%20Database/EPC.%20PMO.%20MOM%20Database.%202026%2003%2006.xlsx';
-let driveId = '';
-
-async function findFile(){
-  if(fileId && driveId) return fileId;
-  try{
-    // Encode the SharePoint URL as a Graph API sharing token (no admin consent needed)
-    const encoded = btoa(FILE_SHAREURL).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
-    const sharingToken = 'u!' + encoded;
-    const item = await graph('GET', `/shares/${sharingToken}/driveItem?$select=id,parentReference`);
-    fileId  = item.id;
-    driveId = item.parentReference && item.parentReference.driveId;
-    if(!driveId) throw new Error('Could not get driveId from sharing token');
-    return fileId;
-  } catch(e){
-    throw new Error('Cannot access file: ' + e.message + ' — Make sure the file has been shared with you or your account has access to it in SharePoint.');
+// ── SITE & LIST IDS ───────────────────────────────────
+let listMomId='', listRolesId='';
+async function getSiteId(){
+  if(siteId) return siteId;
+  const s=await graph('GET',`/sites/${SITE_HOST}:${SITE_PATH}?$select=id`);
+  siteId=s.id;return siteId;
+}
+async function getListId(listName){
+  const sid=await getSiteId();
+  const res=await graph('GET',`/sites/${sid}/lists?$select=id,name&$filter=name eq '${encodeURIComponent(listName)}'`);
+  // try display name match if filter fails
+  let found=(res.value||[]).find(l=>l.name===listName);
+  if(!found){
+    // search all lists
+    const all=await graph('GET',`/sites/${sid}/lists?$select=id,name,displayName`);
+    found=(all.value||[]).find(l=>l.displayName===listName||l.name===listName);
   }
+  if(!found) throw new Error(`List "${listName}" not found on site. Check the list name.`);
+  return found.id;
+}
+async function ensureListIds(){
+  if(!listMomId)   listMomId   = await getListId(LIST_MOM);
+  if(!listRolesId) listRolesId = await getListId(LIST_ROLES);
 }
 
-// ── READ RANGE ────────────────────────────────────────
-async function readSheet(sheetName){
-  await findFile();
-  const r=await graph('GET', `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/usedRange`);
-  return r.values||[];
+// ── LIST API ──────────────────────────────────────────
+async function getListItems(listId){
+  const sid=await getSiteId();
+  let items=[],url=`/sites/${sid}/lists/${listId}/items?$expand=fields&$top=500`;
+  while(url){
+    const res=await graph('GET',url);
+    items=items.concat(res.value||[]);
+    url=res['@odata.nextLink']?res['@odata.nextLink'].replace('https://graph.microsoft.com/v1.0',''):null;
+  }
+  return items;
+}
+async function createListItem(listId,fields){
+  const sid=await getSiteId();
+  return graph('POST',`/sites/${sid}/lists/${listId}/items`,{fields});
+}
+async function updateListItem(listId,itemId,fields){
+  const sid=await getSiteId();
+  return graph('PATCH',`/sites/${sid}/lists/${listId}/items/${itemId}/fields`,fields);
+}
+async function deleteListItem(listId,itemId){
+  const sid=await getSiteId();
+  return graph('DELETE',`/sites/${sid}/lists/${listId}/items/${itemId}`);
 }
 
-// ── WRITE CELL RANGE ──────────────────────────────────
-async function writeRange(sheetName, address, values){
-  await findFile();
-  await graph('PATCH',
-    `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/range(address='${address}')`,
-    {values});
+// ── ATTACHMENT API ────────────────────────────────────
+async function getAttachments(itemId){
+  const sid=await getSiteId();
+  try{
+    const res=await graph('GET',`/sites/${sid}/lists/${listMomId}/items/${itemId}/attachments`);
+    return res.value||[];
+  }catch(e){return [];}
+}
+async function uploadAttachment(itemId, fileName, fileData){
+  // fileData = ArrayBuffer
+  const sid=await getSiteId();
+  const token=await getToken();
+  const url=`https://graph.microsoft.com/v1.0/sites/${sid}/lists/${listMomId}/items/${itemId}/attachments`;
+  const r=await fetch(url,{
+    method:'POST',
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${fileName}"`},
+    body:fileData
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function deleteAttachment(itemId, fileName){
+  const sid=await getSiteId();
+  return graph('DELETE',`/sites/${sid}/lists/${listMomId}/items/${itemId}/attachments/${encodeURIComponent(fileName)}`);
+}
+async function listOp(op){
+  await ensureListIds();
+  if(op.action==='add')    return createListItem(listMomId,op.fields);
+  if(op.action==='update') return updateListItem(listMomId,op.itemId,op.fields);
+  if(op.action==='delete') return deleteListItem(listMomId,op.itemId);
 }
 
-// ── APPEND ROW ────────────────────────────────────────
-async function appendRow(sheetName, row){
-  await findFile();
-  const range=await graph('GET', `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/usedRange`);
-  const nextRow=range.rowCount+1;
-  const colLetter=colLet(row.length);
-  await writeRange(sheetName, `A${nextRow}:${colLetter}${nextRow}`, [row]);
+// ── ROW HELPERS ───────────────────────────────────────
+// row = [No, Category, Issue, Desc, Type, Action, Responsible, TargetDate, Status, MeetingDate, attachments[], _id]
+function itemToRow(item){
+  const f=item.fields||{};
+  const attachments=(item.fields?.Attachments||[]);
+  return [
+    f[F.no]||'',
+    f[F.category]||'',
+    f[F.issue]||f['Issue_x002f_Agenda']||f['IssueAgenda']||f['Issue']||'',
+    f[F.description]||'',
+    f[F.type]||f['Type_']||'',
+    f[F.action]||f['Action_x0020_Item']||f['ActionItem']||f['Action']||'',
+    f[F.responsible]||'',
+    (f[F.targetDate]||f['Target_x0020_Date']||f['TargetDate']||'').split('T')[0],
+    f[F.status]||'',
+    (f[F.meetingDate]||f['Meeting_x0020_Date']||f['MeetingDate']||'').split('T')[0],
+    attachments, // index 10 — array of {name, serverRelativeUrl}
+    item.id,     // index 11
+  ];
 }
-
-// ── DELETE ROW ────────────────────────────────────────
-async function deleteExcelRow(sheetName, rowIndex){
-  await findFile();
-  const excelRow=rowIndex+2;
-  await graph('POST',
-    `/drives/${driveId}/items/${fileId}/workbook/worksheets/${encodeURIComponent(sheetName)}/range(address='${excelRow}:${excelRow}')/delete`,
-    {shift:'Up'});
-}
-
-// ── GRAPH OP DISPATCHER (for queue replay) ────────────
-async function graphOp(op){
-  if(op.action==='addRow')    return await appendRow(SHEET_MOM, op.row);
-  if(op.action==='updateRow') return await writeRange(SHEET_MOM, `A${op.excelRow}:${colLet(op.row.length)}${op.excelRow}`, [op.row]);
-  if(op.action==='deleteRow') return await deleteExcelRow(SHEET_MOM, op.index);
-}
-
-function colLet(n){
-  // Convert column count to letter (1=A, 10=J, 11=K, etc.)
-  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  if(n<=26) return letters[n-1];
-  return letters[Math.floor((n-1)/26)-1]+letters[(n-1)%26];
+function formToFields(){
+  const obj={};
+  const set=(key,val)=>{if(val!==undefined&&val!=='') obj[key]=val;};
+  set(F.no,           document.getElementById('fNo').value);
+  set(F.category,     document.getElementById('fCat2').value);
+  set(F.issue,        document.getElementById('fIssue').value);
+  set(F.description,  document.getElementById('fDesc').value);
+  set(F.type,         document.getElementById('fType2').value);
+  set(F.action,       document.getElementById('fAction').value);
+  set(F.responsible,  document.getElementById('fResp').value);
+  set(F.targetDate,   document.getElementById('fTarget').value);
+  set(F.status,       document.getElementById('fStat2').value);
+  set(F.meetingDate,  document.getElementById('fMeeting').value);
+  // attachments uploaded separately after item is saved
+  return obj;
 }
 
 // ── LOAD DATA ─────────────────────────────────────────
 async function loadData(){
   setState('loading');
   const cached=lsGet(CACHE_KEY,[]);
-  if(cached.length){ allRows=[...cached]; applyFilters(); setState('table'); }
-  if(!isOnline){ applyRoleFromStorage(); return; }
+  if(cached.length){allRows=[...cached];applyFilters();setState('table');}
+  if(!isOnline){applyRoleFromStorage();return;}
   try{
-    // 1. Find file
-    await findFile();
+    await ensureListIds();
 
-    // 2. Read User Roles
-    const rolesData=await readSheet(SHEET_ROLES);
+    // 1. Read User Roles list
+    const roleItems=await getListItems(listRolesId);
     let role='';
-    for(let i=1;i<rolesData.length;i++){
-      if((rolesData[i][0]||'').toString().toLowerCase().trim()===currentEmail){
-        role=(rolesData[i][1]||'').toString().toLowerCase().trim(); break;
-      }
+    for(const item of roleItems){
+      const f=item.fields||{};
+      const email=(f.Email||f.Title||'').toLowerCase().trim();
+      if(email===currentEmail){role=(f.Role||'').toLowerCase().trim();break;}
     }
     if(!role||!['admin','editor','viewer'].includes(role)){
       document.getElementById('deniedEmail').textContent=currentEmail;
-      setState('noAccess'); return;
+      setState('noAccess');return;
     }
-    currentRole=role; localStorage.setItem('mom_role',role); applyRoleUI();
+    currentRole=role;localStorage.setItem('mom_role',role);applyRoleUI();
 
-    // 3. Read MOM Data
-    const momData=await readSheet(SHEET_MOM);
-    allRows=momData.length>1?momData.slice(1).map(row=>{
-      return Array.from({length:Math.max(row.length,COLS)},(_,i)=>{
-        const v=row[i]; if(!v&&v!==0) return '';
-        if(typeof v==='number'&&v>40000&&v<60000){
-          // Excel serial date
-          return new Date(Math.round((v-25569)*86400*1000)).toISOString().split('T')[0];
-        }
-        return String(v);
-      });
-    }):[];
+    // 2. Read MOM list
+    const momItems=await getListItems(listMomId);
+    allRows=momItems.map(itemToRow);
     lsSet(CACHE_KEY,allRows);
-    applyFilters(); setState('table'); updateSyncBadge(); await syncQueue();
+    applyFilters();setState('table');updateSyncBadge();await syncQueue();
     flash(`✓ ${allRows.length} items loaded · ${cap(currentRole)}`);
   }catch(e){
-    if(cached.length){ applyRoleFromStorage(); flash('Offline — showing cached data'); }
-    else{ setState('login'); document.getElementById('stateLogin').querySelector('p').innerHTML=`<strong style="color:var(--accent)">Error:</strong> ${e.message}`; }
+    if(cached.length){applyRoleFromStorage();flash('Offline — showing cached data');}
+    else{setState('login');document.getElementById('stateLogin').querySelector('p').innerHTML=`<strong style="color:var(--accent)">Error:</strong> ${e.message}`;}
   }
 }
-function applyRoleFromStorage(){ currentRole=localStorage.getItem('mom_role')||'viewer'; applyRoleUI(); setState('table'); }
+function applyRoleFromStorage(){currentRole=localStorage.getItem('mom_role')||'viewer';applyRoleUI();setState('table');}
 
 // ── ROLE UI ───────────────────────────────────────────
 function applyRoleUI(){
   const chip=document.getElementById('roleChip');
-  chip.textContent=cap(currentRole); chip.className=`role-chip rc-${currentRole}`; chip.style.display='';
+  chip.textContent=cap(currentRole);chip.className='role-chip rc-'+currentRole;chip.style.display='';
   const canAdd=currentRole==='admin'||currentRole==='editor';
   document.getElementById('fab').style.display=canAdd?'flex':'none';
   document.getElementById('searchBarEl').style.display='';
@@ -686,7 +695,7 @@ function applyRoleUI(){
 }
 
 // ── FILTERS ───────────────────────────────────────────
-function gv(id){ const el=document.getElementById(id); return el?el.value:''; }
+function gv(id){const el=document.getElementById(id);return el?el.value:'';}
 function applyFilters(){
   const q=(gv('searchQ')||gv('searchQD')).toLowerCase();
   const cat=(gv('fCat')||gv('fCatD')).toLowerCase();
@@ -694,23 +703,24 @@ function applyFilters(){
   const sts=(gv('fStat')||gv('fStatD')).toLowerCase();
   filtered=allRows.map((row,i)=>({row,i})).filter(({row})=>{
     const txt=[row[2],row[3],row[5],row[6]].join(' ').toLowerCase();
-    return (!q||txt.includes(q))&&(!cat||(row[1]||'').toLowerCase()===cat)&&(!typ||(row[4]||'').toLowerCase()===typ)&&(!sts||(row[8]||'').toLowerCase()===sts);
+    return(!q||txt.includes(q))&&(!cat||(row[1]||'').toLowerCase()===cat)&&(!typ||(row[4]||'').toLowerCase()===typ)&&(!sts||(row[8]||'').toLowerCase()===sts);
   });
-  displayCount=20; dtPage=1; renderCards(); renderTable();
+  if(sortField) doSort();
+  displayCount=20;dtPage=1;renderCards();renderTable();
 }
-function toggleFilters(){ const d=document.getElementById('filterDrawer'); const b=document.getElementById('filterToggle'); const o=d.classList.toggle('open'); b.classList.toggle('active',o); }
+function toggleFilters(){const d=document.getElementById('filterDrawer');const b=document.getElementById('filterToggle');const o=d.classList.toggle('open');b.classList.toggle('active',o);}
 
 // ── RENDER CARDS ──────────────────────────────────────
 function renderCards(){
   const list=document.getElementById('cardList');
   const slice=filtered.slice(0,displayCount);
   list.innerHTML='';
-  if(!slice.length){ list.innerHTML=`<div class="empty-msg">No items match your filters.</div>`; document.getElementById('loadMoreBtn').style.display='none'; return; }
-  const pendingIdxs=new Set(lsGet(QUEUE_KEY,[]).map(q=>q.index));
+  if(!slice.length){list.innerHTML='<div class="empty-msg">No items match your filters.</div>';document.getElementById('loadMoreBtn').style.display='none';return;}
+  const pendingIds=new Set(lsGet(QUEUE_KEY,[]).map(q=>q.itemId));
   slice.forEach(({row,i})=>{
-    const card=document.createElement('div'); card.className='card';
+    const card=document.createElement('div');card.className='card';
     card.innerHTML=`
-      ${pendingIdxs.has(i)?'<div class="pending-dot" title="Pending sync"></div>':''}
+      ${pendingIds.has(row[11])?'<div class="pending-dot" title="Pending sync"></div>':''}
       <div class="card-top"><span class="card-num">#${row[0]||'—'}</span><div class="card-badges">${typeBadge(row[4])}${statusBadge(row[8])}</div></div>
       <div class="card-title">${esc(row[2]||'(No Agenda)')}</div>
       ${row[3]?`<div class="card-desc">${esc(row[3])}</div>`:''}
@@ -719,21 +729,20 @@ function renderCards(){
         ${row[6]?`<span class="card-meta-item">👤 ${esc(row[6])}</span>`:''}
         ${row[7]?`<span class="card-meta-item">📅 ${row[7]}</span>`:''}
       </div>
-      ${row[10]?`<img class="card-thumb" src="${row[10]}" alt=""/>`:''}`;
-    card.onclick=()=>openDetail(i);
+      ${(row[10]&&row[10].length)?`<span class="card-meta-item">📎 ${row[10].length} file${row[10].length>1?'s':''}</span>`:''}    card.onclick=()=>openDetail(i);
     list.appendChild(card);
   });
   document.getElementById('loadMoreBtn').style.display=filtered.length>displayCount?'block':'none';
 }
-function loadMore(){ displayCount+=20; renderCards(); }
+function loadMore(){displayCount+=20;renderCards();}
 
 // ── RENDER TABLE ──────────────────────────────────────
 function renderTable(){
-  const tbody=document.getElementById('dtBody'); if(!tbody) return;
-  const start=(dtPage-1)*DT_PER, end=start+DT_PER;
+  const tbody=document.getElementById('dtBody');if(!tbody) return;
+  const start=(dtPage-1)*DT_PER,end=start+DT_PER;
   const slice=filtered.slice(start,end);
   tbody.innerHTML='';
-  if(!slice.length){ tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:2rem;font-family:'DM Mono',monospace;font-size:0.73rem;color:var(--muted);">No items.</td></tr>`; return; }
+  if(!slice.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:2rem;font-family:'DM Mono',monospace;font-size:0.73rem;color:var(--muted);">No items.</td></tr>`;return;}
   slice.forEach(({row,i})=>{
     const canEdit=currentRole==='admin'||currentRole==='editor';
     const canDel=currentRole==='admin';
@@ -744,9 +753,9 @@ function renderTable(){
       <td class="trunc" style="max-width:175px;">${row[2]??''}</td>
       <td>${typeBadge(row[4])}</td>
       <td style="font-size:0.77rem;">${row[6]??''}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.7rem;white-space:nowrap;">${row[7]??'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.7rem;white-space:nowrap;">${row[7]||'—'}</td>
       <td>${statusBadge(row[8])}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.7rem;white-space:nowrap;">${row[9]??'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.7rem;white-space:nowrap;">${row[9]||'—'}</td>
       <td><div class="row-acts">
         ${canEdit?`<button class="btn-edit-sm" onclick="openEditSheet(${i})">Edit</button>`:''}
         ${canDel?`<button class="btn-del-sm" onclick="askDelete(${i})">Del</button>`:''}
@@ -758,8 +767,20 @@ function renderTable(){
   document.getElementById('prevBtn').disabled=dtPage<=1;
   document.getElementById('nextBtn').disabled=dtPage>=Math.ceil(total/DT_PER);
 }
-function sortBy(col){ sortCol===col?sortAsc=!sortAsc:(sortCol=col,sortAsc=true); filtered.sort((a,b)=>{ let va=a.row[col]??'',vb=b.row[col]??''; if(va!==''&&vb!==''&&!isNaN(va)&&!isNaN(vb)) return sortAsc?va-vb:vb-va; return sortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va)); }); renderTable(); }
-function changePage(d){ dtPage+=d; renderTable(); }
+function sortBy(field){
+  sortField===field?sortAsc=!sortAsc:(sortField=field,sortAsc=true);
+  doSort();renderTable();
+}
+function doSort(){
+  const fieldIdx={'No':0,'Category':1,'Issue':2,'Type':4,'Responsible':6,'TargetDate':7,'Status':8,'MeetingDate':9};
+  const idx=fieldIdx[sortField]??0;
+  filtered.sort((a,b)=>{
+    let va=a.row[idx]??'',vb=b.row[idx]??'';
+    if(va!==''&&vb!==''&&!isNaN(va)&&!isNaN(vb)) return sortAsc?va-vb:vb-va;
+    return sortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));
+  });
+}
+function changePage(d){dtPage+=d;renderTable();}
 
 // ── DETAIL SHEET ──────────────────────────────────────
 function openDetail(idx){
@@ -781,10 +802,12 @@ function openDetail(idx){
     <div class="dfield"><div class="dl">Target Date</div><div class="dv mono">${row[7]||'—'}</div></div>
     <div class="dfield"><div class="dl">Status</div><div class="dv">${statusBadge(row[8])}</div></div>
     <div class="dfield"><div class="dl">Meeting Date</div><div class="dv mono">${row[9]||'—'}</div></div>
-    ${row[10]?`<div class="dfield"><div class="dl">Photo</div><img class="detail-photo" src="${row[10]}" alt=""/></div>`:''}`;
+    ${(row[10]&&row[10].length)?`<div class="dfield"><div class="dl">Attachments</div><div class="dv">${
+      row[10].map(a=>`<a href="${a.serverRelativeUrl||a.contentUrl||'#'}" target="_blank" style="display:block;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--blue);padding:0.28rem 0;text-decoration:none;">📎 ${a.name||'Attachment'}</a>`).join('')
+    }</div></div>`:''}`;
   openSheet('detailOverlay','detailSheet');
 }
-function closeDetail(){ closeSheet('detailOverlay','detailSheet'); }
+function closeDetail(){closeSheet('detailOverlay','detailSheet');}
 
 // ── EDIT SHEET ────────────────────────────────────────
 function openEditSheet(idx){
@@ -792,120 +815,157 @@ function openEditSheet(idx){
   editIdx=idx;
   document.getElementById('editTitle').textContent=idx===-1?'Add New Item':'Edit Item';
   const row=idx===-1?[]:allRows[idx];
-  document.getElementById('fNo').value    =row[0]??'';
-  document.getElementById('fCat2').value  =row[1]??'';
-  document.getElementById('fIssue').value =row[2]??'';
-  document.getElementById('fDesc').value  =row[3]??'';
-  document.getElementById('fType2').value =row[4]??'';
-  document.getElementById('fAction').value=row[5]??'';
-  document.getElementById('fResp').value  =row[6]??'';
-  document.getElementById('fTarget').value=row[7]??'';
-  document.getElementById('fStat2').value =row[8]??'';
+  document.getElementById('fNo').value     =row[0]??'';
+  document.getElementById('fCat2').value   =row[1]??'';
+  document.getElementById('fIssue').value  =row[2]??'';
+  document.getElementById('fDesc').value   =row[3]??'';
+  document.getElementById('fType2').value  =row[4]??'';
+  document.getElementById('fAction').value =row[5]??'';
+  document.getElementById('fResp').value   =row[6]??'';
+  document.getElementById('fTarget').value =row[7]??'';
+  document.getElementById('fStat2').value  =row[8]??'';
   document.getElementById('fMeeting').value=row[9]??'';
-  photoDataUrl=row[10]||null; updatePhotoPreview();
+  pendingFile=null;updatePhotoPreview();
+  showExistingAttachments(row[10]||[]);
   document.getElementById('delBtn').style.display=(currentRole==='admin'&&idx>=0)?'':'none';
   openSheet('editOverlay','editSheet');
 }
-function closeEdit(){ closeSheet('editOverlay','editSheet'); editIdx=-1; photoDataUrl=null; updatePhotoPreview(); }
+function closeEdit(){closeSheet('editOverlay','editSheet');editIdx=-1;pendingFile=null;updatePhotoPreview();}
 
 async function saveItem(){
   if(currentRole==='viewer') return;
   const btn=document.getElementById('saveBtn');
-  btn.disabled=true; btn.textContent='Saving…';
-  const row=[
-    document.getElementById('fNo').value,
-    document.getElementById('fCat2').value,
-    document.getElementById('fIssue').value,
-    document.getElementById('fDesc').value,
-    document.getElementById('fType2').value,
-    document.getElementById('fAction').value,
-    document.getElementById('fResp').value,
-    document.getElementById('fTarget').value,
-    document.getElementById('fStat2').value,
-    document.getElementById('fMeeting').value,
-    photoDataUrl||'',
-  ];
+  btn.disabled=true;btn.textContent='Saving…';
+  const fields=formToFields();
+  const isNew=editIdx===-1;
+  const itemId=isNew?null:allRows[editIdx][11];
+  const existingAttachments=isNew?[]:(allRows[editIdx][10]||[]);
 
-  // Optimistic update
-  if(editIdx===-1) allRows.push(row); else allRows[editIdx]=row;
-  lsSet(CACHE_KEY,allRows); applyFilters(); closeEdit();
+  // Optimistic local update
+  const newRow=[
+    fields[F.no]||'', fields[F.category]||'', fields[F.issue]||'',
+    fields[F.description]||'', fields[F.type]||'', fields[F.action]||'',
+    fields[F.responsible]||'', fields[F.targetDate]||'', fields[F.status]||'',
+    fields[F.meetingDate]||'',
+    pendingFile?[{name:pendingFile.name,serverRelativeUrl:''}]:existingAttachments,
+    itemId||'pending'
+  ];
+  if(isNew) allRows.push(newRow); else allRows[editIdx]=newRow;
+  lsSet(CACHE_KEY,allRows);applyFilters();closeEdit();
 
   if(isOnline){
     try{
-      if(editIdx===-1){
-        await appendRow(SHEET_MOM, row);
-        flash('✓ Item added to OneDrive Excel.');
+      await ensureListIds();
+      let savedItemId=itemId;
+      if(isNew){
+        const res=await createListItem(listMomId,fields);
+        savedItemId=res.id||res.fields?.id||res.fields?.ID;
+        const last=allRows.find(r=>r[11]==='pending');
+        if(last&&savedItemId){last[11]=savedItemId;lsSet(CACHE_KEY,allRows);}
       } else {
-        const excelRow=editIdx+2;
-        await writeRange(SHEET_MOM, `A${excelRow}:${colLet(row.length)}${excelRow}`, [row]);
-        flash('✓ Item updated in OneDrive Excel.');
+        await updateListItem(listMomId,itemId,fields);
       }
-    } catch(e){
-      const op=editIdx===-1?{action:'addRow',row}:{action:'updateRow',index:editIdx,excelRow:editIdx+2,row};
-      enqueue(op); flash('Saved offline — will sync to OneDrive when online.');
+      // Upload attachment if one was selected
+      if(pendingFile&&savedItemId){
+        try{
+          await uploadAttachment(savedItemId,pendingFile.name,pendingFile.arrayBuffer);
+          const attachments=await getAttachments(savedItemId);
+          const row=allRows.find(r=>r[11]==savedItemId);
+          if(row) row[10]=attachments;
+          lsSet(CACHE_KEY,allRows);applyFilters();
+          flash(`✓ Item ${isNew?'added':'updated'} with attachment.`);
+        }catch(e){
+          flash(`✓ Item saved but attachment failed: ${e.message}`,true);
+        }
+      } else {
+        flash(`✓ Item ${isNew?'added':'updated'}.`);
+      }
+    }catch(e){
+      enqueue(isNew?{action:'add',fields}:{action:'update',itemId,fields});
+      flash('Saved offline — will sync when online.');
     }
   } else {
-    const op=editIdx===-1?{action:'addRow',row}:{action:'updateRow',index:editIdx,excelRow:editIdx+2,row};
-    enqueue(op); flash('Saved offline — will sync to OneDrive when online.');
+    enqueue(isNew?{action:'add',fields}:{action:'update',itemId,fields});
+    flash('Saved offline — will sync when online.');
   }
-  btn.disabled=false; btn.textContent='Save';
+  pendingFile=null;
+  btn.disabled=false;btn.textContent='Save';
 }
 
 // ── DELETE ────────────────────────────────────────────
-function askDelete(idx){ if(currentRole!=='admin') return; deleteIdx=idx; const row=allRows[idx]; document.getElementById('delPreview').textContent=`#${row[0]||'—'} · ${row[2]||'(no agenda)'}`; openSheet('confirmOverlay','confirmSheet'); }
-function askDeleteCurrent(){ closeEdit(); askDelete(editIdx); }
-function closeConfirm(){ closeSheet('confirmOverlay','confirmSheet'); deleteIdx=-1; }
+function askDelete(idx){if(currentRole!=='admin') return;deleteIdx=idx;const row=allRows[idx];document.getElementById('delPreview').textContent=`#${row[0]||'—'} · ${row[2]||'(no agenda)'}`;openSheet('confirmOverlay','confirmSheet');}
+function askDeleteCurrent(){closeEdit();askDelete(editIdx);}
+function closeConfirm(){closeSheet('confirmOverlay','confirmSheet');deleteIdx=-1;}
 async function confirmDelete(){
   if(currentRole!=='admin'||deleteIdx<0) return;
-  allRows.splice(deleteIdx,1); lsSet(CACHE_KEY,allRows); applyFilters(); closeConfirm();
+  const itemId=allRows[deleteIdx][11];
+  allRows.splice(deleteIdx,1);lsSet(CACHE_KEY,allRows);applyFilters();closeConfirm();
   if(isOnline){
-    try{ await deleteExcelRow(SHEET_MOM, deleteIdx); flash('✓ Item deleted from OneDrive Excel.'); }
-    catch(e){ enqueue({action:'deleteRow',index:deleteIdx}); flash('Deleted offline — will sync when online.'); }
-  } else { enqueue({action:'deleteRow',index:deleteIdx}); flash('Deleted offline — will sync when online.'); }
+    try{await ensureListIds();await deleteListItem(listMomId,itemId);flash('✓ Item deleted.');}
+    catch(e){enqueue({action:'delete',itemId});flash('Deleted offline — will sync when online.');}
+  } else {enqueue({action:'delete',itemId});flash('Deleted offline — will sync when online.');}
 }
 
-// ── PHOTO ─────────────────────────────────────────────
-function triggerCamera(src){ const inp=document.getElementById('photoInput'); inp.capture=src==='camera'?'environment':''; inp.click(); }
+// ── ATTACHMENTS ───────────────────────────────────────
+function triggerCamera(src){
+  const inp=document.getElementById('photoInput');
+  inp.accept=src==='camera'?'image/*':'*/*';
+  inp.capture=src==='camera'?'environment':'';
+  inp.click();
+}
 function handlePhoto(e){
-  const file=e.target.files[0]; if(!file) return;
+  const file=e.target.files[0];if(!file) return;
   const reader=new FileReader();
-  reader.onload=ev=>{ const img=new Image(); img.onload=()=>{ const mw=800; const sc=Math.min(1,mw/img.width); const c=document.createElement('canvas'); c.width=img.width*sc; c.height=img.height*sc; c.getContext('2d').drawImage(img,0,0,c.width,c.height); photoDataUrl=c.toDataURL('image/jpeg',0.75); updatePhotoPreview(); }; img.src=ev.target.result; };
-  reader.readAsDataURL(file); e.target.value='';
+  reader.onload=ev=>{
+    pendingFile={name:file.name,arrayBuffer:ev.target.result};
+    updatePhotoPreview();
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value='';
 }
-function clearPhoto(){ photoDataUrl=null; updatePhotoPreview(); }
-function updatePhotoPreview(){ const w=document.getElementById('photoWrap'); const img=document.getElementById('photoImg'); if(photoDataUrl){ img.src=photoDataUrl; w.style.display='block'; }else{ w.style.display='none'; img.src=''; } }
-
+function clearPhoto(){pendingFile=null;updatePhotoPreview();}
+function updatePhotoPreview(){
+  const w=document.getElementById('photoWrap');
+  const lbl=document.getElementById('fileNameLabel');
+  if(pendingFile){lbl.textContent=pendingFile.name;w.style.display='block';}
+  else{w.style.display='none';lbl.textContent='';}
+}
+function showExistingAttachments(attachments){
+  const el=document.getElementById('existingAttachments');
+  if(!attachments||!attachments.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML='<div style="font-family:\'DM Mono\',monospace;font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem;">Existing Attachments</div>'+
+    attachments.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0.62rem;background:var(--cream);border:1px solid var(--border);border-radius:4px;margin-bottom:0.22rem;">
+      <a href="${a.serverRelativeUrl||a.contentUrl||'#'}" target="_blank" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--blue);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.name||'Attachment'}</a>
+    </div>`).join('');
+}
 // ── SHEET HELPERS ─────────────────────────────────────
-function openSheet(ovId,shId){ document.getElementById(ovId).classList.add('open'); document.getElementById(shId).classList.add('open'); document.getElementById('scrollArea').style.overflow='hidden'; }
-function closeSheet(ovId,shId){ document.getElementById(ovId).classList.remove('open'); document.getElementById(shId).classList.remove('open'); document.getElementById('scrollArea').style.overflow=''; }
+function openSheet(ovId,shId){document.getElementById(ovId).classList.add('open');document.getElementById(shId).classList.add('open');document.getElementById('scrollArea').style.overflow='hidden';}
+function closeSheet(ovId,shId){document.getElementById(ovId).classList.remove('open');document.getElementById(shId).classList.remove('open');document.getElementById('scrollArea').style.overflow='';}
 
 // ── MISC ──────────────────────────────────────────────
-function statusBadge(s){ if(!s) return ''; const m={'open':'b-open','closed':'b-closed','on hold':'b-onhold'}; return `<span class="badge ${m[(s+'').toLowerCase()]||''}">${s}</span>`; }
-function typeBadge(t){ if(!t) return ''; const m={'issue':'b-issue','fyi':'b-fyi','report':'b-report'}; return `<span class="badge ${m[(t+'').toLowerCase()]||''}">${t}</span>`; }
-function cap(s){ return s?s.charAt(0).toUpperCase()+s.slice(1):''; }
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function setState(s){ ['stateLogin','stateLoading','stateNoAccess','stateTable'].forEach(id=>document.getElementById(id).style.display='none'); const m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',table:'stateTable'}; if(m[s]) document.getElementById(m[s]).style.display=''; }
+function statusBadge(s){if(!s) return '';const m={'open':'b-open','closed':'b-closed','on hold':'b-onhold'};return `<span class="badge ${m[(s+'').toLowerCase()]||''}">${s}</span>`;}
+function typeBadge(t){if(!t) return '';const m={'issue':'b-issue','fyi':'b-fyi','report':'b-report'};return `<span class="badge ${m[(t+'').toLowerCase()]||''}">${t}</span>`;}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function setState(s){['stateLogin','stateLoading','stateNoAccess','stateTable'].forEach(id=>document.getElementById(id).style.display='none');const m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',table:'stateTable'};if(m[s]) document.getElementById(m[s]).style.display='';}
 let bTimer;
-function flash(msg,err=false){ const b=document.getElementById('flashBanner'); b.textContent=msg; b.style.borderLeftColor=err?'var(--accent)':'var(--gold)'; b.style.display='block'; clearTimeout(bTimer); bTimer=setTimeout(()=>b.style.display='none',4500); }
+function flash(msg,err=false){const b=document.getElementById('flashBanner');b.textContent=msg;b.style.borderLeftColor=err?'var(--accent)':'var(--gold)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(()=>b.style.display='none',4500);}
 
 // ── INIT ──────────────────────────────────────────────
 (async()=>{
-  updateOfflineBanner(); updateSyncBadge();
+  updateOfflineBanner();updateSyncBadge();
   try{
-    const lib = await waitForMsal();
-    msalInstance = new lib.PublicClientApplication({
-      auth: {
-        clientId: CLIENT_ID,
-        authority: 'https://login.microsoftonline.com/' + TENANT_ID,
-        redirectUri: window.location.origin + window.location.pathname
-      },
-      cache: { cacheLocation: 'localStorage' }
+    const lib=await waitForMsal();
+    msalInstance=new lib.PublicClientApplication({
+      auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},
+      cache:{cacheLocation:'localStorage'}
     });
-    if(typeof msalInstance.initialize === 'function') await msalInstance.initialize();
+    if(typeof msalInstance.initialize==='function') await msalInstance.initialize();
     await msalInstance.handleRedirectPromise();
     if(msalInstance.getAllAccounts().length) await onSignedIn();
     else setState('login');
-  } catch(e){ setState('login'); flash('Load error: '+e.message, true); }
+  }catch(e){setState('login');flash('Load error: '+e.message,true);}
 })();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
