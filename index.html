@@ -531,26 +531,29 @@ async function loadAll(){
 
     // 2. Projects
     var projs=await sbGet(TABLE_PROJECTS,'order=name.asc&select=*');
-    allProjects=projs;
+    allProjects=projs||[];
     if(currentProjectCodes){
       allProjects=allProjects.filter(function(p){return currentProjectCodes.indexOf((p.code||'').toLowerCase())>=0;});
     }
 
     // 3. Meetings
-    var meets=await sbGet(TABLE_MEETINGS,'order=meeting_date.desc&select=*');
-    allMeetings=meets;
+    try{var meets=await sbGet(TABLE_MEETINGS,'order=meeting_date.desc&select=*');allMeetings=meets||[];}catch(e2){allMeetings=[];}
 
-    // 4. Items (lightweight - just ids and meeting_id for counts)
-    var items=await sbGet(TABLE_MOM,'select=id,meeting_id');
-    allItems=items;
+    // 4. Items lightweight for counts (ignore errors from legacy data)
+    try{var items=await sbGet(TABLE_MOM,'meeting_id=not.is.null&select=id,meeting_id');allItems=items||[];}catch(e3){allItems=[];}
 
     setState('projects');
     renderProjects();
     if(allProjects.length>0) selectProject(allProjects[0]);
-    flash('Loaded '+allProjects.length+' project(s).');
+    else filterMeetings();
+    flash('Loaded. '+allProjects.length+' project(s).');
   }catch(e){
-    setState('login');
-    document.getElementById('stateLogin').querySelector('p').innerHTML='<strong style="color:var(--red)">Error:</strong> '+e.message;
+    console.error('loadAll error:',e);
+    setState('projects');
+    applyUserUI();
+    renderProjects();
+    filterMeetings();
+    flash('Error loading data: '+e.message, true);
   }
 }
 
