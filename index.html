@@ -160,7 +160,7 @@
 
     /* ── SCREEN: ITEMS ── */
     #logoMobile{display:inline-block;}#logoDesktop{display:none;}@media(min-width:600px){#logoMobile{display:none;}#logoDesktop{display:inline-block;}}
-    #screenItems{display:none;flex-direction:column;position:fixed;inset:0;z-index:10;background:var(--bg);}
+    #screenItems{display:none;flex-direction:column;position:fixed;left:0;right:0;bottom:0;top:0;z-index:10;background:var(--bg);padding-top:0;}
     .items-header{
       background:rgba(242,242,247,0.9);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
       padding:0.65rem 1rem;border-bottom:1px solid var(--border);
@@ -731,7 +731,8 @@ async function openMeetingItems(meeting){
   document.getElementById('itemsSub').textContent=fmtDate(meeting.meeting_date)+(meeting.location?' · '+meeting.location:'');
   // Show items screen
   document.getElementById('mainScroll').style.display='none';
-  var si=document.getElementById('screenItems');si.style.display='flex';
+  var headerH=document.querySelector('header').offsetHeight;
+  var si=document.getElementById('screenItems');si.style.display='flex';si.style.top=headerH+'px';
   var canAdd=currentRole==='admin'||currentRole==='editor';
   document.getElementById('fab').style.display=canAdd?'flex':'none';
   // Load items for this meeting
