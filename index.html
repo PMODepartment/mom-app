@@ -648,8 +648,13 @@ function applyUserUI(){
   var info=document.getElementById('userInfo');info.style.display='flex';
   var parts=currentEmail.split('@')[0].split('.');
   var displayName=parts.map(function(p){return p.charAt(0).toUpperCase()+p.slice(1);}).join(' ');document.getElementById('userNameLabel').textContent=displayName;var hmName=document.getElementById('hmName');if(hmName)hmName.textContent=displayName;var hmChip=document.getElementById('hmChip');if(hmChip){hmChip.textContent=cap(currentRole);hmChip.className='role-chip rc-'+currentRole;}
-  var canAdd=currentRole==='admin';
-  document.getElementById('addMeetingBtn').style.display=canAdd?'':'none';
+  var canAdd=currentRole==='admin'||currentRole==='editor';
+  var isAdmin=currentRole==='admin';
+  document.getElementById('addMeetingBtn').style.display=isAdmin?'':'none';
+  var hmBtn=document.getElementById('hmUsersBtn');
+  if(hmBtn) hmBtn.style.display=isAdmin?'block':'none';
+  var dtBtn=document.getElementById('desktopUsersBtn');
+  if(dtBtn) dtBtn.style.display=isAdmin?'inline-block':'none';
 }
 
 // PROJECTS SCREEN
@@ -725,7 +730,7 @@ async function openMeetingItems(meeting){
   document.getElementById('mainScroll').style.display='none';
   var si=document.getElementById('screenItems');si.style.display='flex';
   var canAdd=currentRole==='admin'||currentRole==='editor';
-  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn){hmBtn.style.removeProperty('display');hmBtn.style.display=isAdmin?'block':'none';}var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'inline-block':'none';
+  document.getElementById('fab').style.display=canAdd?'flex':'none';
   // Load items for this meeting
   setState2('loading');
   try{
