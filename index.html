@@ -816,8 +816,10 @@ function openDetail(idx){
     '<div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv">'+esc(item.issue||'-')+'</div></div>'+
     '<div class="dfield"><div class="dl">Description</div><div class="dv">'+esc(item.description||'-')+'</div></div>'+
     '<div class="dfield"><div class="dl">Action Item</div><div class="dv">'+esc(item.action_item||'-')+'</div></div>'+
-    '<div class="dfield"><div class="dl">Responsible</div><div class="dv">'+esc(item.responsible||'-')+'</div></div>'+
-    '<div class="dfield"><div class="dl">Target Date</div><div class="dv mono">'+(item.target_date||'-')+'</div></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">'+
+    '<div class="dfield" style="margin-bottom:0;"><div class="dl">Responsible</div><div class="dv">'+esc(item.responsible||'-')+'</div></div>'+
+    '<div class="dfield" style="margin-bottom:0;"><div class="dl">Target Date</div><div class="dv mono">'+(item.target_date||'-')+'</div></div>'+
+    '</div>'+
     att;
   openSheet('detailOverlay','detailSheet');
 }
