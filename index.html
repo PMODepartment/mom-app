@@ -726,7 +726,7 @@ async function openMeetingItems(meeting){
   document.getElementById('mainScroll').style.display='none';
   var si=document.getElementById('screenItems');si.style.display='flex';
   var canAdd=currentRole==='admin'||currentRole==='editor';
-  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn)hmBtn.style.display=isAdmin?'block':'none';var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'inline-block':'none';
+  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn)hmBtn.setAttribute('style',isAdmin?'display:block !important':'display:none !important');var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'inline-block':'none';
   // Load items for this meeting
   setState2('loading');
   try{
