@@ -352,7 +352,7 @@
     </div>
     <div class="meetings-label">
       <span id="meetingsTitle">Meetings</span>
-      <span id="addMeetingBtn" style="display:none" onclick="openMeetingSheet(-1)">+ New Meeting</span>
+      <span id="addMeetingBtn" style="display:none" onclick="openMeetingSheet(null)">+ New Meeting</span>
     </div>
     <div class="meetings-list" id="meetingsList"></div>
   </div>
@@ -896,17 +896,17 @@ async function doDeleteItem(){
 
 // MEETING CRUD
 function openMeetingSheet(meeting){
-  editMeetingId=meeting?meeting.id:null;
-  document.getElementById('meetingSheetTitle').textContent=meeting?'Edit Meeting':'New Meeting';
+  editMeetingId=(meeting&&meeting.id)?meeting.id:null;
+  document.getElementById('meetingSheetTitle').textContent=(meeting&&meeting.id)?'Edit Meeting':'New Meeting';
   document.getElementById('mTitle').value=meeting?meeting.title||'':'';
   document.getElementById('mDate').value=meeting?meeting.meeting_date||'':'';
   document.getElementById('mLocation').value=meeting?meeting.location||'':'';
-  document.getElementById('meetingDelBtn').style.display=(currentRole==='admin'&&meeting)?'':'none';
+  document.getElementById('meetingDelBtn').style.display=(currentRole==='admin'&&meeting&&meeting.id)?'':'none';
   // Show carry-over only for new meetings
   var carryWrap=document.getElementById('carryOverWrap');
   var carrySelect=document.getElementById('mCarryOver');
   var carryPreview=document.getElementById('carryOverPreview');
-  if(meeting){
+  if(meeting&&meeting.id){
     carryWrap.style.display='none';
   }else{
     carryWrap.style.display='block';
