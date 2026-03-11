@@ -629,7 +629,9 @@ async function loadAll(){
     var projs=await sbGet(TABLE_PROJECTS,'order=name.asc&select=*');
     allProjects=projs||[];
     if(currentProjectCodes){
+      var beforeFilter=allProjects.map(function(p){return (p.code||'').toLowerCase();});
       allProjects=allProjects.filter(function(p){return currentProjectCodes.indexOf((p.code||'').toLowerCase())>=0;});
+      flash('Your codes: ['+currentProjectCodes.join(',')+'] | Project codes: ['+beforeFilter.join(',')+'] | Matched: '+allProjects.length,false);
     }
 
     // 3. Meetings
