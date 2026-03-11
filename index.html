@@ -325,7 +325,7 @@
   <div id="stateLogin" class="centered">
     <div class="login-icon">📋</div>
     <h2>Minutes of Meeting</h2>
-    <p>Sign in with your <strong>@megawide.com.ph</strong> Microsoft account to continue.</p>
+    <p>Sign in with your Microsoft account to continue.</p>
     <small>PMO · Megawide Construction</small>
   </div>
 
@@ -561,7 +561,7 @@ var TABLE_MEETINGS  = 'meetings';
 var TABLE_MOM       = 'mom_items';
 var TABLE_ROLES     = 'mom_users';
 var STORAGE_BUCKET  = 'mom-attachments';
-var ALLOWED_DOMAIN  = '@megawide.com.ph';
+var ALLOWED_DOMAINS = ['@megawide.com.ph','@ph1world.com'];
 var CLIENT_ID       = '4288144d-c7e4-4c8c-8eed-85447fa46342';
 var TENANT_ID       = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';
 var SCOPES          = ['User.Read'];
@@ -607,7 +607,7 @@ async function onSignedIn(){
   if(!msalInstance)return;
   var accs=msalInstance.getAllAccounts();if(!accs.length)return;
   currentEmail=(accs[0].username||'').toLowerCase();
-  if(!currentEmail.endsWith(ALLOWED_DOMAIN)){document.getElementById('deniedEmail').textContent=currentEmail;document.getElementById('loginBtn').style.display='none';setState('noAccess');return;}
+  if(!ALLOWED_DOMAINS.some(function(d){return currentEmail.endsWith(d);})){document.getElementById('deniedEmail').textContent=currentEmail;document.getElementById('loginBtn').style.display='none';setState('noAccess');return;}
   document.getElementById('loginBtn').style.display='none';
   await loadAll();
 }
