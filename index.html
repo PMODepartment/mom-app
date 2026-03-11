@@ -632,9 +632,10 @@ async function loadAll(){
       allProjects=allProjects.filter(function(p){
         var pCode=(p.code||'').toLowerCase().trim();
         var pName=(p.name||'').toLowerCase().trim();
+        var pId=(p.id||'').toLowerCase().trim();
         return currentProjectCodes.some(function(c){
-          var cc=c.toLowerCase().trim();
-          return cc&&(cc===pCode||cc===pName);
+          var cc=(c||'').toLowerCase().trim();
+          return cc&&(cc===pCode||cc===pName||cc===pId);
         });
       });
     }
@@ -1135,7 +1136,9 @@ function renderProjectCheckboxes(selectedCodes){
   var codes=(selectedCodes||'').split(',').map(function(s){return s.trim().toLowerCase();}).filter(Boolean);
   if(!allProjects.length){container.innerHTML='<span style="font-size:0.78rem;color:var(--muted);">No projects found.</span>';return;}
   allProjects.forEach(function(proj){
-    var checked=codes.indexOf((proj.code||'').toLowerCase())>=0;
+    var pCode=(proj.code||'').toLowerCase();
+    var pId=(proj.id||'').toLowerCase();
+    var checked=codes.some(function(c){return c&&(c===pCode||c===pId);});
     var label=document.createElement('label');
     label.style.cssText='display:flex;align-items:center;gap:0.5rem;font-size:0.84rem;font-weight:500;color:var(--ink);cursor:pointer;padding:0.4rem 0.6rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border2);';
     var cb=document.createElement('input');cb.type='checkbox';cb.dataset.code=proj.code||proj.id;cb.checked=checked;cb.style.cssText='width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;pointer-events:auto;';label.style.cssText='display:flex;align-items:center;gap:0.6rem;font-size:0.84rem;font-weight:500;color:var(--ink);padding:0.5rem 0.7rem;background:'+(checked?'var(--blue-l)':'var(--surface)')+';border-radius:var(--r);box-shadow:0 0 0 1px '+(checked?'var(--blue)':'var(--border2)')+';cursor:pointer;transition:all 0.15s;';cb.addEventListener('change',function(){label.style.background=this.checked?'var(--blue-l)':'var(--surface)';label.style.boxShadow='0 0 0 1px '+(this.checked?'var(--blue)':'var(--border2)');});var nameSpan=document.createElement('span');nameSpan.textContent=proj.name;label.appendChild(cb);label.appendChild(nameSpan);if(proj.code){var codeSpan=document.createElement('span');codeSpan.textContent=proj.code;codeSpan.style.cssText='font-size:0.68rem;color:var(--muted);margin-left:auto;';label.appendChild(codeSpan);}
