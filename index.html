@@ -19,7 +19,6 @@
     #hamburgerBtn:active{background:rgba(255,255,255,0.15);}
     #hamburgerMenu{display:none;position:fixed;top:70px;right:0.75rem;background:var(--surface);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:0.75rem;min-width:180px;z-index:99999;border:1px solid var(--border);}
     #hamburgerMenu.open{display:block;}
-    #hmUsersBtn{display:none;}
     .hm-name{font-size:0.88rem;font-weight:700;color:var(--ink);margin-bottom:0.3rem;}
     .hm-divider{height:1px;background:var(--border);margin:0.5rem 0;}
     .hm-signout{width:100%;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.55rem 0.75rem;border:none;border-radius:var(--r);background:var(--red-l);color:var(--red);cursor:pointer;text-align:left;}
@@ -308,7 +307,7 @@
       <div class="hm-name" id="hmName"></div>
       <span class="role-chip" id="hmChip"></span>
       <div class="hm-divider"></div>
-      <button class="hm-users" id="hmUsersBtn" onclick="openUsersSheet();toggleHamburger()">Manage Users</button>
+      <button class="hm-users" id="hmUsersBtn" onclick="openUsersSheet();toggleHamburger()" style="display:none">Manage Users</button>
       <button class="hm-signout" onclick="signOut()">Sign Out</button>
     </div>
   </div>
@@ -726,7 +725,7 @@ async function openMeetingItems(meeting){
   document.getElementById('mainScroll').style.display='none';
   var si=document.getElementById('screenItems');si.style.display='flex';
   var canAdd=currentRole==='admin'||currentRole==='editor';
-  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn)hmBtn.setAttribute('style',isAdmin?'display:block !important':'display:none !important');var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'inline-block':'none';
+  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn){hmBtn.style.removeProperty('display');hmBtn.style.display=isAdmin?'block':'none';}var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'inline-block':'none';
   // Load items for this meeting
   setState2('loading');
   try{
