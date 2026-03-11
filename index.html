@@ -156,6 +156,7 @@
     .meeting-row-right{display:flex;flex-direction:column;align-items:flex-end;gap:0.22rem;flex-shrink:0;}
     .meeting-count{font-size:0.7rem;font-weight:600;color:var(--blue);background:var(--blue-l);padding:0.12rem 0.5rem;border-radius:20px;white-space:nowrap;}
     .meeting-chevron{color:var(--muted);font-size:0.8rem;}
+    .btn-meeting-edit{font-family:var(--font);font-size:0.68rem;font-weight:600;padding:0.25rem 0.6rem;border:none;border-radius:20px;background:var(--surface3);color:var(--muted);cursor:pointer;}
     .empty-msg{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.88rem;}
 
     /* ── SCREEN: ITEMS ── */
@@ -719,10 +720,11 @@ function filterMeetings(){
   meets.forEach(function(meeting,idx){
     var itemCount=allItems.filter(function(it){return it.meeting_id===meeting.id;}).length;
     var row=document.createElement('div');row.className='meeting-row';
-    row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title">'+esc(meeting.title||'Untitled Meeting')+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span><span class="meeting-chevron">›</span></div>';
+    var editBtn=currentRole==='admin'?'<button class="btn-meeting-edit">Edit</button>':'';
+    row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title">'+esc(meeting.title||'Untitled Meeting')+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+editBtn+'<span class="meeting-chevron">›</span></div>';
     row.onclick=function(){openMeetingItems(meeting);};
     if(currentRole==='admin'){
-      row.addEventListener('contextmenu',function(e){e.preventDefault();openMeetingSheet(meeting);});
+      row.querySelector('.btn-meeting-edit')&&row.querySelector('.btn-meeting-edit').addEventListener('click',function(e){e.stopPropagation();openMeetingSheet(meeting);});
     }
     list.appendChild(row);
   });
