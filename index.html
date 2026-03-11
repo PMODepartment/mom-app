@@ -417,13 +417,16 @@
   <div class="sh-body">
     <div class="ff"><label>Email Address</label><input type="email" id="uEmail" placeholder="user@megawide.com.ph"/></div>
     <div class="ff"><label>Role</label>
-      <select id="uRole">
+      <select id="uRole" onchange="onUserRoleChange()">
         <option value="admin">Admin</option>
         <option value="editor">Editor</option>
         <option value="viewer" selected>Viewer</option>
       </select>
     </div>
-    <div class="ff"><label>Project Codes (comma separated, leave blank for all)</label><input type="text" id="uProjects" placeholder="EPC-001, EPC-002"/></div>
+    <div class="ff" id="uProjectsWrap">
+      <label>Assigned Projects</label>
+      <div id="uProjectsList" style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.3rem;"></div>
+    </div>
   </div>
   <div class="sh-foot">
     <button class="btn-cancel" onclick="closeUserEditSheet()">Cancel</button>
@@ -1019,6 +1022,33 @@ function renderUsersList(){
   });
 }
 
+function onUserRoleChange(){
+  var role=document.getElementById('uRole').value;
+  var wrap=document.getElementById('uProjectsWrap');
+  if(wrap) wrap.style.display=role==='admin'?'none':'';
+}
+
+function renderProjectCheckboxes(selectedCodes){
+  var container=document.getElementById('uProjectsList');
+  container.innerHTML='';
+  var codes=(selectedCodes||'').split(',').map(function(s){return s.trim().toLowerCase();}).filter(Boolean);
+  if(!allProjects.length){container.innerHTML='<span style="font-size:0.78rem;color:var(--muted);">No projects found.</span>';return;}
+  allProjects.forEach(function(proj){
+    var checked=codes.indexOf((proj.code||'').toLowerCase())>=0;
+    var label=document.createElement('label');
+    label.style.cssText='display:flex;align-items:center;gap:0.5rem;font-size:0.84rem;font-weight:500;color:var(--ink);cursor:pointer;padding:0.4rem 0.6rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border2);';
+    label.innerHTML='<input type="checkbox" data-code="'+(proj.code||proj.id)+'" '+(checked?'checked':'')+' style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer;"/> '+esc(proj.name)+(proj.code?' <span style="font-size:0.68rem;color:var(--muted);margin-left:auto;">'+esc(proj.code)+'</span>':'');
+    container.appendChild(label);
+  });
+}
+
+function getSelectedProjectCodes(){
+  var boxes=document.querySelectorAll('#uProjectsList input[type=checkbox]');
+  var codes=[];
+  boxes.forEach(function(cb){if(cb.checked)codes.push(cb.dataset.code);});
+  return codes.join(',') || null;
+}
+
 function openUserEditSheet(id){
   editUserId=id;
   var u=id?allUsers.find(function(x){return x.id===id;}):null;
@@ -1026,7 +1056,8 @@ function openUserEditSheet(id){
   document.getElementById('uEmail').value=u?u.email:'';
   document.getElementById('uEmail').disabled=!!u;
   document.getElementById('uRole').value=u?u.role:'viewer';
-  document.getElementById('uProjects').value=u?u.project_codes||'':'';
+  renderProjectCheckboxes(u?u.project_codes||'':'');
+  onUserRoleChange();
   document.getElementById('userDelBtn').style.display=u?'':'none';
   openSheet('userEditOverlay','userEditSheet');
 }
@@ -1036,7 +1067,7 @@ async function saveUser(){
   var btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Saving...';
   var email=document.getElementById('uEmail').value.trim().toLowerCase();
   var role=document.getElementById('uRole').value;
-  var codes=document.getElementById('uProjects').value.trim()||null;
+  var role2=document.getElementById('uRole').value;var codes=role2==='admin'?null:getSelectedProjectCodes();
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
   try{
     if(editUserId){
