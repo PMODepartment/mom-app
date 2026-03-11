@@ -831,7 +831,14 @@ function openEditSheet(idx){
   editItemIdx=idx;
   var item=(idx===-1)?{}:(window._meetingItems||[])[idx]||{};
   document.getElementById('editTitle').textContent=idx===-1?'Add New Item':'Edit Item';
-  document.getElementById('fNo').value=item.no||'';
+  if(idx===-1){
+    // Auto-increment: find max No. in current meeting and add 1
+    var items=window._meetingItems||[];
+    var maxNo=items.reduce(function(m,it){return Math.max(m,parseInt(it.no)||0);},0);
+    document.getElementById('fNo').value=maxNo+1;
+  }else{
+    document.getElementById('fNo').value=item.no||'';
+  }
   document.getElementById('fCat2').value=item.category||'';
   document.getElementById('fIssue').value=item.issue||'';
   document.getElementById('fDesc').value=item.description||'';
