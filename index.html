@@ -449,16 +449,14 @@
   <div class="sh-handle"></div>
   <div class="sh-head"><h2 id="editTitle">Add New Item</h2><button class="sh-x" onclick="closeEdit()">✕</button></div>
   <div class="sh-body">
-    <div class="frow">
-      <div class="ff"><label>No.</label><input type="number" id="fNo" placeholder="1"/></div>
-      <div class="ff"><label>Category</label><select id="fCat2"><option value="">Select</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Other Matters</option></select></div>
+    <div style="display:grid;grid-template-columns:0.6fr 1.5fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">
+      <div class="ff" style="margin-bottom:0;"><label>No.</label><input type="number" id="fNo" placeholder="1"/></div>
+      <div class="ff" style="margin-bottom:0;"><label>Category</label><select id="fCat2"><option value="">Select</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Other Matters</option></select></div>
+      <div class="ff" style="margin-bottom:0;"><label>Type</label><select id="fType2"><option value="">Select</option><option>Issue</option><option>FYI</option><option>Report</option></select></div>
+      <div class="ff" style="margin-bottom:0;"><label>Status</label><select id="fStat2"><option value="">Select</option><option>Open</option><option>Closed</option><option>On Hold</option></select></div>
     </div>
     <div class="ff"><label>Issue / Agenda</label><input type="text" id="fIssue" placeholder="Topic"/></div>
     <div class="ff"><label>Description</label><textarea id="fDesc" placeholder="Details…"></textarea></div>
-    <div class="frow">
-      <div class="ff"><label>Type</label><select id="fType2"><option value="">Select</option><option>Issue</option><option>FYI</option><option>Report</option></select></div>
-      <div class="ff"><label>Status</label><select id="fStat2"><option value="">Select</option><option>Open</option><option>Closed</option><option>On Hold</option></select></div>
-    </div>
     <div class="ff"><label>Action Item</label><textarea id="fAction" placeholder="What needs to be done…"></textarea></div>
     <div class="frow">
       <div class="ff"><label>Responsible</label><input type="text" id="fResp" placeholder="Name / team"/></div>
