@@ -17,7 +17,7 @@
     #hamburgerBtn{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:0.4rem;border-radius:8px;}
     #hamburgerBtn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all 0.2s;}
     #hamburgerBtn:active{background:rgba(255,255,255,0.15);}
-    #hamburgerMenu{display:none;position:fixed;top:70px;right:0.75rem;background:var(--surface);border-radius:var(--rl);box-shadow:var(--sh2);padding:0.75rem;min-width:180px;z-index:9999;border:1px solid var(--border);}
+    #hamburgerMenu{display:none;position:fixed;top:70px;right:0.75rem;background:var(--surface);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:0.75rem;min-width:180px;z-index:99999;border:1px solid var(--border);}
     #hamburgerMenu.open{display:block;}
     .hm-name{font-size:0.88rem;font-weight:700;color:var(--ink);margin-bottom:0.3rem;}
     .hm-divider{height:1px;background:var(--border);margin:0.5rem 0;}
@@ -51,7 +51,7 @@
     body{font-family:var(--font);color:var(--ink);display:flex;flex-direction:column;overflow:hidden;}
 
     /* HEADER */
-    header{background:rgba(180,0,0,0.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);padding:calc(var(--safe-top)+1.75rem) 1rem 1.75rem;display:flex;align-items:center;justify-content:space-between;border-bottom:none;flex-shrink:0;overflow:visible;}
+    header{background:rgba(180,0,0,0.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);padding:calc(var(--safe-top)+1.75rem) 1rem 1.75rem;display:flex;align-items:center;justify-content:space-between;border-bottom:none;flex-shrink:0;overflow:visible;position:relative;z-index:1000;}
     .brand h1{font-size:clamp(0.88rem,4vw,1rem);font-weight:700;color:#fff;letter-spacing:-0.02em;}
     .brand h1 span{color:rgba(255,255,255,0.7);}
     .brand .sub{font-size:0.58rem;font-weight:500;color:rgba(255,255,255,0.6);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;}
@@ -113,7 +113,7 @@
       padding:0.85rem 0.75rem;border-radius:var(--rl);background:var(--surface);
       box-shadow:var(--sh);border:2px solid transparent;
       cursor:pointer;transition:all 0.18s;width:100px;
-      -webkit-tap-highlight-color:transparent;
+      -webkit-tap-highlight-color:transparent;position:relative;z-index:1;
     }
     .proj-card:active{transform:scale(0.95);}
     .proj-card.active{border-color:var(--blue);background:#fff;}
