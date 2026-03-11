@@ -1037,7 +1037,7 @@ function renderProjectCheckboxes(selectedCodes){
     var checked=codes.indexOf((proj.code||'').toLowerCase())>=0;
     var label=document.createElement('label');
     label.style.cssText='display:flex;align-items:center;gap:0.5rem;font-size:0.84rem;font-weight:500;color:var(--ink);cursor:pointer;padding:0.4rem 0.6rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border2);';
-    label.innerHTML='<input type="checkbox" data-code="'+(proj.code||proj.id)+'" '+(checked?'checked':'')+' style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer;"/> '+esc(proj.name)+(proj.code?' <span style="font-size:0.68rem;color:var(--muted);margin-left:auto;">'+esc(proj.code)+'</span>':'');
+    var cb=document.createElement('input');cb.type='checkbox';cb.dataset.code=proj.code||proj.id;cb.checked=checked;cb.style.cssText='width:16px;height:16px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;';var nameSpan=document.createElement('span');nameSpan.textContent=proj.name;var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:0.5rem;flex:1;';row.appendChild(cb);row.appendChild(nameSpan);if(proj.code){var codeSpan=document.createElement('span');codeSpan.textContent=proj.code;codeSpan.style.cssText='font-size:0.68rem;color:var(--muted);margin-left:auto;';row.appendChild(codeSpan);}label.innerHTML='';label.appendChild(row);
     container.appendChild(label);
   });
 }
