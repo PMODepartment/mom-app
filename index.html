@@ -909,7 +909,7 @@ function openMeetingSheet(meeting){
   if(meeting){
     carryWrap.style.display='none';
   }else{
-    carryWrap.style.display='';
+    carryWrap.style.display='block';
     carrySelect.innerHTML='<option value="">— None (start fresh) —</option>';
     carryPreview.style.display='none';
     // Populate with meetings from selected project
@@ -927,7 +927,7 @@ function openMeetingSheet(meeting){
       if(!this.value){carryPreview.style.display='none';return;}
       // Count open/on hold items for selected meeting
       var cnt=allItems.filter(function(it){return it.meeting_id===carrySelect.value;}).length;
-      carryPreview.style.display='';
+      carryPreview.style.display='block';
       carryPreview.textContent='Will carry over Open & On Hold items from this meeting.';
     };
   }
