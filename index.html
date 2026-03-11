@@ -42,7 +42,7 @@
     .btn-edit-user{font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.3rem 0.65rem;border:none;border-radius:20px;background:var(--blue-l);color:var(--blue);cursor:pointer;}
     .btn-del-user{font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.3rem 0.65rem;border:none;border-radius:20px;background:var(--red-l);color:var(--red);cursor:pointer;}
     #usersSheet .sh-body{padding-bottom:1rem;}
-    .manage-users-btn{font-family:var(--font);font-size:0.78rem;font-weight:600;padding:0.4rem 0.85rem;border:none;border-radius:20px;background:rgba(255,255,255,0.2);color:#fff;cursor:pointer;display:none;}
+    .manage-users-btn{font-family:var(--font);font-size:0.78rem;font-weight:600;padding:0.4rem 0.85rem;border:none;border-radius:20px;background:rgba(255,255,255,0.2);color:#fff;cursor:pointer;}
 
     :root{
       --bg:#f2f2f7;--surface:#fff;--surface2:#f2f2f7;--surface3:#e5e5ea;
@@ -725,7 +725,7 @@ async function openMeetingItems(meeting){
   document.getElementById('mainScroll').style.display='none';
   var si=document.getElementById('screenItems');si.style.display='flex';
   var canAdd=currentRole==='admin'||currentRole==='editor';
-  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn)hmBtn.style.display=isAdmin?'':'none';var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'':'none';
+  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn)hmBtn.style.display=isAdmin?'block':'none';var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'inline-block':'none';
   // Load items for this meeting
   setState2('loading');
   try{
