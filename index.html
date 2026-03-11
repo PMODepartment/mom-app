@@ -492,6 +492,13 @@
     <div class="ff"><label>Meeting Title</label><input type="text" id="mTitle" placeholder="e.g. Site Progress Meeting"/></div>
     <div class="ff"><label>Meeting Date</label><input type="date" id="mDate"/></div>
     <div class="ff"><label>Location / Platform</label><input type="text" id="mLocation" placeholder="e.g. Site Office / MS Teams"/></div>
+    <div class="ff" id="carryOverWrap">
+      <label>Carry Over Items From</label>
+      <select id="mCarryOver">
+        <option value="">— None (start fresh) —</option>
+      </select>
+      <div id="carryOverPreview" style="display:none;margin-top:0.5rem;padding:0.6rem 0.85rem;background:var(--blue-l);border-radius:var(--r);font-size:0.78rem;color:var(--blue);font-weight:500;"></div>
+    </div>
   </div>
   <div class="sh-foot">
     <button class="btn-cancel" onclick="closeMeetingSheet()">Cancel</button>
@@ -895,6 +902,35 @@ function openMeetingSheet(meeting){
   document.getElementById('mDate').value=meeting?meeting.meeting_date||'':'';
   document.getElementById('mLocation').value=meeting?meeting.location||'':'';
   document.getElementById('meetingDelBtn').style.display=(currentRole==='admin'&&meeting)?'':'none';
+  // Show carry-over only for new meetings
+  var carryWrap=document.getElementById('carryOverWrap');
+  var carrySelect=document.getElementById('mCarryOver');
+  var carryPreview=document.getElementById('carryOverPreview');
+  if(meeting){
+    carryWrap.style.display='none';
+  }else{
+    carryWrap.style.display='';
+    carrySelect.innerHTML='<option value="">— None (start fresh) —</option>';
+    carryPreview.style.display='none';
+    // Populate with meetings from selected project
+    var proj2=selectedProject||allProjects[0];
+    if(proj2){
+      var projMeetings=allMeetings.filter(function(m){return m.project_id===proj2.id;});
+      projMeetings.forEach(function(m){
+        var opt=document.createElement('option');
+        opt.value=m.id;
+        opt.textContent=(m.title||'Untitled')+' · '+fmtDate(m.meeting_date);
+        carrySelect.appendChild(opt);
+      });
+    }
+    carrySelect.onchange=function(){
+      if(!this.value){carryPreview.style.display='none';return;}
+      // Count open/on hold items for selected meeting
+      var cnt=allItems.filter(function(it){return it.meeting_id===carrySelect.value;}).length;
+      carryPreview.style.display='';
+      carryPreview.textContent='Will carry over Open & On Hold items from this meeting.';
+    };
+  }
   // Show current project
   var proj=selectedProject||allProjects[0];
   if(proj){
@@ -908,12 +944,46 @@ async function saveMeeting(){
   var btn=document.getElementById('meetingSaveBtn');btn.disabled=true;btn.textContent='Saving...';
   var proj=selectedProject||allProjects[0];if(!proj){flash('Select a project first',true);btn.disabled=false;btn.textContent='Save';return;}
   var data={title:document.getElementById('mTitle').value||'Untitled',meeting_date:document.getElementById('mDate').value||null,location:document.getElementById('mLocation').value||null,project_id:proj.id};
+  var carryFromId=(!editMeetingId&&document.getElementById('mCarryOver'))?document.getElementById('mCarryOver').value:null;
   try{
     var saved=editMeetingId?await sbPatch(TABLE_MEETINGS,editMeetingId,data):await sbPost(TABLE_MEETINGS,data);
     var m=Array.isArray(saved)?saved[0]:saved;
     if(editMeetingId){allMeetings=allMeetings.map(function(x){return x.id===editMeetingId?m:x;});}
     else{allMeetings.unshift(m);}
-    closeMeetingSheet();filterMeetings();flash('Meeting saved.');
+    // Carry over open/on hold items
+    if(carryFromId&&m.id){
+      btn.textContent='Carrying over...';
+      try{
+        var sourceItems=await sbGet(TABLE_MOM,'meeting_id=eq.'+carryFromId+'&select=*');
+        var toCarry=sourceItems.filter(function(it){
+          var s=(it.status||'').toLowerCase();
+          return s==='open'||s==='on hold';
+        });
+        if(toCarry.length){
+          var newItems=toCarry.map(function(it){
+            return {
+              no:it.no,category:it.category,issue:it.issue,description:it.description,
+              type:it.type,action_item:it.action_item,responsible:it.responsible,
+              target_date:it.target_date,status:it.status,
+              meeting_id:m.id,project_id:m.project_id,
+              attachment_url:it.attachment_url,attachment_name:it.attachment_name
+            };
+          });
+          // Insert all carried items
+          for(var i=0;i<newItems.length;i++){
+            var ni=await sbPost(TABLE_MOM,newItems[i]);
+            var saved2=Array.isArray(ni)?ni[0]:ni;
+            allItems.push({id:saved2.id,meeting_id:m.id});
+          }
+          flash('Meeting saved. '+toCarry.length+' item(s) carried over.');
+        }else{
+          flash('Meeting saved. No open/on hold items to carry over.');
+        }
+      }catch(e2){flash('Meeting saved but carry-over failed: '+e2.message,true);}
+    }else{
+      flash('Meeting saved.');
+    }
+    closeMeetingSheet();filterMeetings();
   }catch(e){flash('Error: '+e.message,true);}
   btn.disabled=false;btn.textContent='Save';
 }
