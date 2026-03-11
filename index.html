@@ -806,7 +806,19 @@ function openDetail(idx){
   var globalIdx=(window._meetingItems||[]).indexOf(item);
   var actions=(canEdit||canDel)?'<div class="detail-actions">'+(canEdit?'<button class="btn-blue-sm" onclick="openEditSheet('+globalIdx+');closeDetail()">Edit</button>':'')+(canDel?'<button class="btn-del-inline" onclick="askDeleteItem('+globalIdx+');closeDetail()">Delete</button>':'')+'</div>':'';
   var att=item.attachment_url?'<div class="dfield"><div class="dl">Attachment</div><div class="dv"><a href="'+item.attachment_url+'" target="_blank" class="att-link">'+esc(item.attachment_name||'Download')+'</a></div></div>':'';
-  document.getElementById('detailBody').innerHTML=actions+'<div class="dfield"><div class="dl">No.</div><div class="dv mono">'+(item.no||'-')+'</div></div><div class="dfield"><div class="dl">Category</div><div class="dv">'+(item.category||'-')+'</div></div><div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv">'+esc(item.issue||'-')+'</div></div><div class="dfield"><div class="dl">Description</div><div class="dv">'+esc(item.description||'-')+'</div></div><div class="dfield"><div class="dl">Type</div><div class="dv">'+typeBadge(item.type)+'</div></div><div class="dfield"><div class="dl">Action Item</div><div class="dv">'+esc(item.action_item||'-')+'</div></div><div class="dfield"><div class="dl">Responsible</div><div class="dv">'+esc(item.responsible||'-')+'</div></div><div class="dfield"><div class="dl">Target Date</div><div class="dv mono">'+(item.target_date||'-')+'</div></div><div class="dfield"><div class="dl">Status</div><div class="dv">'+statusBadge(item.status)+'</div></div>'+att;
+  var firstRow='<div style="display:grid;grid-template-columns:0.6fr 1.5fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">'+
+    '<div class="dfield" style="margin-bottom:0;"><div class="dl">No.</div><div class="dv mono">'+(item.no||'-')+'</div></div>'+
+    '<div class="dfield" style="margin-bottom:0;"><div class="dl">Category</div><div class="dv">'+(item.category||'-')+'</div></div>'+
+    '<div class="dfield" style="margin-bottom:0;"><div class="dl">Type</div><div class="dv">'+typeBadge(item.type)+'</div></div>'+
+    '<div class="dfield" style="margin-bottom:0;"><div class="dl">Status</div><div class="dv">'+statusBadge(item.status)+'</div></div>'+
+    '</div>';
+  document.getElementById('detailBody').innerHTML=actions+firstRow+
+    '<div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv">'+esc(item.issue||'-')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Description</div><div class="dv">'+esc(item.description||'-')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Action Item</div><div class="dv">'+esc(item.action_item||'-')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Responsible</div><div class="dv">'+esc(item.responsible||'-')+'</div></div>'+
+    '<div class="dfield"><div class="dl">Target Date</div><div class="dv mono">'+(item.target_date||'-')+'</div></div>'+
+    att;
   openSheet('detailOverlay','detailSheet');
 }
 function closeDetail(){closeSheet('detailOverlay','detailSheet');}
