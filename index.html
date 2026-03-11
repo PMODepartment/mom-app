@@ -717,6 +717,7 @@ function filterMeetings(){
     if(q&&!(m.title||'').toLowerCase().includes(q)&&!(m.meeting_date||'').includes(q))return false;
     return true;
   });
+  meets.sort(function(a,b){return (b.meeting_date||'').localeCompare(a.meeting_date||'');});
   if(!meets.length){list.innerHTML='<div class="empty-msg">No meetings yet. Tap + New Meeting to add one.</div>';return;}
   meets.forEach(function(meeting,idx){
     var itemCount=allItems.filter(function(it){return it.meeting_id===meeting.id;}).length;
