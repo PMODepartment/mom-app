@@ -31,6 +31,19 @@
       #hamburgerMenu{display:none !important;}
     }
 
+
+    /* USER MANAGEMENT */
+    .hm-users{width:100%;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.55rem 0.75rem;border:none;border-radius:var(--r);background:var(--blue-l);color:var(--blue);cursor:pointer;text-align:left;margin-bottom:0.4rem;}
+    .user-row{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.75rem 0.9rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border2);margin-bottom:0.5rem;}
+    .user-row-left{flex:1;min-width:0;}
+    .user-row-email{font-size:0.82rem;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .user-row-proj{font-size:0.68rem;color:var(--muted);margin-top:2px;}
+    .user-row-right{display:flex;align-items:center;gap:0.5rem;flex-shrink:0;}
+    .btn-edit-user{font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.3rem 0.65rem;border:none;border-radius:20px;background:var(--blue-l);color:var(--blue);cursor:pointer;}
+    .btn-del-user{font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.3rem 0.65rem;border:none;border-radius:20px;background:var(--red-l);color:var(--red);cursor:pointer;}
+    #usersSheet .sh-body{padding-bottom:1rem;}
+    .manage-users-btn{font-family:var(--font);font-size:0.78rem;font-weight:600;padding:0.4rem 0.85rem;border:none;border-radius:20px;background:rgba(255,255,255,0.2);color:#fff;cursor:pointer;display:none;}
+
     :root{
       --bg:#f2f2f7;--surface:#fff;--surface2:#f2f2f7;--surface3:#e5e5ea;
       --ink:#1c1c1e;--ink2:#3a3a3c;--muted:#8e8e93;
@@ -284,6 +297,7 @@
         <span id="userNameLabel"></span>
         <span class="role-chip" id="roleChip"></span>
       </div>
+      <button class="manage-users-btn" id="desktopUsersBtn" onclick="openUsersSheet()">Manage Users</button>
       <button class="hbtn" id="logoutBtn" onclick="signOut()" style="display:block;">Sign Out</button>
     </div>
     <button id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
@@ -293,6 +307,7 @@
       <div class="hm-name" id="hmName"></div>
       <span class="role-chip" id="hmChip"></span>
       <div class="hm-divider"></div>
+      <button class="hm-users" id="hmUsersBtn" style="display:none" onclick="openUsersSheet();toggleHamburger()">Manage Users</button>
       <button class="hm-signout" onclick="signOut()">Sign Out</button>
     </div>
   </div>
@@ -376,6 +391,46 @@
   <button id="fab" onclick="openEditSheet(-1)" aria-label="Add">＋</button>
 </div>
 
+
+
+<!-- USERS SHEET -->
+<div class="sh-overlay" id="usersOverlay" onclick="closeUsersSheet()"></div>
+<div class="bsheet" id="usersSheet">
+  <div class="sh-handle"></div>
+  <div class="sh-head">
+    <h2>Manage Users</h2>
+    <button class="sh-x" onclick="closeUsersSheet()">✕</button>
+  </div>
+  <div class="sh-body">
+    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+      <button class="btn-save" style="flex:1;" onclick="openUserEditSheet(null)">+ Add User</button>
+    </div>
+    <div id="usersList"></div>
+  </div>
+</div>
+
+<!-- USER EDIT SHEET -->
+<div class="sh-overlay" id="userEditOverlay" onclick="closeUserEditSheet()"></div>
+<div class="bsheet" id="userEditSheet">
+  <div class="sh-handle"></div>
+  <div class="sh-head"><h2 id="userEditTitle">Add User</h2><button class="sh-x" onclick="closeUserEditSheet()">✕</button></div>
+  <div class="sh-body">
+    <div class="ff"><label>Email Address</label><input type="email" id="uEmail" placeholder="user@megawide.com.ph"/></div>
+    <div class="ff"><label>Role</label>
+      <select id="uRole">
+        <option value="admin">Admin</option>
+        <option value="editor">Editor</option>
+        <option value="viewer" selected>Viewer</option>
+      </select>
+    </div>
+    <div class="ff"><label>Project Codes (comma separated, leave blank for all)</label><input type="text" id="uProjects" placeholder="EPC-001, EPC-002"/></div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn-cancel" onclick="closeUserEditSheet()">Cancel</button>
+    <button class="btn-del-inline" id="userDelBtn" style="display:none" onclick="deleteUser()">Delete</button>
+    <button class="btn-save" id="userSaveBtn" onclick="saveUser()">Save</button>
+  </div>
+</div>
 
 <!-- DETAIL SHEET -->
 <div class="sh-overlay" id="detailOverlay" onclick="closeDetail()"></div>
@@ -670,7 +725,7 @@ async function openMeetingItems(meeting){
   document.getElementById('mainScroll').style.display='none';
   var si=document.getElementById('screenItems');si.style.display='flex';
   var canAdd=currentRole==='admin'||currentRole==='editor';
-  document.getElementById('fab').style.display=canAdd?'flex':'none';
+  document.getElementById('fab').style.display=canAdd?'flex':'none';var isAdmin=currentRole==='admin';var hmBtn=document.getElementById('hmUsersBtn');if(hmBtn)hmBtn.style.display=isAdmin?'':'none';var dtBtn=document.getElementById('desktopUsersBtn');if(dtBtn)dtBtn.style.display=isAdmin?'':'none';
   // Load items for this meeting
   setState2('loading');
   try{
@@ -927,6 +982,84 @@ function setState(s){
 }
 var bTimer;
 function flash(msg,err){var b=document.getElementById('flashBanner');b.textContent=msg;b.style.color=err?'var(--red)':'var(--ink2)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(function(){b.style.display='none';},4000);}
+
+
+// USERS MANAGEMENT
+var allUsers=[], editUserId=null;
+
+function openUsersSheet(){
+  closeSheet('usersOverlay','usersSheet');
+  loadUsers();
+  openSheet('usersOverlay','usersSheet');
+}
+function closeUsersSheet(){closeSheet('usersOverlay','usersSheet');}
+
+async function loadUsers(){
+  var list=document.getElementById('usersList');
+  list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.84rem;">Loading...</div>';
+  try{
+    allUsers=await sbGet(TABLE_ROLES,'order=email.asc&select=*');
+    renderUsersList();
+  }catch(e){list.innerHTML='<div style="color:var(--red);font-size:0.84rem;">Error: '+esc(e.message)+'</div>';}
+}
+
+function renderUsersList(){
+  var list=document.getElementById('usersList');list.innerHTML='';
+  if(!allUsers.length){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.84rem;">No users yet.</div>';return;}
+  allUsers.forEach(function(u){
+    var row=document.createElement('div');row.className='user-row';
+    var projText=u.project_codes?'Projects: '+u.project_codes:'All projects';
+    row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right"><span class="badge '+(u.role==='admin'?'b-issue':u.role==='editor'?'b-open':'b-fyi')+'">'+cap(u.role)+'</span><button class="btn-edit-user">Edit</button></div>';row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
+    list.appendChild(row);
+  });
+}
+
+function openUserEditSheet(id){
+  editUserId=id;
+  var u=id?allUsers.find(function(x){return x.id===id;}):null;
+  document.getElementById('userEditTitle').textContent=u?'Edit User':'Add User';
+  document.getElementById('uEmail').value=u?u.email:'';
+  document.getElementById('uEmail').disabled=!!u;
+  document.getElementById('uRole').value=u?u.role:'viewer';
+  document.getElementById('uProjects').value=u?u.project_codes||'':'';
+  document.getElementById('userDelBtn').style.display=u?'':'none';
+  openSheet('userEditOverlay','userEditSheet');
+}
+function closeUserEditSheet(){closeSheet('userEditOverlay','userEditSheet');editUserId=null;}
+
+async function saveUser(){
+  var btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Saving...';
+  var email=document.getElementById('uEmail').value.trim().toLowerCase();
+  var role=document.getElementById('uRole').value;
+  var codes=document.getElementById('uProjects').value.trim()||null;
+  if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
+  try{
+    if(editUserId){
+      await sbPatch(TABLE_ROLES,editUserId,{role:role,project_codes:codes});
+      allUsers=allUsers.map(function(u){return u.id===editUserId?Object.assign({},u,{role:role,project_codes:codes}):u;});
+    }else{
+      var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
+      allUsers.push(Array.isArray(saved)?saved[0]:saved);
+    }
+    renderUsersList();
+    closeUserEditSheet();
+    flash('User saved.');
+  }catch(e){flash('Error: '+e.message,true);}
+  btn.disabled=false;btn.textContent='Save';
+}
+
+async function deleteUser(){
+  if(!editUserId)return;
+  var u=allUsers.find(function(x){return x.id===editUserId;});
+  if(u&&u.email===currentEmail){flash('Cannot delete your own account.',true);return;}
+  try{
+    await sbDelete(TABLE_ROLES,editUserId);
+    allUsers=allUsers.filter(function(x){return x.id!==editUserId;});
+    renderUsersList();
+    closeUserEditSheet();
+    flash('User deleted.');
+  }catch(e){flash('Error: '+e.message,true);}
+}
 
 // HAMBURGER
 function toggleHamburger(){
