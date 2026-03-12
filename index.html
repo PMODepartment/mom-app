@@ -159,6 +159,9 @@
     .meeting-count{font-size:0.7rem;font-weight:600;color:var(--blue);background:var(--blue-l);padding:0.12rem 0.5rem;border-radius:20px;white-space:nowrap;}
     .meeting-chevron{color:var(--muted);font-size:0.8rem;}
     .btn-meeting-edit{font-family:var(--font);font-size:0.68rem;font-weight:600;padding:0.25rem 0.6rem;border:none;border-radius:20px;background:var(--surface3);color:var(--muted);cursor:pointer;}
+    .badge-draft{font-size:0.65rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:20px;background:#fff3cd;color:#b06800;border:1px solid #f0c040;white-space:nowrap;}
+    .btn-distribute{font-family:var(--font);font-size:0.68rem;font-weight:600;padding:0.25rem 0.65rem;border:none;border-radius:20px;background:#d4f5d4;color:#1a8f3a;cursor:pointer;}
+    .btn-distribute:active{opacity:0.7;}
     .empty-msg{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:0.88rem;}
 
     /* ── SCREEN: ITEMS ── */
@@ -741,16 +744,45 @@ function filterMeetings(){
   meets.sort(function(a,b){return (b.meeting_date||'').localeCompare(a.meeting_date||'');});
   if(!meets.length){list.innerHTML='<div class="empty-msg">No meetings yet. Tap + New Meeting to add one.</div>';return;}
   meets.forEach(function(meeting,idx){
+    var isDraft=!meeting.is_distributed;
+    // Viewers cannot see draft meetings
+    if(isDraft && currentRole==='viewer') return;
     var itemCount=allItems.filter(function(it){return it.meeting_id===meeting.id;}).length;
     var row=document.createElement('div');row.className='meeting-row';
+    var draftBadge=isDraft?'<span class="badge-draft">Draft</span>':'';
     var editBtn=currentRole==='admin'?'<button class="btn-meeting-edit">Edit</button>':'';
-    row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title">'+esc(meeting.title||'Untitled Meeting')+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+editBtn+'<span class="meeting-chevron">›</span></div>';
+    var distributeBtn=(currentRole==='admin'||currentRole==='editor')
+      ? (isDraft
+          ? '<button class="btn-distribute">Distribute</button>'
+          : '<button class="btn-distribute" style="background:#fde8e8;color:#b40000;">Revert to Draft</button>')
+      : '';
+    row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title" style="display:flex;align-items:center;gap:0.4rem;">'+esc(meeting.title||'Untitled Meeting')+draftBadge+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+distributeBtn+editBtn+'<span class="meeting-chevron">›</span></div>';
     row.onclick=function(){openMeetingItems(meeting);};
     if(currentRole==='admin'){
       row.querySelector('.btn-meeting-edit')&&row.querySelector('.btn-meeting-edit').addEventListener('click',function(e){e.stopPropagation();openMeetingSheet(meeting);});
     }
+    if(currentRole==='admin'||currentRole==='editor'){
+      row.querySelector('.btn-distribute')&&row.querySelector('.btn-distribute').addEventListener('click',function(e){e.stopPropagation();distributeMeeting(meeting,row);});
+    }
     list.appendChild(row);
   });
+}
+
+async function distributeMeeting(meeting, row){
+  var isDraft=!meeting.is_distributed;
+  var msg=isDraft
+    ? 'Distribute "'+meeting.title+'"? Viewers will be able to see this meeting.'
+    : 'Revert "'+meeting.title+'" to Draft? Viewers will no longer see this meeting.';
+  if(!confirm(msg)) return;
+  var newVal=isDraft?true:false;
+  try{
+    await sbPatch(TABLE_MEETINGS, meeting.id, {is_distributed:newVal});
+    meeting.is_distributed=newVal;
+    var idx=allMeetings.findIndex(function(m){return m.id===meeting.id;});
+    if(idx>-1) allMeetings[idx].is_distributed=newVal;
+    filterMeetings();
+    flash(newVal?'Meeting distributed!':'Meeting reverted to draft.');
+  }catch(e){flash('Error: '+e.message,true);}
 }
 
 // MEETING ITEMS SCREEN
