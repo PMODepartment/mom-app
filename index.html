@@ -782,75 +782,71 @@ function setState2(s){
   if(s==='loading'){list.innerHTML='<div class="centered" style="min-height:40vh"><div class="spinner"></div><p>Loading…</p></div>';}
 }
 
-function buildPrintHTML(forPDF){
-  var proj=selectedProject||{name:''};
-  var meeting=selectedMeeting||{};
-  var items=window._meetingItems||[];
-
-  function badge(val){
-    var colors={'open':'background:#d4f5d4;color:#1a8f3a;','closed':'background:#e5e5ea;color:#666;','on hold':'background:#fff3cd;color:#b06800;','issue':'background:#fde8e8;color:#b40000;','fyi':'background:#e8f0fe;color:#1a56db;','report':'background:#f3e8ff;color:#6b21a8;'};
-    var s=colors[(val||'').toLowerCase()]||'background:#eee;color:#333;';
-    return '<span style="'+s+'font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;">'+esc(val||'-')+'</span>';
-  }
-  function field(label,val){
-    return '<div style="margin-bottom:6px;background:#f7f7f8;border-radius:6px;padding:7px 10px;border:1px solid #e5e5ea;">'+
-      '<div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">'+label+'</div>'+
-      '<div style="font-size:10px;color:#1c1c1e;">'+(val||'-')+'</div></div>';
-  }
-
-  // Extract logo from DOM
-  var logoEl=document.getElementById('logoDesktop');
-  var logoSrc=logoEl?logoEl.src:'';
-
-  var cards=items.map(function(it,i){
-    return '<div style="margin-bottom:14px;padding:12px;border:1px solid #ddd;border-radius:8px;page-break-inside:avoid;">'+
-      '<div style="display:grid;grid-template-columns:0.4fr 1.2fr 0.8fr 0.8fr 1fr 0.9fr;gap:6px;margin-bottom:6px;">'+
-        '<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">No.</div><div style="font-size:10px;font-family:monospace;">'+(it.no||i+1)+'</div></div>'+
-        '<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Category</div><div style="font-size:10px;">'+esc(it.category||'-')+'</div></div>'+
-        '<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Type</div>'+badge(it.type)+'</div>'+
-        '<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Status</div>'+badge(it.status)+'</div>'+
-        '<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Responsible</div><div style="font-size:10px;">'+esc(it.responsible||'-')+'</div></div>'+
-        '<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Target Date</div><div style="font-size:10px;font-family:monospace;">'+(it.target_date||'-')+'</div></div>'+
-      '</div>'+
-      field('Issue / Agenda', esc(it.issue))+
-      field('Description', esc(it.description))+
-      field('Action Item', esc(it.action_item))+
-    '</div>';
-  }).join('');
-
-  var header='<div style="background:#b40000;padding:14px 20px;margin:-20px -20px 18px -20px;display:flex;justify-content:space-between;align-items:center;">'+
-    '<img src="'+logoSrc+'" style="height:26px;width:auto;"/>'+
-    '<div style="text-align:right;">'+
-    '<div style="font-size:12px;font-weight:700;color:#fff;">'+esc(proj.name)+' &mdash; '+esc(meeting.title||'Meeting')+'</div>'+
-    '<div style="font-size:9px;color:rgba(255,255,255,0.8);margin-top:2px;">'+
-    '📅 '+(meeting.meeting_date||'-')+'   📍 '+esc(meeting.location||'-')+'   ('+items.length+' item'+(items.length!==1?'s':'')+')'+
-    '</div></div></div>';
-
-  return ['<!DOCTYPE html><html><head><meta charset="UTF-8">',
-    '<style>body{font-family:Arial,sans-serif;font-size:10px;margin:20px;color:#1c1c1e;}',
-    '@media print{@page{size:A4 landscape;margin:1cm;}}</'+'style>',
-    '</'+'head><body>',header,cards,'</'+'body></'+'html>'].join('');
-}
-
 async function downloadPDF(){
   var btn=document.querySelector('[onclick="downloadPDF()"]');
   var origText=btn.textContent;
   btn.textContent='⏳ Generating...';btn.disabled=true;
   try{
+    var proj=selectedProject||{name:''};
     var meeting=selectedMeeting||{};
-    var filename=(meeting.title||'Meeting').replace(/[^a-zA-Z0-9]/g,'_')+'_MOM.pdf';
-    var container=document.createElement('div');
-    container.innerHTML=buildPrintHTML(true);
-    container.style.cssText='position:absolute;left:-9999px;top:0;width:297mm;';
-    document.body.appendChild(container);
+    var items=window._meetingItems||[];
+    var filename=(meeting.title||'Meeting').replace(/[^a-zA-Z0-9_]/g,'_')+'_MOM.pdf';
+
+    // Get logo as base64 directly from the img element
+    var logoEl=document.getElementById('logoDesktop');
+    var logoSrc=logoEl?logoEl.src:'';
+
+    function badge(val){
+      var colors={'open':'background:#d4f5d4;color:#1a8f3a;','closed':'background:#e5e5ea;color:#666;','on hold':'background:#fff3cd;color:#b06800;','issue':'background:#fde8e8;color:#b40000;','fyi':'background:#e8f0fe;color:#1a56db;','report':'background:#f3e8ff;color:#6b21a8;'};
+      var s=colors[(val||'').toLowerCase()]||'background:#eee;color:#333;';
+      return '<span style="'+s+';font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;">'+esc(val||'-')+'</span>';
+    }
+    function field(label,val){
+      return '<div style="margin-bottom:6px;background:#f7f7f8;border-radius:6px;padding:7px 10px;border:1px solid #e5e5ea;">'
+        +'<div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">'+label+'</div>'
+        +'<div style="font-size:10px;color:#1c1c1e;word-break:break-word;">'+(val||'-')+'</div></div>';
+    }
+
+    var cards=items.map(function(it,i){
+      return '<div style="margin-bottom:14px;padding:12px;border:1px solid #ddd;border-radius:8px;break-inside:avoid;">'
+        +'<div style="display:grid;grid-template-columns:0.4fr 1.2fr 0.8fr 0.8fr 1fr 0.9fr;gap:6px;margin-bottom:8px;">'
+          +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">No.</div><div style="font-size:10px;font-family:monospace;">'+(it.no||i+1)+'</div></div>'
+          +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Category</div><div style="font-size:10px;">'+esc(it.category||'-')+'</div></div>'
+          +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Type</div>'+badge(it.type)+'</div>'
+          +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Status</div>'+badge(it.status)+'</div>'
+          +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Responsible</div><div style="font-size:10px;">'+esc(it.responsible||'-')+'</div></div>'
+          +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Target Date</div><div style="font-size:10px;font-family:monospace;">'+(it.target_date||'-')+'</div></div>'
+        +'</div>'
+        +field('Issue / Agenda', esc(it.issue))
+        +field('Description', esc(it.description))
+        +field('Action Item', esc(it.action_item))
+        +'</div>';
+    }).join('');
+
+    // Build a plain DOM element — no full HTML doc, no script tags
+    var wrap=document.createElement('div');
+    wrap.style.cssText='font-family:Arial,sans-serif;font-size:10px;color:#1c1c1e;width:257mm;padding:20px;box-sizing:border-box;';
+    wrap.innerHTML=
+      '<div style="background:#b40000;padding:14px 20px;margin:-20px -20px 18px -20px;display:flex;justify-content:space-between;align-items:center;">'
+        +'<img src="'+logoSrc+'" style="height:26px;width:auto;" crossorigin="anonymous"/>'
+        +'<div style="text-align:right;">'
+          +'<div style="font-size:12px;font-weight:700;color:#fff;">'+esc(proj.name)+' — '+esc(meeting.title||'Meeting')+'</div>'
+          +'<div style="font-size:9px;color:rgba(255,255,255,0.85);margin-top:3px;">📅 '+(meeting.meeting_date||'-')+'   📍 '+esc(meeting.location||'-')+'   ('+items.length+' item'+(items.length!==1?'s':'')+')</div>'
+        +'</div>'
+      +'</div>'
+      +cards;
+
+    document.body.appendChild(wrap);
+
     await html2pdf().set({
-      margin:10,
+      margin:[10,10,10,10],
       filename:filename,
       image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,logging:false},
+      html2canvas:{scale:2,useCORS:true,allowTaint:true,logging:false,backgroundColor:'#ffffff'},
       jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}
-    }).from(container.firstChild).save();
-    document.body.removeChild(container);
+    }).from(wrap).save();
+
+    document.body.removeChild(wrap);
     flash('PDF downloaded!');
   }catch(e){flash('PDF error: '+e.message,true);}
   btn.textContent=origText;btn.disabled=false;
