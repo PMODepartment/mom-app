@@ -809,7 +809,7 @@ async function downloadPDF(){
 
     var cards=items.map(function(it,i){
       return '<div style="margin-bottom:14px;padding:12px;border:1px solid #ddd;border-radius:8px;break-inside:avoid;">'
-        +'<div style="display:grid;grid-template-columns:0.4fr 1.2fr 0.8fr 0.8fr 1fr 0.9fr;gap:6px;margin-bottom:8px;">'
+        +'<div style="display:grid;grid-template-columns:0.4fr 1.5fr 0.9fr 0.9fr 1.2fr 1fr;gap:5px;margin-bottom:8px;">'
           +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">No.</div><div style="font-size:10px;font-family:monospace;">'+(it.no||i+1)+'</div></div>'
           +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Category</div><div style="font-size:10px;">'+esc(it.category||'-')+'</div></div>'
           +'<div style="background:#f7f7f8;border-radius:5px;padding:6px 8px;border:1px solid #e5e5ea;"><div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;">Type</div>'+badge(it.type)+'</div>'
@@ -825,7 +825,7 @@ async function downloadPDF(){
 
     // Build a plain DOM element — no full HTML doc, no script tags
     var wrap=document.createElement('div');
-    wrap.style.cssText='font-family:Arial,sans-serif;font-size:10px;color:#1c1c1e;width:257mm;padding:20px;box-sizing:border-box;';
+    wrap.style.cssText='font-family:Arial,sans-serif;font-size:9px;color:#1c1c1e;width:190mm;padding:15mm 10mm;box-sizing:border-box;';
     wrap.innerHTML=
       '<div style="background:#b40000;padding:14px 20px;margin:-20px -20px 18px -20px;display:flex;justify-content:space-between;align-items:center;">'
         +'<img src="'+logoSrc+'" style="height:26px;width:auto;" crossorigin="anonymous"/>'
@@ -843,7 +843,7 @@ async function downloadPDF(){
       filename:filename,
       image:{type:'jpeg',quality:0.98},
       html2canvas:{scale:2,useCORS:true,allowTaint:true,logging:false,backgroundColor:'#ffffff'},
-      jsPDF:{unit:'mm',format:'a4',orientation:'landscape'}
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
     }).from(wrap).save();
 
     document.body.removeChild(wrap);
