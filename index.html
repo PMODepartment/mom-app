@@ -807,21 +807,18 @@ function printMeeting(){
 
   var cards=items.map(function(it,i){
     return '<div style="margin-bottom:20px;padding:14px;border:1px solid #ddd;border-radius:10px;page-break-inside:avoid;">'+
-      // Row 1: No, Category, Type, Status
-      '<div style="display:grid;grid-template-columns:0.5fr 1.5fr 1fr 1fr;gap:8px;margin-bottom:8px;">'+
+      // Row 1: No, Category, Type, Status, Responsible, Target Date
+      '<div style="display:grid;grid-template-columns:0.4fr 1.2fr 0.8fr 0.8fr 1fr 0.9fr;gap:8px;margin-bottom:8px;">'+
         '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">No.</div><div style="font-size:11px;font-family:monospace;">'+(it.no||i+1)+'</div></div>'+
         '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Category</div><div style="font-size:11px;">'+esc(it.category||'-')+'</div></div>'+
         '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Type</div>'+badge(it.type,'type')+'</div>'+
         '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Status</div>'+badge(it.status,'status')+'</div>'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Responsible</div><div style="font-size:11px;">'+esc(it.responsible||'-')+'</div></div>'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Target Date</div><div style="font-size:11px;font-family:monospace;">'+(it.target_date||'-')+'</div></div>'+
       '</div>'+
       field('Issue / Agenda', esc(it.issue))+
       field('Description', esc(it.description))+
       field('Action Item', esc(it.action_item))+
-      // Row: Responsible + Target Date
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
-        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Responsible</div><div style="font-size:11px;">'+esc(it.responsible||'-')+'</div></div>'+
-        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Target Date</div><div style="font-size:11px;font-family:monospace;">'+(it.target_date||'-')+'</div></div>'+
-      '</div>'+
     '</div>';
   }).join('');
 
