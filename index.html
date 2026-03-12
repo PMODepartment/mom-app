@@ -173,6 +173,9 @@
     .items-header-info{min-width:0;text-align:right;}
     .items-header-title{font-size:0.95rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .items-header-sub{font-size:0.65rem;font-weight:500;color:var(--muted);}
+    .btn-print{font-family:var(--font);font-size:1rem;background:none;border:none;cursor:pointer;padding:0.3rem 0.5rem;border-radius:var(--r);color:var(--ink2);flex-shrink:0;}
+    .btn-print:active{background:var(--surface3);}
+    @media print{body>*{display:none!important;}#printArea{display:block!important;}}
 
     /* Items search */
     #itemsSearchBar{background:var(--bg);padding:0.6rem 1rem 0;flex-shrink:0;}
@@ -371,6 +374,7 @@
       <div class="items-header-title" id="itemsTitle"></div>
       <div class="items-header-sub" id="itemsSub"></div>
     </div>
+    <button class="btn-print" onclick="printMeeting()" title="Print Meeting">🖨</button>
   </div>
   <div id="itemsSearchBar">
     <div class="isb-inner">
@@ -774,6 +778,49 @@ async function openMeetingItems(meeting){
 function setState2(s){
   var list=document.getElementById('cardList');
   if(s==='loading'){list.innerHTML='<div class="centered" style="min-height:40vh"><div class="spinner"></div><p>Loading…</p></div>';}
+}
+
+function printMeeting(){
+  var proj=selectedProject||{name:''};
+  var meeting=selectedMeeting||{};
+  var items=window._meetingItems||[];
+  var rows=items.map(function(it,i){
+    return '<tr>'+
+      '<td>'+(it.no||i+1)+'</td>'+
+      '<td>'+esc(it.category||'-')+'</td>'+
+      '<td>'+esc(it.issue||'-')+'</td>'+
+      '<td>'+esc(it.description||'-')+'</td>'+
+      '<td>'+esc(it.type||'-')+'</td>'+
+      '<td>'+esc(it.action_item||'-')+'</td>'+
+      '<td>'+esc(it.responsible||'-')+'</td>'+
+      '<td>'+(it.target_date||'-')+'</td>'+
+      '<td>'+esc(it.status||'-')+'</td>'+
+    '</tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><title>MOM - '+esc(meeting.title||'Meeting')+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}'+
+    'h1{font-size:16px;margin:0 0 4px;}'+
+    'h2{font-size:13px;margin:0 0 12px;color:#555;font-weight:normal;}'+
+    '.meta{font-size:11px;color:#777;margin-bottom:16px;}'+
+    'table{width:100%;border-collapse:collapse;margin-top:8px;}'+
+    'th{background:#b40000;color:#fff;padding:6px 8px;text-align:left;font-size:10px;}'+
+    'td{padding:5px 8px;border-bottom:1px solid #ddd;vertical-align:top;}'+
+    'tr:nth-child(even) td{background:#f9f9f9;}'+
+    '</style></head><body>'+
+    '<h1>Minutes of the Meeting</h1>'+
+    '<h2>'+esc(proj.name)+' &mdash; '+esc(meeting.title||'Meeting')+'</h2>'+
+    '<div class="meta">Date: '+(meeting.meeting_date||'-')+' &nbsp;|&nbsp; Location: '+esc(meeting.location||'-')+'</div>'+
+    '<table><thead><tr>'+
+    '<th>No.</th><th>Category</th><th>Issue/Agenda</th><th>Description</th>'+
+    '<th>Type</th><th>Action Item</th><th>Responsible</th><th>Target Date</th><th>Status</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>'+
+    '</body></html>';
+  var win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
 }
 
 function goBack(){
