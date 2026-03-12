@@ -831,11 +831,11 @@ function printMeeting(){
     '@media print{body{margin:0;}@page{size:A4 landscape;margin:1.2cm;}}'+
     '@media screen{body{max-width:210mm;margin:auto;padding:16px;}}'+
     '</style></head><body>'+
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #b40000;padding-bottom:10px;margin-bottom:16px;">'+
-    '<h1 style="font-size:18px;margin:0;color:#b40000;font-weight:800;">Minutes of the Meeting</h1>'+
+    '<div style="background:#b40000;padding:14px 20px;margin:-24px -24px 20px -24px;display:flex;justify-content:space-between;align-items:center;">'+
+    '<img src=\"' + logo_b64 + '\" style="height:28px;width:auto;"/>'+
     '<div style="text-align:right;">'+
-    '<div style="font-size:13px;font-weight:700;color:#333;">'+esc(proj.name)+' &mdash; '+esc(meeting.title||'Meeting')+'</div>'+
-    '<div style="font-size:10px;color:#8e8e93;margin-top:3px;">📅 '+(meeting.meeting_date||'-')+'&nbsp;&nbsp;📍 '+esc(meeting.location||'-')+'&nbsp;&nbsp;('+items.length+' item'+(items.length!==1?'s':'')+')'+
+    '<div style="font-size:13px;font-weight:700;color:#fff;">'+esc(proj.name)+' &mdash; '+esc(meeting.title||'Meeting')+'</div>'+
+    '<div style="font-size:10px;color:rgba(255,255,255,0.8);margin-top:3px;">📅 '+(meeting.meeting_date||'-')+'&nbsp;&nbsp;📍 '+esc(meeting.location||'-')+'&nbsp;&nbsp;('+items.length+' item'+(items.length!==1?'s':'')+')'+
     '</div></div></div>'+
     cards+
     '</body></html>';
