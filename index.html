@@ -784,38 +784,61 @@ function printMeeting(){
   var proj=selectedProject||{name:''};
   var meeting=selectedMeeting||{};
   var items=window._meetingItems||[];
-  var rows=items.map(function(it,i){
-    return '<tr>'+
-      '<td>'+(it.no||i+1)+'</td>'+
-      '<td>'+esc(it.category||'-')+'</td>'+
-      '<td>'+esc(it.issue||'-')+'</td>'+
-      '<td>'+esc(it.description||'-')+'</td>'+
-      '<td>'+esc(it.type||'-')+'</td>'+
-      '<td>'+esc(it.action_item||'-')+'</td>'+
-      '<td>'+esc(it.responsible||'-')+'</td>'+
-      '<td>'+(it.target_date||'-')+'</td>'+
-      '<td>'+esc(it.status||'-')+'</td>'+
-    '</tr>';
+
+  function badge(val,type){
+    var colors={
+      'open':'background:#d4f5d4;color:#1a8f3a;',
+      'closed':'background:#e5e5ea;color:#666;',
+      'on hold':'background:#fff3cd;color:#b06800;',
+      'issue':'background:#fde8e8;color:#b40000;',
+      'fyi':'background:#e8f0fe;color:#1a56db;',
+      'report':'background:#f3e8ff;color:#6b21a8;'
+    };
+    var s=colors[(val||'').toLowerCase()]||'background:#eee;color:#333;';
+    return '<span style="'+s+'font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;">'+esc(val||'-')+'</span>';
+  }
+
+  function field(label,val,mono){
+    return '<div style="margin-bottom:8px;background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;">'+
+      '<div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">'+label+'</div>'+
+      '<div style="font-size:11px;color:#1c1c1e;'+(mono?'font-family:monospace;':'')+'">'+(val||'-')+'</div>'+
+    '</div>';
+  }
+
+  var cards=items.map(function(it,i){
+    return '<div style="margin-bottom:20px;padding:14px;border:1px solid #ddd;border-radius:10px;page-break-inside:avoid;">'+
+      // Row 1: No, Category, Type, Status
+      '<div style="display:grid;grid-template-columns:0.5fr 1.5fr 1fr 1fr;gap:8px;margin-bottom:8px;">'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">No.</div><div style="font-size:11px;font-family:monospace;">'+(it.no||i+1)+'</div></div>'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Category</div><div style="font-size:11px;">'+esc(it.category||'-')+'</div></div>'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Type</div>'+badge(it.type,'type')+'</div>'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Status</div>'+badge(it.status,'status')+'</div>'+
+      '</div>'+
+      field('Issue / Agenda', esc(it.issue))+
+      field('Description', esc(it.description))+
+      field('Action Item', esc(it.action_item))+
+      // Row: Responsible + Target Date
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Responsible</div><div style="font-size:11px;">'+esc(it.responsible||'-')+'</div></div>'+
+        '<div style="background:#f7f7f8;border-radius:6px;padding:8px 10px;box-shadow:0 0 0 1px #e5e5ea;"><div style="font-size:9px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">Target Date</div><div style="font-size:11px;font-family:monospace;">'+(it.target_date||'-')+'</div></div>'+
+      '</div>'+
+    '</div>';
   }).join('');
+
   var html='<!DOCTYPE html><html><head><title>MOM - '+esc(meeting.title||'Meeting')+'</title>'+
     '<style>'+
-    'body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}'+
-    'h1{font-size:16px;margin:0 0 4px;}'+
-    'h2{font-size:13px;margin:0 0 12px;color:#555;font-weight:normal;}'+
-    '.meta{font-size:11px;color:#777;margin-bottom:16px;}'+
-    'table{width:100%;border-collapse:collapse;margin-top:8px;}'+
-    'th{background:#b40000;color:#fff;padding:6px 8px;text-align:left;font-size:10px;}'+
-    'td{padding:5px 8px;border-bottom:1px solid #ddd;vertical-align:top;}'+
-    'tr:nth-child(even) td{background:#f9f9f9;}'+
+    'body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;font-size:11px;margin:24px;color:#1c1c1e;}'+
+    'h1{font-size:18px;margin:0 0 4px;color:#b40000;font-weight:800;}'+
+    'h2{font-size:13px;margin:0 0 6px;color:#333;font-weight:600;}'+
+    '.meta{font-size:10px;color:#8e8e93;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #b40000;}'+
+    '@media print{body{margin:12px;}h1{font-size:15px;}@page{margin:1.5cm;}}'+
     '</style></head><body>'+
     '<h1>Minutes of the Meeting</h1>'+
     '<h2>'+esc(proj.name)+' &mdash; '+esc(meeting.title||'Meeting')+'</h2>'+
-    '<div class="meta">Date: '+(meeting.meeting_date||'-')+' &nbsp;|&nbsp; Location: '+esc(meeting.location||'-')+'</div>'+
-    '<table><thead><tr>'+
-    '<th>No.</th><th>Category</th><th>Issue/Agenda</th><th>Description</th>'+
-    '<th>Type</th><th>Action Item</th><th>Responsible</th><th>Target Date</th><th>Status</th>'+
-    '</tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div class="meta">📅 '+(meeting.meeting_date||'-')+'&nbsp;&nbsp;📍 '+esc(meeting.location||'-')+'&nbsp;&nbsp;('+items.length+' item'+(items.length!==1?'s':'')+')</div>'+
+    cards+
     '</body></html>';
+
   var win=window.open('','_blank');
   win.document.write(html);
   win.document.close();
