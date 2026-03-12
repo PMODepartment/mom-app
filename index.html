@@ -802,9 +802,10 @@ async function downloadPDF(){
       return '<span style="'+s+';font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;">'+esc(val||'-')+'</span>';
     }
     function field(label,val){
+      var safe=(val||'-').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
       return '<div style="margin-bottom:6px;background:#f7f7f8;border-radius:6px;padding:7px 10px;border:1px solid #e5e5ea;">'
         +'<div style="font-size:8px;font-weight:600;color:#8e8e93;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">'+label+'</div>'
-        +'<div style="font-size:10px;color:#1c1c1e;word-break:break-word;">'+(val||'-')+'</div></div>';
+        +'<div style="font-size:10px;color:#1c1c1e;word-break:break-word;">'+safe+'</div></div>';
     }
 
     var cards=items.map(function(it,i){
