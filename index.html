@@ -374,7 +374,6 @@
       <div class="items-header-title" id="itemsTitle"></div>
       <div class="items-header-sub" id="itemsSub"></div>
     </div>
-    <button class="btn-print" onclick="printMeeting()" title="Print Meeting">🖨</button>
   </div>
   <div id="itemsSearchBar">
     <div class="isb-inner">
@@ -383,6 +382,7 @@
         <input type="text" id="searchQ" placeholder="Search items…" oninput="applyFilters()"/>
       </div>
       <button class="btn-filter" id="filterToggle" onclick="toggleFilters()">Filter</button>
+      <button class="btn-print" onclick="printMeeting()" title="Print Meeting">🖨</button>
     </div>
     <div id="filterDrawer">
       <div class="filter-row">
@@ -828,11 +828,15 @@ function printMeeting(){
     'h1{font-size:18px;margin:0 0 4px;color:#b40000;font-weight:800;}'+
     'h2{font-size:13px;margin:0 0 6px;color:#333;font-weight:600;}'+
     '.meta{font-size:10px;color:#8e8e93;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #b40000;}'+
-    '@media print{body{margin:12px;}h1{font-size:15px;}@page{margin:1.5cm;}}'+
+    '@media print{body{margin:0;}@page{size:A4 landscape;margin:1.2cm;}}'+
+    '@media screen{body{max-width:210mm;margin:auto;padding:16px;}}'+
     '</style></head><body>'+
-    '<h1>Minutes of the Meeting</h1>'+
-    '<h2>'+esc(proj.name)+' &mdash; '+esc(meeting.title||'Meeting')+'</h2>'+
-    '<div class="meta">📅 '+(meeting.meeting_date||'-')+'&nbsp;&nbsp;📍 '+esc(meeting.location||'-')+'&nbsp;&nbsp;('+items.length+' item'+(items.length!==1?'s':'')+')</div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #b40000;padding-bottom:10px;margin-bottom:16px;">'+
+    '<h1 style="font-size:18px;margin:0;color:#b40000;font-weight:800;">Minutes of the Meeting</h1>'+
+    '<div style="text-align:right;">'+
+    '<div style="font-size:13px;font-weight:700;color:#333;">'+esc(proj.name)+' &mdash; '+esc(meeting.title||'Meeting')+'</div>'+
+    '<div style="font-size:10px;color:#8e8e93;margin-top:3px;">📅 '+(meeting.meeting_date||'-')+'&nbsp;&nbsp;📍 '+esc(meeting.location||'-')+'&nbsp;&nbsp;('+items.length+' item'+(items.length!==1?'s':'')+')'+
+    '</div></div></div>'+
     cards+
     '</body></html>';
 
