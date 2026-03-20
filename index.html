@@ -1677,6 +1677,15 @@ async function deleteUser(){
 function goToSBU(){
   var hm=document.getElementById('hamburgerMenu');
   if(hm)hm.classList.remove('open');
+  // Close items screen if open
+  var si=document.getElementById('screenItems');
+  if(si&&si.style.display!=='none'){
+    si.style.display='none';
+    document.getElementById('mainScroll').style.display='';
+    var dBtn=document.getElementById('distributeBtn');
+    if(dBtn)dBtn.style.display='none';
+    selectedMeeting=null;window._meetingItems=[];
+  }
   setState('sbu');
   renderSBU();
 }
