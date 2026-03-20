@@ -705,17 +705,13 @@ async function loadAll(){
     // 4. Items lightweight for counts (ignore errors from legacy data)
     try{var items=await sbGet(TABLE_MOM,'meeting_id=not.is.null&select=id,meeting_id');allItems=items||[];}catch(e3){allItems=[];}
 
-    setState('projects');
-    renderProjects();
-    if(allProjects.length>0) selectProject(allProjects[0]);
-    else filterMeetings();
+    setState('sbu');
+    renderSBU();
     flash('Loaded. '+allProjects.length+' project(s). Role='+currentRole);
   }catch(e){
     console.error('loadAll error:',e);
-    // Show error visibly on screen
-    setState('projects');
-    document.getElementById('projectCarousel').innerHTML='<div style="padding:1rem;color:var(--red);font-size:0.8rem;font-weight:600;">Error: '+esc(e.message)+'</div>';
-    applyUserUI();
+    setState('sbu');
+    renderSBU();
     flash('Error: '+e.message, true);
   }
 }
