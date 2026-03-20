@@ -387,6 +387,7 @@
         <input type="text" id="searchQ" placeholder="Search items…" oninput="applyFilters()"/>
       </div>
       <button class="btn-filter" id="filterToggle" onclick="toggleFilters()">Filter</button>
+      <button class="btn-print" id="distributeBtn" onclick="onDistributeClick()" style="display:none;" title="Distribute meeting">Distribute</button>
       <button class="btn-print" onclick="downloadPDF()" title="Download PDF">⬇ PDF</button>
     </div>
     <div id="filterDrawer">
@@ -751,19 +752,13 @@ function filterMeetings(){
     var row=document.createElement('div');row.className='meeting-row';
     var draftBadge=isDraft?'<span class="badge-draft">Draft</span>':'';
     var editBtn=currentRole==='admin'?'<button class="btn-meeting-edit">Edit</button>':'';
-    var distributeBtn=(currentRole==='admin'||currentRole==='editor')
-      ? (isDraft
-          ? '<button class="btn-distribute">Distribute</button>'
-          : '<button class="btn-distribute" style="background:#fde8e8;color:#b40000;">Revert to Draft</button>')
-      : '';
+    var distributeBtn='';
     row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title" style="display:flex;align-items:center;gap:0.4rem;">'+esc(meeting.title||'Untitled Meeting')+draftBadge+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+distributeBtn+editBtn+'<span class="meeting-chevron">›</span></div>';
     row.onclick=function(){openMeetingItems(meeting);};
     if(currentRole==='admin'){
       row.querySelector('.btn-meeting-edit')&&row.querySelector('.btn-meeting-edit').addEventListener('click',function(e){e.stopPropagation();openMeetingSheet(meeting);});
     }
-    if(currentRole==='admin'||currentRole==='editor'){
-      row.querySelector('.btn-distribute')&&row.querySelector('.btn-distribute').addEventListener('click',function(e){e.stopPropagation();distributeMeeting(meeting,row);});
-    }
+
     list.appendChild(row);
   });
 }
@@ -818,6 +813,25 @@ async function openMeetingItems(meeting){
 function setState2(s){
   var list=document.getElementById('cardList');
   if(s==='loading'){list.innerHTML='<div class="centered" style="min-height:40vh"><div class="spinner"></div><p>Loading…</p></div>';}
+}
+
+function updateDistributeBtn(){
+  var dBtn=document.getElementById('distributeBtn');
+  if(!dBtn||!selectedMeeting) return;
+  var isDraft=!selectedMeeting.is_distributed;
+  if(isDraft){
+    dBtn.textContent='Distribute';
+    dBtn.style.cssText='color:#1a8f3a;font-weight:600;';
+  } else {
+    dBtn.textContent='Revert to Draft';
+    dBtn.style.cssText='color:#b40000;font-weight:600;';
+  }
+}
+
+async function onDistributeClick(){
+  if(!selectedMeeting) return;
+  await distributeMeeting(selectedMeeting, null);
+  updateDistributeBtn();
 }
 
 async function downloadPDF(){
@@ -894,6 +908,8 @@ async function downloadPDF(){
 function goBack(){
   document.getElementById('mainScroll').style.display='';
   document.getElementById('screenItems').style.display='none';
+  var dBtn=document.getElementById('distributeBtn');
+  if(dBtn) dBtn.style.display='none';
   document.getElementById('fab').style.display='none';
   selectedMeeting=null;window._meetingItems=[];
   filterMeetings(); // refresh counts
