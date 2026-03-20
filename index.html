@@ -527,6 +527,18 @@
     <div class="ff"><label>Meeting Title</label><input type="text" id="mTitle" placeholder="e.g. Site Progress Meeting"/></div>
     <div class="ff"><label>Meeting Date</label><input type="date" id="mDate"/></div>
     <div class="ff"><label>Location / Platform</label><input type="text" id="mLocation" placeholder="e.g. Site Office / MS Teams"/></div>
+    <div class="ff">
+      <label>Meeting Type</label>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <select id="mType" style="flex:1;" onchange="onMeetingTypeChange()">
+          <option value="">— Select Type —</option>
+          <option>PPR Meeting</option>
+          <option>PSC Meeting</option>
+          <option>Client Meeting</option>
+        </select>
+        <button type="button" id="addTypeBtn" onclick="addMeetingType()" style="display:none;font-family:var(--font);font-size:0.75rem;font-weight:600;padding:0.45rem 0.75rem;border:none;border-radius:var(--r);background:var(--blue-l);color:var(--blue);cursor:pointer;white-space:nowrap;">+ Add Type</button>
+      </div>
+    </div>
     <div class="ff" id="carryOverWrap">
       <label>Carry Over Items From</label>
       <select id="mCarryOver">
@@ -1175,13 +1187,39 @@ function openMeetingSheet(meeting){
     var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
     document.getElementById('meetingFormProj').innerHTML='<div class="meeting-form-proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><span class="meeting-form-proj-name">'+esc(proj.name)+'</span>';
   }
+  // Meeting type
+  var mTypeSelect=document.getElementById('mType');
+  if(mTypeSelect){
+    mTypeSelect.value=meeting?meeting.meeting_type||'':'';
+    document.getElementById('addTypeBtn').style.display=currentRole==='admin'?'':'none';
+  }
   openSheet('meetingOverlay','meetingSheet');
+}
+function onMeetingTypeChange(){
+  var sel=document.getElementById('mType');
+  // nothing special needed, just keep Add Type btn visible for admin
+}
+function addMeetingType(){
+  var newType=prompt('Enter new meeting type:');
+  if(!newType||!newType.trim()) return;
+  newType=newType.trim();
+  var sel=document.getElementById('mType');
+  // Check if already exists
+  var exists=Array.from(sel.options).some(function(o){return o.value.toLowerCase()===newType.toLowerCase();});
+  if(!exists){
+    var opt=document.createElement('option');
+    opt.value=newType;opt.textContent=newType;
+    // Insert before last option or at end
+    sel.appendChild(opt);
+  }
+  sel.value=newType;
 }
 function closeMeetingSheet(){closeSheet('meetingOverlay','meetingSheet');editMeetingId=null;}
 async function saveMeeting(){
   var btn=document.getElementById('meetingSaveBtn');btn.disabled=true;btn.textContent='Saving...';
   var proj=selectedProject||allProjects[0];if(!proj){flash('Select a project first',true);btn.disabled=false;btn.textContent='Save';return;}
-  var data={title:document.getElementById('mTitle').value||'Untitled',meeting_date:document.getElementById('mDate').value||null,location:document.getElementById('mLocation').value||null,project_id:proj.id};
+  var mTypeVal=document.getElementById('mType')?document.getElementById('mType').value||null:null;
+  var data={title:document.getElementById('mTitle').value||'Untitled',meeting_date:document.getElementById('mDate').value||null,location:document.getElementById('mLocation').value||null,meeting_type:mTypeVal,project_id:proj.id};
   var carryFromId=(!editMeetingId&&document.getElementById('mCarryOver'))?document.getElementById('mCarryOver').value:null;
   try{
     var saved=editMeetingId?await sbPatch(TABLE_MEETINGS,editMeetingId,data):await sbPost(TABLE_MEETINGS,data);
