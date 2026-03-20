@@ -377,6 +377,16 @@
     </div>
   </div>
 
+  <!-- SBU SELECTION SCREEN -->
+  <div id="screenSBU">
+    <div class="sbu-screen">
+      <div class="sbu-title">Select SBU</div>
+      <div class="sbu-subtitle">Choose the business unit for the meeting you want to review.</div>
+      <div class="sbu-grid" id="sbuGrid"></div>
+      <button class="btn-sbu-add" id="sbuAddBtn" style="display:none;" onclick="addSBU()">+ Add SBU</button>
+    </div>
+  </div>
+
   <!-- PROJECTS SCREEN -->
   <div id="screenProjects" style="display:none">
     <div class="proj-search-wrap">
@@ -388,7 +398,7 @@
       <div class="carousel" id="projectCarousel"></div>
     </div>
     <div class="meetings-label">
-      <span id="meetingsTitle">Meetings</span>
+      <span id="meetingsTitle" style="cursor:pointer;" onclick="setState('sbu');renderSBU();" title="← Back to SBU">Meetings</span>
       <span id="addMeetingBtn" style="display:none" onclick="openMeetingSheet(null)">+ New Meeting</span>
     </div>
     <div class="meetings-list" id="meetingsList"></div>
@@ -651,7 +661,7 @@ async function signIn(){
     await msalInstance.loginRedirect({scopes:SCOPES});
   }catch(e){console.error(e);flash('Sign-in error: '+e.message,true);}
 }
-function signOut(){try{if(msalInstance)msalInstance.logoutRedirect();}catch(e){}msalInstance=null;currentRole='';currentEmail='';document.getElementById('loginBtn').style.display='';document.getElementById('userInfo').style.display='none';document.getElementById('fab').style.display='none';setState('login');}
+function signOut(){try{if(msalInstance)msalInstance.logoutRedirect();}catch(e){}msalInstance=null;currentRole='';currentEmail='';selectedSBU=null;document.getElementById('loginBtn').style.display='';document.getElementById('userInfo').style.display='none';document.getElementById('fab').style.display='none';setState('login');}
 async function onSignedIn(){
   if(!msalInstance)return;
   var accs=msalInstance.getAllAccounts();if(!accs.length)return;
@@ -771,6 +781,46 @@ function filterProjects(){
     card.style.display=(!q||isAdd||name.toLowerCase().includes(q)||code.toLowerCase().includes(q))?'':'none';
   });
 }
+var DEFAULT_SBUS=[
+  {name:'EPC',icon:'🏗',desc:'Engineering, Procurement & Construction'},
+  {name:'Holdco',icon:'🏢',desc:'Holdings & Corporate'},
+  {name:'PH1',icon:'🌐',desc:'PH1 World Builders'}
+];
+var customSBUs=JSON.parse(localStorage.getItem('mom_sbus')||'[]');
+var selectedSBU=null;
+
+function getSBUs(){return DEFAULT_SBUS.concat(customSBUs);}
+
+function renderSBU(){
+  var grid=document.getElementById('sbuGrid');
+  grid.innerHTML='';
+  getSBUs().forEach(function(sbu){
+    var card=document.createElement('div');
+    card.className='sbu-card'+(selectedSBU===sbu.name?' selected':'');
+    card.innerHTML='<div class="sbu-card-icon">'+sbu.icon+'</div><div class="sbu-card-name">'+esc(sbu.name)+'</div><div class="sbu-card-desc">'+esc(sbu.desc)+'</div>';
+    card.onclick=function(){selectSBU(sbu.name);};
+    grid.appendChild(card);
+  });
+  document.getElementById('sbuAddBtn').style.display=currentRole==='admin'?'':'none';
+}
+
+function selectSBU(name){
+  selectedSBU=name;
+  setState('projects');
+  renderProjects();
+  filterMeetings();
+}
+
+function addSBU(){
+  var name=prompt('SBU name (e.g. "Infra"):');
+  if(!name||!name.trim())return;
+  var icon=prompt('Emoji icon (e.g. 🏠):') ||'🏢';
+  var desc=prompt('Short description:') ||'';
+  customSBUs.push({name:name.trim(),icon:icon,desc:desc});
+  localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
+  renderSBU();
+}
+
 function filterMeetings(){
   var q=(document.getElementById('projSearch').value||'').toLowerCase();
   var list=document.getElementById('meetingsList');list.innerHTML='';
@@ -1364,12 +1414,11 @@ function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function fmtDate(d){if(!d)return'No date';var p=d.split('-');if(p.length!==3)return d;var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return months[parseInt(p[1])-1]+' '+parseInt(p[2])+', '+p[0];}
 function setState(s){
-  ['stateLogin','stateLoading','stateNoAccess','screenProjects'].forEach(function(id){document.getElementById(id).style.display='none';});
-  var m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',projects:'screenProjects'};
+  ['stateLogin','stateLoading','stateNoAccess','screenSBU','screenProjects'].forEach(function(id){document.getElementById(id).style.display='none';});
+  var m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',sbu:'screenSBU',projects:'screenProjects'};
   if(m[s])document.getElementById(m[s]).style.display='block';
-  // Hide hamburger on login/loading/noAccess screens
   var hBtn=document.getElementById('hamburgerBtn');
-  if(hBtn) hBtn.style.display=(s==='projects')?'flex':'none';
+  if(hBtn) hBtn.style.display=(s==='projects'||s==='sbu')?'flex':'none';
 }
 var bTimer;
 function flash(msg,err){var b=document.getElementById('flashBanner');b.textContent=msg;b.style.color=err?'var(--red)':'var(--ink2)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(function(){b.style.display='none';},4000);}
