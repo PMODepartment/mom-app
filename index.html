@@ -1244,8 +1244,8 @@ function openSheet(ov,sh){
     // On desktop, clamp detail/edit sheets to below header
     if(window.innerWidth>=600 && (sh==='detailSheet'||sh==='editSheet')){
       var el=document.getElementById(sh);
-      el.style.top=hh+'px';
-      el.style.maxHeight='calc(100vh - '+hh+'px)';
+      el.style.top=(hh+12)+'px';
+      el.style.maxHeight='calc(100vh - '+(hh+12)+'px)';
     }
   }
   document.getElementById(ov).classList.add('open');
