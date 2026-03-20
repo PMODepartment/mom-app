@@ -111,11 +111,15 @@
     .sbu-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.12),0 0 0 1px var(--border2);}
     .sbu-card:active{transform:scale(0.97);}
     .sbu-card.selected{border-color:var(--blue);}
-    .sbu-card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+    .sbu-card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;overflow:hidden;}
+    .sbu-card-icon img{width:100%;height:100%;object-fit:cover;border-radius:12px;}
     .sbu-card-name{font-size:1.05rem;font-weight:800;color:var(--ink);letter-spacing:-0.02em;margin-bottom:0.1rem;}
     .sbu-card-desc{font-size:0.68rem;color:var(--muted);line-height:1.5;}
     .btn-sbu-add{margin-top:1.25rem;font-family:var(--font);font-size:0.78rem;font-weight:600;padding:0.55rem 1.4rem;border:1.5px dashed var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;}
     .btn-sbu-add:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-l);}
+    .btn-sbu-edit{position:absolute;top:0.6rem;right:0.6rem;font-family:var(--font);font-size:0.62rem;font-weight:600;padding:0.2rem 0.5rem;border:none;border-radius:20px;background:rgba(0,0,0,0.06);color:var(--muted);cursor:pointer;opacity:0;transition:opacity 0.15s;}
+    .sbu-card:hover .btn-sbu-edit{opacity:1;}
+    .sbu-card{position:relative;}
     .centered h2{font-size:1.3rem;font-weight:700;color:var(--ink);margin-bottom:0.5rem;letter-spacing:-0.02em;}
     .centered p{font-size:0.88rem;line-height:1.7;color:var(--muted);max-width:320px;text-align:center;margin:0 auto;}
     .centered p strong{color:var(--ink);}
@@ -802,6 +806,9 @@ var DEFAULT_SBUS=[
   {name:'PH1',icon:'🌐',desc:'PH1 World Builders'}
 ];
 var customSBUs=JSON.parse(localStorage.getItem('mom_sbus')||'[]');
+// Restore any edited default SBUs
+var savedDefaults=localStorage.getItem('mom_sbus_defaults');
+if(savedDefaults){try{DEFAULT_SBUS=JSON.parse(savedDefaults);}catch(e){}}
 var selectedSBU=null;
 
 function getSBUs(){return DEFAULT_SBUS.concat(customSBUs);}
@@ -814,16 +821,73 @@ function renderSBU(){
     var color=sbu.color||sbuColors[i%sbuColors.length];
     var card=document.createElement('div');
     card.className='sbu-card'+(selectedSBU===sbu.name?' selected':'');
+    var editBtn=currentRole==='admin'
+      ?'<button class="btn-sbu-edit" title="Edit SBU">✏</button>'
+      :'';
+    var shortLabel=sbu.short_name?'<div style="font-size:0.62rem;font-weight:600;color:'+color+';margin-bottom:0.15rem;text-transform:uppercase;letter-spacing:0.05em;">'+esc(sbu.short_name)+'</div>':'';
     card.innerHTML=
-      '<div class="sbu-card-icon" style="background:'+color+'20;color:'+color+';">'+sbu.icon+'</div>'
+      editBtn
+      +'<div class="sbu-card-icon" style="background:'+color+'20;color:'+color+';">'
+      +(sbu.photo_url?'<img src="'+sbu.photo_url+'" alt=""/>':sbu.icon)
+      +'</div>'
       +'<div>'
+        +shortLabel
         +'<div class="sbu-card-name">'+esc(sbu.name)+'</div>'
         +'<div class="sbu-card-desc">'+esc(sbu.desc)+'</div>'
       +'</div>';
     card.onclick=function(){selectSBU(sbu.name);};
+    if(currentRole==='admin'){
+      var eb=card.querySelector('.btn-sbu-edit');
+      if(eb) eb.addEventListener('click',function(e){e.stopPropagation();editSBU(i);});
+    }
     grid.appendChild(card);
   });
   document.getElementById('sbuAddBtn').style.display=currentRole==='admin'?'':'none';
+}
+
+function editSBU(idx){
+  var all=getSBUs();
+  var sbu=all[idx];
+  if(!sbu) return;
+  var newName=prompt('SBU Name:',sbu.name);
+  if(!newName||!newName.trim()) return;
+  var newShort=prompt('SBU Short Name (e.g. "EPC"):',sbu.short_name||'');
+  var newDesc=prompt('Description:',sbu.desc||'');
+  var isDefault=idx<DEFAULT_SBUS.length;
+  var updated={name:newName.trim(),short_name:(newShort||'').trim(),icon:sbu.icon,desc:(newDesc||'').trim(),color:sbu.color,photo_url:sbu.photo_url||null};
+  // Ask if they want to change photo
+  var changePhoto=confirm('Change SBU photo/icon?');
+  if(changePhoto){
+    // Create a hidden file input
+    var inp=document.createElement('input');
+    inp.type='file';inp.accept='image/*';
+    inp.onchange=function(){
+      var file=inp.files[0];
+      if(!file) return;
+      var reader=new FileReader();
+      reader.onload=function(e){
+        updated.photo_url=e.target.result;
+        saveSBU(idx,updated,isDefault);
+      };
+      reader.readAsDataURL(file);
+    };
+    inp.click();
+  } else {
+    saveSBU(idx,updated,isDefault);
+  }
+}
+
+function saveSBU(idx,updated,isDefault){
+  if(isDefault){
+    DEFAULT_SBUS[idx]=updated;
+  } else {
+    var ci=idx-DEFAULT_SBUS.length;
+    customSBUs[ci]=updated;
+    localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
+  }
+  // Save default SBU overrides too
+  localStorage.setItem('mom_sbus_defaults',JSON.stringify(DEFAULT_SBUS));
+  renderSBU();
 }
 
 function selectSBU(name){
