@@ -380,8 +380,9 @@
   <!-- SBU SELECTION SCREEN -->
   <div id="screenSBU">
     <div class="sbu-screen">
-      <div class="sbu-title">Select SBU</div>
-      <div class="sbu-subtitle">Choose the business unit for the meeting you want to review.</div>
+      <div class="sbu-eyebrow">Megawide PMO</div>
+      <div class="sbu-title">Which SBU?</div>
+      <div class="sbu-subtitle">Select the business unit for the meeting minutes you want to view.</div>
       <div class="sbu-grid" id="sbuGrid"></div>
       <button class="btn-sbu-add" id="sbuAddBtn" style="display:none;" onclick="addSBU()">+ Add SBU</button>
     </div>
@@ -790,10 +791,21 @@ function getSBUs(){return DEFAULT_SBUS.concat(customSBUs);}
 function renderSBU(){
   var grid=document.getElementById('sbuGrid');
   grid.innerHTML='';
-  getSBUs().forEach(function(sbu){
+  var sbuColors=['#b40000','#1a56db','#1a8f3a','#b06800','#6b21a8','#0e7490'];
+  getSBUs().forEach(function(sbu,i){
+    var color=sbu.color||sbuColors[i%sbuColors.length];
     var card=document.createElement('div');
     card.className='sbu-card'+(selectedSBU===sbu.name?' selected':'');
-    card.innerHTML='<div class="sbu-card-icon">'+sbu.icon+'</div><div class="sbu-card-name">'+esc(sbu.name)+'</div><div class="sbu-card-desc">'+esc(sbu.desc)+'</div>';
+    card.style.setProperty('--sbu-color',color);
+    card.innerHTML=
+      '<div class="sbu-card-top">'
+        +'<div class="sbu-card-icon">'+sbu.icon+'</div>'
+        +'<span class="sbu-card-arrow">→</span>'
+      +'</div>'
+      +'<div>'
+        +'<div class="sbu-card-name">'+esc(sbu.name)+'</div>'
+        +'<div class="sbu-card-desc">'+esc(sbu.desc)+'</div>'
+      +'</div>';
     card.onclick=function(){selectSBU(sbu.name);};
     grid.appendChild(card);
   });
