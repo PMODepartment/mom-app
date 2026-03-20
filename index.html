@@ -176,8 +176,10 @@
     .items-header-info{min-width:0;text-align:right;}
     .items-header-title{font-size:0.95rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .items-header-sub{font-size:0.65rem;font-weight:500;color:var(--muted);}
-    .btn-print{font-family:var(--font);font-size:1rem;background:none;border:none;cursor:pointer;padding:0.3rem 0.5rem;border-radius:var(--r);color:var(--ink2);flex-shrink:0;}
-    .btn-print:active{background:var(--surface3);}
+    .btn-print{font-family:var(--font);font-size:0.75rem;font-weight:600;background:var(--surface3);border:none;cursor:pointer;padding:0.45rem 0.85rem;border-radius:20px;color:var(--ink2);flex-shrink:0;display:flex;align-items:center;gap:0.3rem;transition:opacity 0.15s;}
+    .btn-print:active{opacity:0.7;}
+    #distributeBtn.dist-green{background:#d4f5d4;color:#1a8f3a;}
+    #distributeBtn.dist-red{background:#fde8e8;color:#b40000;}
     @media print{body>*{display:none!important;}#printArea{display:block!important;}}
 
     /* Items search */
@@ -187,7 +189,7 @@
     .isb-icon{position:absolute;left:0.7rem;font-size:0.85rem;pointer-events:none;opacity:0.4;}
     #itemsSearchBar input{width:100%;font-family:var(--font);font-size:0.88rem;padding:0.52rem 0.8rem 0.52rem 2.1rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);}
     #itemsSearchBar input:focus{outline:none;box-shadow:0 0 0 3px var(--blue-l);}
-    .btn-filter{font-size:0.78rem;font-weight:600;padding:0.5rem 0.85rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--blue);cursor:pointer;}
+    .btn-filter{font-family:var(--font);font-size:0.75rem;font-weight:600;padding:0.45rem 0.85rem;border:none;border-radius:20px;background:var(--surface3);color:var(--blue);cursor:pointer;transition:opacity 0.15s;}
     .btn-filter.active{background:var(--blue-l);}
     #filterDrawer{display:none;padding:0.65rem 1rem 0.75rem;background:var(--bg);}
     #filterDrawer.open{display:block;}
@@ -386,8 +388,8 @@
         <span class="isb-icon">🔍</span>
         <input type="text" id="searchQ" placeholder="Search items…" oninput="applyFilters()"/>
       </div>
-      <button class="btn-filter" id="filterToggle" onclick="toggleFilters()">Filter</button>
-      <button class="btn-print" id="distributeBtn" onclick="onDistributeClick()" style="display:none;" title="Distribute meeting">Distribute</button>
+      <button class="btn-filter" id="filterToggle" onclick="toggleFilters()">⚙ Filter</button>
+      <button class="btn-print dist-green" id="distributeBtn" onclick="onDistributeClick()" style="display:none;" title="Distribute meeting">📤 Distribute</button>
       <button class="btn-print" onclick="downloadPDF()" title="Download PDF">⬇ PDF</button>
     </div>
     <div id="filterDrawer">
@@ -830,11 +832,11 @@ function updateDistributeBtn(){
   if(!dBtn||!selectedMeeting) return;
   var isDraft=!selectedMeeting.is_distributed;
   if(isDraft){
-    dBtn.textContent='Distribute';
-    dBtn.style.cssText='color:#1a8f3a;font-weight:600;';
+    dBtn.innerHTML='📤 Distribute';
+    dBtn.classList.remove('dist-red');dBtn.classList.add('dist-green');
   } else {
-    dBtn.textContent='Revert to Draft';
-    dBtn.style.cssText='color:#b40000;font-weight:600;';
+    dBtn.innerHTML='↩ Revert to Draft';
+    dBtn.classList.remove('dist-green');dBtn.classList.add('dist-red');
   }
 }
 
