@@ -237,6 +237,14 @@
     .sh-head{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.1rem 0.7rem;border-bottom:1px solid var(--border);flex-shrink:0;}
     .sh-head h2{font-size:1.05rem;font-weight:700;color:var(--ink);letter-spacing:-0.02em;}
     .sh-x{width:28px;height:28px;border-radius:50%;background:var(--surface3);border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;}
+    .sh-head-actions{display:flex;align-items:center;gap:0.4rem;}
+    .btn-3dot{width:28px;height:28px;border-radius:50%;background:var(--surface3);border:none;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:400;position:relative;}
+    .dot-menu{position:absolute;top:34px;right:0;background:var(--surface);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,0.14);border:1px solid var(--border);min-width:130px;z-index:999;display:none;overflow:hidden;}
+    .dot-menu.open{display:block;}
+    .dot-menu-item{display:block;width:100%;font-family:var(--font);font-size:0.88rem;font-weight:500;padding:0.7rem 1rem;border:none;background:none;cursor:pointer;text-align:left;}
+    .dot-menu-item:hover{background:var(--surface3);}
+    .dot-menu-item.edit{color:var(--blue);}
+    .dot-menu-item.del{color:var(--red);}
     .sh-body{overflow-y:auto;flex:1;padding:1rem 1.1rem;-webkit-overflow-scrolling:touch;}
     .sh-foot{display:flex;gap:0.6rem;padding:0.8rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0;}
 
@@ -466,7 +474,7 @@
 <div class="sh-overlay" id="detailOverlay" onclick="closeDetail()"></div>
 <div class="bsheet" id="detailSheet">
   <div class="sh-handle"></div>
-  <div class="sh-head"><h2>Item Details</h2><button class="sh-x" onclick="closeDetail()">✕</button></div>
+  <div class="sh-head"><h2>Item Details</h2><div class="sh-head-actions"><div style="position:relative;"><button class="btn-3dot" id="detailDotBtn" onclick="toggleDetailMenu(event)" title="More options">⋮</button><div class="dot-menu" id="detailDotMenu"><button class="dot-menu-item edit" id="detailMenuEdit" onclick="detailMenuEdit()">✏ Edit</button><button class="dot-menu-item del" id="detailMenuDel" onclick="detailMenuDel()">🗑 Delete</button></div></div><button class="sh-x" onclick="closeDetail()">✕</button></div></div>
   <div class="sh-body" id="detailBody"></div>
 </div>
 
@@ -975,7 +983,20 @@ function openDetail(idx){
   var canEdit=currentRole==='admin'||currentRole==='editor';
   var canDel=currentRole==='admin';
   var globalIdx=(window._meetingItems||[]).indexOf(item);
-  var actions=(canEdit||canDel)?'<div class="detail-actions">'+(canEdit?'<button class="btn-blue-sm" onclick="openEditSheet('+globalIdx+');closeDetail()">Edit</button>':'')+(canDel?'<button class="btn-del-inline" onclick="askDeleteItem('+globalIdx+');closeDetail()">Delete</button>':'')+'</div>':'';
+  // Store refs for dot menu
+  window._detailItemIdx = globalIdx;
+  window._detailCanEdit = canEdit;
+  window._detailCanDel = canDel;
+  var actions='';
+  // Show/hide dot menu button
+  var dotBtn=document.getElementById('detailDotBtn');
+  var editItem=document.getElementById('detailMenuEdit');
+  var delItem=document.getElementById('detailMenuDel');
+  if(dotBtn){
+    dotBtn.style.display=(canEdit||canDel)?'flex':'none';
+    if(editItem) editItem.style.display=canEdit?'block':'none';
+    if(delItem) delItem.style.display=canDel?'block':'none';
+  }
   var att=item.attachment_url?'<div class="dfield"><div class="dl">Attachment</div><div class="dv"><a href="'+item.attachment_url+'" target="_blank" class="att-link">'+esc(item.attachment_name||'Download')+'</a></div></div>':'';
   var firstRow='<div style="display:grid;grid-template-columns:0.6fr 1.5fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">'+
     '<div class="dfield" style="margin-bottom:0;"><div class="dl">No.</div><div class="dv mono">'+(item.no||'-')+'</div></div>'+
@@ -993,6 +1014,28 @@ function openDetail(idx){
     '</div>'+
     att;
   openSheet('detailOverlay','detailSheet');
+}
+function toggleDetailMenu(e){
+  e.stopPropagation();
+  var m=document.getElementById('detailDotMenu');
+  m.classList.toggle('open');
+  // Close on outside click
+  setTimeout(function(){
+    document.addEventListener('click',function handler(){
+      m.classList.remove('open');
+      document.removeEventListener('click',handler);
+    });
+  },0);
+}
+function detailMenuEdit(){
+  document.getElementById('detailDotMenu').classList.remove('open');
+  var idx=window._detailItemIdx;
+  if(idx!==undefined){openEditSheet(idx);closeDetail();}
+}
+function detailMenuDel(){
+  document.getElementById('detailDotMenu').classList.remove('open');
+  var idx=window._detailItemIdx;
+  if(idx!==undefined){askDeleteItem(idx);closeDetail();}
 }
 function closeDetail(){closeSheet('detailOverlay','detailSheet');}
 
