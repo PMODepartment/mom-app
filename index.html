@@ -633,6 +633,7 @@
   </div>
   <div class="sh-foot">
     <button class="btn-cancel" onclick="closeSBUSheet()">Cancel</button>
+    <button class="btn-del-inline" id="sbuDelBtn" style="display:none;" onclick="deleteSBU()">Delete</button>
     <button class="btn-save" onclick="saveSBUSheet()">Save</button>
   </div>
 </div>
@@ -875,6 +876,8 @@ function editSBU(idx){
     var color=sbu.color||'#007aff';
     preview.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:'+color+'20;color:'+color+';">'+sbu.icon+'</div>';
   }
+  document.getElementById('sbuDelBtn').style.display='';
+  document.getElementById('sbuDelBtn').style.display='';
   openSheet('sbuEditOverlay','sbuEditSheet');
 }
 
@@ -918,6 +921,25 @@ function saveSBUSheet(){
   renderSBU();
 }
 
+function deleteSBU(){
+  var idx=editSBUIdx;
+  if(idx===null||idx===-1) return;
+  var all=getSBUs();
+  var sbu=all[idx];
+  if(!confirm('Delete "'+sbu.name+'"? This cannot be undone.')) return;
+  var isDefault=idx<DEFAULT_SBUS.length;
+  if(isDefault){
+    flash('Default SBUs cannot be deleted.',true);
+    return;
+  } else {
+    var ci=idx-DEFAULT_SBUS.length;
+    customSBUs.splice(ci,1);
+    localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
+  }
+  closeSBUSheet();
+  renderSBU();
+  flash('SBU deleted.');
+}
 function closeSBUSheet(){
   closeSheet('sbuEditOverlay','sbuEditSheet');
   editSBUIdx=null;pendingSBUPhoto=null;
@@ -937,6 +959,7 @@ function addSBU(){
   document.getElementById('sbuName').value='';
   document.getElementById('sbuShort').value='';
   document.getElementById('sbuPhotoPreview').innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f2f2f7;color:#8e8e93;">🏢</div>';
+  document.getElementById('sbuDelBtn').style.display='none';
   openSheet('sbuEditOverlay','sbuEditSheet');
 }
 
