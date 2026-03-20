@@ -725,7 +725,7 @@ function renderProjects(){
     var card=document.createElement('div');card.className='proj-card';card.id='proj-card-'+proj.id;
     var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
     var editBtn=currentRole==='admin'?'<button class="proj-card-edit">✏ Edit</button>':'';
-    card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>'+editBtn;
+    card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.short_name||proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>'+editBtn;
     card.onclick=function(){selectProject(proj);};
     if(currentRole==='admin'){
       card.onlongpress=function(){openProjSheet(proj);};
