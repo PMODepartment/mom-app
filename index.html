@@ -619,6 +619,24 @@
   </div>
 </div>
 
+<!-- SBU EDIT SHEET -->
+<div class="sh-overlay" id="sbuEditOverlay" onclick="closeSBUSheet()"></div>
+<div class="bsheet" id="sbuEditSheet">
+  <div class="sh-handle"></div>
+  <div class="sh-head"><h2 id="sbuSheetTitle">Edit SBU</h2><button class="sh-x" onclick="closeSBUSheet()">✕</button></div>
+  <div class="sh-body">
+    <div id="sbuPhotoPreview" class="proj-photo-preview" onclick="document.getElementById('sbuPhotoInput').click()" style="cursor:pointer;"></div>
+    <div class="proj-photo-hint" onclick="document.getElementById('sbuPhotoInput').click()">Tap to set photo</div>
+    <input type="file" id="sbuPhotoInput" accept="image/*" onchange="handleSBUPhoto(event)" style="display:none;"/>
+    <div class="ff"><label>SBU Name</label><input type="text" id="sbuName" placeholder="e.g. Engineering, Procurement & Construction"/></div>
+    <div class="ff"><label>Short Name</label><input type="text" id="sbuShort" placeholder="e.g. EPC"/></div>
+  </div>
+  <div class="sh-foot">
+    <button class="btn-cancel" onclick="closeSBUSheet()">Cancel</button>
+    <button class="btn-save" onclick="saveSBUSheet()">Save</button>
+  </div>
+</div>
+
 <!-- CONFIRM DELETE -->
 <div class="sh-overlay" id="confirmOverlay" onclick="closeConfirm()"></div>
 <div class="bsheet" id="confirmSheet">
@@ -845,49 +863,69 @@ function renderSBU(){
   document.getElementById('sbuAddBtn').style.display=currentRole==='admin'?'':'none';
 }
 
+var editSBUIdx=null;
+var pendingSBUPhoto=null;
+
 function editSBU(idx){
   var all=getSBUs();
   var sbu=all[idx];
   if(!sbu) return;
-  var newName=prompt('SBU Name:',sbu.name);
-  if(!newName||!newName.trim()) return;
-  var newShort=prompt('SBU Short Name (e.g. "EPC"):',sbu.short_name||'');
-  var newDesc=prompt('Description:',sbu.desc||'');
-  var isDefault=idx<DEFAULT_SBUS.length;
-  var updated={name:newName.trim(),short_name:(newShort||'').trim(),icon:sbu.icon,desc:(newDesc||'').trim(),color:sbu.color,photo_url:sbu.photo_url||null};
-  // Ask if they want to change photo
-  var changePhoto=confirm('Change SBU photo/icon?');
-  if(changePhoto){
-    // Create a hidden file input
-    var inp=document.createElement('input');
-    inp.type='file';inp.accept='image/*';
-    inp.onchange=function(){
-      var file=inp.files[0];
-      if(!file) return;
-      var reader=new FileReader();
-      reader.onload=function(e){
-        updated.photo_url=e.target.result;
-        saveSBU(idx,updated,isDefault);
-      };
-      reader.readAsDataURL(file);
-    };
-    inp.click();
+  editSBUIdx=idx;
+  pendingSBUPhoto=null;
+  document.getElementById('sbuSheetTitle').textContent='Edit SBU';
+  document.getElementById('sbuName').value=sbu.name||'';
+  document.getElementById('sbuShort').value=sbu.short_name||'';
+  // Photo preview
+  var preview=document.getElementById('sbuPhotoPreview');
+  if(sbu.photo_url){
+    preview.innerHTML='<img src="'+sbu.photo_url+'" alt=""/>';
   } else {
-    saveSBU(idx,updated,isDefault);
+    var color=sbu.color||'#007aff';
+    preview.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:'+color+'20;color:'+color+';">'+sbu.icon+'</div>';
   }
+  openSheet('sbuEditOverlay','sbuEditSheet');
 }
 
-function saveSBU(idx,updated,isDefault){
+function handleSBUPhoto(e){
+  var file=e.target.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    pendingSBUPhoto=ev.target.result;
+    document.getElementById('sbuPhotoPreview').innerHTML='<img src="'+pendingSBUPhoto+'" alt=""/>';
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveSBUSheet(){
+  var idx=editSBUIdx;
+  var all=getSBUs();
+  var sbu=all[idx];
+  if(!sbu) return;
+  var updated={
+    name:document.getElementById('sbuName').value.trim()||sbu.name,
+    short_name:document.getElementById('sbuShort').value.trim(),
+    desc:sbu.desc,
+    icon:sbu.icon,
+    color:sbu.color,
+    photo_url:pendingSBUPhoto||sbu.photo_url||null
+  };
+  var isDefault=idx<DEFAULT_SBUS.length;
   if(isDefault){
     DEFAULT_SBUS[idx]=updated;
+    localStorage.setItem('mom_sbus_defaults',JSON.stringify(DEFAULT_SBUS));
   } else {
     var ci=idx-DEFAULT_SBUS.length;
     customSBUs[ci]=updated;
     localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
   }
-  // Save default SBU overrides too
-  localStorage.setItem('mom_sbus_defaults',JSON.stringify(DEFAULT_SBUS));
+  closeSBUSheet();
   renderSBU();
+}
+
+function closeSBUSheet(){
+  closeSheet('sbuEditOverlay','sbuEditSheet');
+  editSBUIdx=null;pendingSBUPhoto=null;
 }
 
 function selectSBU(name){
