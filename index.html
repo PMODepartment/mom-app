@@ -231,7 +231,7 @@
     .sh-overlay.open{display:block;}
     .bsheet{position:fixed;left:50%;bottom:0;z-index:201;background:var(--surface2);border-radius:var(--rxl) var(--rxl) 0 0;max-height:var(--sheet-max-h,85vh);transform:translateX(-50%) translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;padding-bottom:var(--safe-bot);width:70%;min-width:320px;overflow:hidden;}
     @media(max-width:599px){#detailSheet,#editSheet{width:90%;min-width:0;}}
-    @media(min-width:600px){#detailSheet,#editSheet{width:60%!important;max-height:92vh!important;}}
+    @media(min-width:600px){#detailSheet,#editSheet{width:60%!important;max-height:calc(100vh - var(--header-h, 70px))!important;top:var(--header-h, 70px);bottom:0;border-radius:0 0 0 0;}}
     .bsheet.open{transform:translateX(-50%) translateY(0);}
     .sh-handle{width:36px;height:5px;background:var(--surface3);border-radius:3px;margin:0.6rem auto 0;flex-shrink:0;}
     .sh-head{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.1rem 0.7rem;border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -1241,6 +1241,12 @@ function openSheet(ov,sh){
   if(hdr){
     var hh=hdr.offsetHeight;
     document.documentElement.style.setProperty('--header-h',hh+'px');
+    // On desktop, clamp detail/edit sheets to below header
+    if(window.innerWidth>=600 && (sh==='detailSheet'||sh==='editSheet')){
+      var el=document.getElementById(sh);
+      el.style.top=hh+'px';
+      el.style.maxHeight='calc(100vh - '+hh+'px)';
+    }
   }
   document.getElementById(ov).classList.add('open');
   document.getElementById(sh).classList.add('open');
