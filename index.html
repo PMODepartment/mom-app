@@ -17,7 +17,7 @@
     #hamburgerBtn{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:0.4rem;border-radius:8px;}
     #hamburgerBtn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all 0.2s;}
     #hamburgerBtn:active{background:rgba(255,255,255,0.15);}
-    #hamburgerMenu{display:none;position:fixed;top:70px;right:0.75rem;background:var(--surface);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:0.75rem;min-width:180px;z-index:99999;border:1px solid var(--border);}
+    #hamburgerMenu{display:none;position:fixed;top:70px;right:1.5rem;background:var(--surface);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:0.75rem;min-width:180px;z-index:99999;border:1px solid var(--border);}
     #hamburgerMenu.open{display:block;}
     .hm-name{font-size:0.88rem;font-weight:700;color:var(--ink);margin-bottom:0.3rem;}
     .hm-divider{height:1px;background:var(--border);margin:0.5rem 0;}
@@ -27,8 +27,10 @@
       #hamburgerBtn{display:flex;}
     }
     @media(min-width:600px){
-      #hamburgerBtn{display:none !important;}
-      #hamburgerMenu{display:none !important;}
+      #hamburgerBtn{display:flex !important;}
+      #userInfo .user-meta{display:none;}
+      #userInfo .manage-users-btn{display:none !important;}
+      #logoutBtn{display:none !important;}
     }
 
 
@@ -1307,6 +1309,9 @@ function setState(s){
   ['stateLogin','stateLoading','stateNoAccess','screenProjects'].forEach(function(id){document.getElementById(id).style.display='none';});
   var m={login:'stateLogin',loading:'stateLoading',noAccess:'stateNoAccess',projects:'screenProjects'};
   if(m[s])document.getElementById(m[s]).style.display='block';
+  // Hide hamburger on login/loading/noAccess screens
+  var hBtn=document.getElementById('hamburgerBtn');
+  if(hBtn) hBtn.style.display=(s==='projects')?'':'none';
 }
 var bTimer;
 function flash(msg,err){var b=document.getElementById('flashBanner');b.textContent=msg;b.style.color=err?'var(--red)':'var(--ink2)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(function(){b.style.display='none';},4000);}
