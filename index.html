@@ -844,14 +844,7 @@ function renderSBU(){
       :'';
     card.innerHTML=
       editBtn
-      +'<div class="sbu-card-icon" style="background:'+color+'20;color:'+color+';">'
-      +(sbu.photo_url?'<img src="'+sbu.photo_url+'" alt=""/>':sbu.icon)
-      +'</div>'
-      +'<div>'
-        +shortLabel
-        +'<div class="sbu-card-name">'+esc(sbu.name)+'</div>'
-        +'<div class="sbu-card-desc">'+esc(sbu.desc)+'</div>'
-      +'</div>';
+      +'<div style="width:56px;height:56px;border-radius:14px;background:'+color+'20;color:'+color+';display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;">'      +(sbu.photo_url?'<img src="'+sbu.photo_url+'" alt="" style="width:100%;height:100%;object-fit:cover;"/>':sbu.icon)      +'</div>'      +'<div>'        +'<div class="sbu-card-short">'+esc(sbu.short_name||sbu.name)+'</div>'        +'<div class="sbu-card-name">'+esc(sbu.name)+'</div>'      +'</div>';
     card.onclick=function(){selectSBU(sbu.name);};
     if(currentRole==='admin'){
       var eb=card.querySelector('.btn-sbu-edit');
