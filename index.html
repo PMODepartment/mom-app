@@ -788,7 +788,8 @@ function renderProjects(){
     addCard.onclick=function(){openProjSheet(null);};
     carousel.appendChild(addCard);
   }
-  allProjects.forEach(function(proj){
+  var sbuProjects=selectedSBU?allProjects.filter(function(p){return (p.sbu||'')=== selectedSBU;}):allProjects;
+  sbuProjects.forEach(function(proj){
     var card=document.createElement('div');card.className='proj-card';card.id='proj-card-'+proj.id;
     var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
     var editBtn=currentRole==='admin'?'<button class="proj-card-edit">✏ Edit</button>':'';
