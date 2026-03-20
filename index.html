@@ -496,6 +496,9 @@
     </div>
     <div class="ff" id="uProjectsWrap">
       <label>Assigned Projects</label>
+      <select id="uSBUFilter" onchange="renderProjectCheckboxes(document.getElementById('uSBUFilter').value,currentEditCodes)" style="font-family:var(--font);font-size:0.82rem;padding:0.45rem 0.7rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);width:100%;margin-bottom:0.5rem;box-shadow:0 0 0 1px var(--border);">
+        <option value="">All SBUs</option>
+      </select>
       <div id="uProjectsList" style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.3rem;"></div>
     </div>
   </div>
@@ -687,6 +690,29 @@ function waitForMsal(){return new Promise(function(resolve,reject){var lib=getMs
 // STATE
 var currentRole='',currentEmail='',currentProjectCodes=null;
 var allProjects=[],allMeetings=[],allItems=[],filteredItems=[],displayCount=20;
+var currentProjectRoles=null; // map of projId/code -> role
+var currentEditCodes=''; // tracks codes during user edit
+
+function getEffectiveRole(proj){
+  if(currentRole==='admin') return 'admin';
+  if(!currentProjectRoles||!proj) return currentRole;
+  var key1=(proj.code||'').toLowerCase();
+  var key2=(proj.id||'').toLowerCase();
+  var r=currentProjectRoles[key1]||currentProjectRoles[key2]||currentRole;
+  return r;
+}
+function parseProjectCodesForAccess(str){
+  var map={};
+  (str||"").split(",").forEach(function(s){
+    s=s.trim();
+    if(!s)return;
+    var parts=s.split(":");
+    var key=parts[0].trim().toLowerCase();
+    var role=parts[1]?parts[1].trim().toLowerCase():"editor";
+    if(key)map[key]=role;
+  });
+  return map;
+}
 var selectedProject=null,selectedMeeting=null;
 var editItemIdx=-1,editMeetingId=null,editProjectId=null,deleteTarget=null,deleteType='';
 var pendingFile=null,pendingProjPhoto=null;
@@ -726,7 +752,8 @@ async function loadAll(){
     var user=users[0];
     if(!user||!['admin','editor','viewer'].includes((user.role||'').toLowerCase())){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
     currentRole=user.role.toLowerCase();
-    currentProjectCodes=(currentRole==='admin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().toLowerCase();}):null);
+    currentProjectCodes=(currentRole==='admin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):null);
+    currentProjectRoles=(currentRole==='admin')?null:(user.project_codes?parseProjectCodesForAccess(user.project_codes):null);
     localStorage.setItem('mom_role',currentRole);
     applyUserUI();
 
@@ -792,10 +819,11 @@ function renderProjects(){
   sbuProjects.forEach(function(proj){
     var card=document.createElement('div');card.className='proj-card';card.id='proj-card-'+proj.id;
     var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
-    var editBtn=currentRole==='admin'?'<button class="proj-card-edit">✏ Edit</button>':'';
+    var effRoleProj=getEffectiveRole(proj);
+    var editBtn=(effRoleProj==='admin'||effRoleProj==='editor')?'<button class="proj-card-edit">✏ Edit</button>':'';
     card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.short_name||proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>'+editBtn;
     card.onclick=function(){selectProject(proj);};
-    if(currentRole==='admin'){
+    if(effRoleProj==='admin'||effRoleProj==='editor'){
       card.onlongpress=function(){openProjSheet(proj);};
       var eb=card.querySelector('.proj-card-edit');
       if(eb)eb.addEventListener('click',function(e){e.stopPropagation();openProjSheet(proj);});
@@ -980,7 +1008,8 @@ function filterMeetings(){
   meets.sort(function(a,b){return (b.meeting_date||'').localeCompare(a.meeting_date||'');});
   // Filter out drafts for viewers before grouping
   var visibleMeets=meets.filter(function(m){
-    if(!m.is_distributed && currentRole==='viewer') return false;
+    var effRoleM=getEffectiveRole(selectedProject);
+    if(!m.is_distributed && effRoleM==='viewer') return false;
     return true;
   });
   if(!visibleMeets.length){list.innerHTML='<div class="empty-msg">No meetings yet. Tap + New Meeting to add one.</div>';return;}
@@ -1003,7 +1032,8 @@ function filterMeetings(){
       var itemCount=allItems.filter(function(it){return it.meeting_id===meeting.id;}).length;
       var row=document.createElement('div');row.className='meeting-row';
       var draftBadge=isDraft?'<span class="badge-draft">Draft</span>':'';
-      var editBtn=currentRole==='admin'?'<button class="btn-meeting-edit">Edit</button>':'';
+      var effRoleMtgList=getEffectiveRole(selectedProject);
+    var editBtn=(effRoleMtgList==='admin'||effRoleMtgList==='editor')?'<button class="btn-meeting-edit">Edit</button>':'';
       var distributeBtn='';
       row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title" style="display:flex;align-items:center;gap:0.4rem;">'+esc(meeting.title||'Untitled Meeting')+draftBadge+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+distributeBtn+editBtn+'<span class="meeting-chevron">›</span></div>';
       row.onclick=function(){openMeetingItems(meeting);};
@@ -1048,12 +1078,14 @@ async function openMeetingItems(meeting){
   document.getElementById('mainScroll').style.display='none';
   var headerH=document.querySelector('header').offsetHeight;
   var si=document.getElementById('screenItems');si.style.display='flex';si.style.top=headerH+'px';
-  var canAdd=currentRole==='admin'||currentRole==='editor';
+  var effRole=getEffectiveRole(selectedProject);
+  var canAdd=effRole==='admin'||effRole==='editor';
   document.getElementById('fab').style.display=canAdd?'flex':'none';
   // Show/update distribute button
   var dBtn=document.getElementById('distributeBtn');
   if(dBtn){
-    if(currentRole==='admin'||currentRole==='editor'){
+    var effRole2=getEffectiveRole(selectedProject);
+    if(effRole2==='admin'||effRole2==='editor'){
       dBtn.style.display='';
       updateDistributeBtn();
     } else {
@@ -1211,8 +1243,9 @@ function loadMore(){displayCount+=20;renderCards();}
 // DETAIL
 function openDetail(idx){
   var item=filteredItems[idx];if(!item)return;
-  var canEdit=currentRole==='admin'||currentRole==='editor';
-  var canDel=currentRole==='admin';
+  var effRoleDetail=getEffectiveRole(selectedProject);
+  var canEdit=effRoleDetail==='admin'||effRoleDetail==='editor';
+  var canDel=effRoleDetail==='admin';
   var globalIdx=(window._meetingItems||[]).indexOf(item);
   // Store refs for dot menu
   window._detailItemIdx = globalIdx;
@@ -1367,7 +1400,8 @@ function openMeetingSheet(meeting){
   document.getElementById('mTitle').value=meeting?meeting.title||'':'';
   document.getElementById('mDate').value=meeting?meeting.meeting_date||'':'';
   document.getElementById('mLocation').value=meeting?meeting.location||'':'';
-  document.getElementById('meetingDelBtn').style.display=(currentRole==='admin'&&meeting&&meeting.id)?'':'none';
+  var effRoleMtgDel=getEffectiveRole(selectedProject);
+  document.getElementById('meetingDelBtn').style.display=((effRoleMtgDel==='admin'||effRoleMtgDel==='editor')&&meeting&&meeting.id)?'':'none';
   // Show carry-over only for new meetings
   var carryWrap=document.getElementById('carryOverWrap');
   var carrySelect=document.getElementById('mCarryOver');
@@ -1605,7 +1639,7 @@ function renderUsersList(){
   if(!allUsers.length){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.84rem;">No users yet.</div>';return;}
   allUsers.forEach(function(u){
     var row=document.createElement('div');row.className='user-row';
-    var projText=u.project_codes?'Projects: '+u.project_codes:'All projects';
+    var projText=u.project_codes?u.project_codes.split(',').map(function(s){var p=s.trim().split(':');return p[0]+(p[1]?' ('+p[1]+')':'');}).join(', '):'All projects';
     row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right"><span class="badge '+(u.role==='admin'?'b-issue':u.role==='editor'?'b-open':'b-fyi')+'">'+cap(u.role)+'</span><button class="btn-edit-user">Edit</button></div>';row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
     list.appendChild(row);
   });
@@ -1617,26 +1651,88 @@ function onUserRoleChange(){
   if(wrap) wrap.style.display=role==='admin'?'none':'';
 }
 
-function renderProjectCheckboxes(selectedCodes){
+// Parse project_codes with roles: "projId:role,projId2:role2"
+function parseProjectCodes(str){
+  var map={};
+  (str||'').split(',').forEach(function(s){
+    s=s.trim();
+    if(!s)return;
+    var parts=s.split(':');
+    var key=parts[0].trim().toLowerCase();
+    var role=parts[1]?parts[1].trim().toLowerCase():'editor';
+    if(key)map[key]=role;
+  });
+  return map;
+}
+
+function renderProjectCheckboxes(sbuFilter, selectedCodes){
+  if(selectedCodes!==undefined) currentEditCodes=selectedCodes;
+  else selectedCodes=currentEditCodes;
   var container=document.getElementById('uProjectsList');
   container.innerHTML='';
-  var codes=(selectedCodes||'').split(',').map(function(s){return s.trim().toLowerCase();}).filter(Boolean);
-  if(!allProjects.length){container.innerHTML='<span style="font-size:0.78rem;color:var(--muted);">No projects found.</span>';return;}
-  allProjects.forEach(function(proj){
-    var pCode=(proj.code||'').toLowerCase();
-    var pId=(proj.id||'').toLowerCase();
-    var checked=codes.some(function(c){return c&&(c===pCode||c===pId);});
-    var label=document.createElement('label');
-    label.style.cssText='display:flex;align-items:center;gap:0.5rem;font-size:0.84rem;font-weight:500;color:var(--ink);cursor:pointer;padding:0.4rem 0.6rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border2);';
-    var cb=document.createElement('input');cb.type='checkbox';cb.dataset.code=proj.code||proj.id;cb.checked=checked;cb.style.cssText='width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;pointer-events:auto;';label.style.cssText='display:flex;align-items:center;gap:0.6rem;font-size:0.84rem;font-weight:500;color:var(--ink);padding:0.5rem 0.7rem;background:'+(checked?'var(--blue-l)':'var(--surface)')+';border-radius:var(--r);box-shadow:0 0 0 1px '+(checked?'var(--blue)':'var(--border2)')+';cursor:pointer;transition:all 0.15s;';cb.addEventListener('change',function(){label.style.background=this.checked?'var(--blue-l)':'var(--surface)';label.style.boxShadow='0 0 0 1px '+(this.checked?'var(--blue)':'var(--border2)');});var nameSpan=document.createElement('span');nameSpan.textContent=proj.name;label.appendChild(cb);label.appendChild(nameSpan);if(proj.code){var codeSpan=document.createElement('span');codeSpan.textContent=proj.code;codeSpan.style.cssText='font-size:0.68rem;color:var(--muted);margin-left:auto;';label.appendChild(codeSpan);}
-    container.appendChild(label);
+  var codeMap=parseProjectCodes(selectedCodes);
+  var filtered=sbuFilter?allProjects.filter(function(p){return (p.sbu||'')=== sbuFilter;}):allProjects;
+  if(!filtered.length){container.innerHTML='<span style="font-size:0.78rem;color:var(--muted);">No projects in this SBU.</span>';return;}
+  filtered.forEach(function(proj){
+    var key=(proj.code||proj.id||'').toLowerCase();
+    var checked=key in codeMap;
+    var projRole=codeMap[key]||'editor';
+
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.7rem;background:'+(checked?'var(--blue-l)':'var(--surface)')+';border-radius:var(--r);box-shadow:0 0 0 1px '+(checked?'var(--blue)':'var(--border2)')+';transition:all 0.15s;margin-bottom:0;';
+
+    var cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.dataset.code=proj.code||proj.id;
+    cb.checked=checked;
+    cb.style.cssText='width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;';
+
+    var nameSpan=document.createElement('span');
+    nameSpan.textContent=proj.name;
+    nameSpan.style.cssText='font-size:0.84rem;font-weight:500;color:var(--ink);flex:1;';
+
+    if(proj.code){
+      var codeSpan=document.createElement('span');
+      codeSpan.textContent=proj.code;
+      codeSpan.style.cssText='font-size:0.68rem;color:var(--muted);';
+    }
+
+    var roleSelect=document.createElement('select');
+    roleSelect.dataset.projRole='1';
+    roleSelect.style.cssText='font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.25rem 0.5rem;border:none;border-radius:20px;background:var(--surface3);color:var(--ink2);cursor:pointer;display:'+(checked?'':'none')+';';
+    ['editor','viewer'].forEach(function(r){
+      var opt=document.createElement('option');
+      opt.value=r;opt.textContent=r.charAt(0).toUpperCase()+r.slice(1);
+      if(r===projRole)opt.selected=true;
+      roleSelect.appendChild(opt);
+    });
+
+    cb.addEventListener('change',function(){
+      var on=this.checked;
+      row.style.background=on?'var(--blue-l)':'var(--surface)';
+      row.style.boxShadow='0 0 0 1px '+(on?'var(--blue)':'var(--border2)');
+      roleSelect.style.display=on?'':'none';
+    });
+
+    row.appendChild(cb);
+    row.appendChild(nameSpan);
+    if(proj.code)row.appendChild(codeSpan);
+    row.appendChild(roleSelect);
+    container.appendChild(row);
   });
 }
 
 function getSelectedProjectCodes(){
-  var boxes=document.querySelectorAll('#uProjectsList input[type=checkbox]');
+  var rows=document.querySelectorAll('#uProjectsList div');
   var codes=[];
-  boxes.forEach(function(cb){if(cb.checked)codes.push(cb.dataset.code);});
+  rows.forEach(function(row){
+    var cb=row.querySelector('input[type=checkbox]');
+    var sel=row.querySelector('select[data-proj-role]');
+    if(cb&&cb.checked){
+      var role=sel?sel.value:'editor';
+      codes.push(cb.dataset.code+':'+role);
+    }
+  });
   return codes.join(',') || null;
 }
 
@@ -1647,7 +1743,17 @@ function openUserEditSheet(id){
   document.getElementById('uEmail').value=u?u.email:'';
   document.getElementById('uEmail').disabled=!!u;
   document.getElementById('uRole').value=u?u.role:'viewer';
-  renderProjectCheckboxes(u?u.project_codes||'':'');
+  currentEditCodes=u?u.project_codes||'':'';
+  // Populate SBU filter
+  var sbuSel=document.getElementById('uSBUFilter');
+  sbuSel.innerHTML='<option value="">All SBUs</option>';
+  getSBUs().forEach(function(sbu){
+    var opt=document.createElement('option');
+    opt.value=sbu.name;opt.textContent=sbu.short_name||sbu.name;
+    sbuSel.appendChild(opt);
+  });
+  sbuSel.value='';
+  renderProjectCheckboxes('', currentEditCodes);
   onUserRoleChange();
   document.getElementById('userDelBtn').style.display=u?'':'none';
   openSheet('userEditOverlay','userEditSheet');
