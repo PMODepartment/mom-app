@@ -891,25 +891,28 @@ function handleSBUPhoto(e){
 
 function saveSBUSheet(){
   var idx=editSBUIdx;
-  var all=getSBUs();
-  var sbu=all[idx];
-  if(!sbu) return;
-  var updated={
-    name:document.getElementById('sbuName').value.trim()||sbu.name,
-    short_name:document.getElementById('sbuShort').value.trim(),
-    desc:sbu.desc,
-    icon:sbu.icon,
-    color:sbu.color,
-    photo_url:pendingSBUPhoto||sbu.photo_url||null
-  };
-  var isDefault=idx<DEFAULT_SBUS.length;
-  if(isDefault){
-    DEFAULT_SBUS[idx]=updated;
-    localStorage.setItem('mom_sbus_defaults',JSON.stringify(DEFAULT_SBUS));
-  } else {
-    var ci=idx-DEFAULT_SBUS.length;
-    customSBUs[ci]=updated;
+  var nameVal=document.getElementById('sbuName').value.trim();
+  var shortVal=document.getElementById('sbuShort').value.trim();
+  if(!nameVal){flash('SBU name is required',true);return;}
+  if(idx===-1){
+    // New SBU
+    var newSBU={name:nameVal,short_name:shortVal,icon:'🏢',desc:'',color:'#007aff',photo_url:pendingSBUPhoto||null};
+    customSBUs.push(newSBU);
     localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
+  } else {
+    var all=getSBUs();
+    var sbu=all[idx];
+    if(!sbu) return;
+    var updated={name:nameVal,short_name:shortVal,desc:sbu.desc||'',icon:sbu.icon,color:sbu.color,photo_url:pendingSBUPhoto||sbu.photo_url||null};
+    var isDefault=idx<DEFAULT_SBUS.length;
+    if(isDefault){
+      DEFAULT_SBUS[idx]=updated;
+      localStorage.setItem('mom_sbus_defaults',JSON.stringify(DEFAULT_SBUS));
+    } else {
+      var ci=idx-DEFAULT_SBUS.length;
+      customSBUs[ci]=updated;
+      localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
+    }
   }
   closeSBUSheet();
   renderSBU();
@@ -928,13 +931,13 @@ function selectSBU(name){
 }
 
 function addSBU(){
-  var name=prompt('SBU name (e.g. "Infra"):');
-  if(!name||!name.trim())return;
-  var icon=prompt('Emoji icon (e.g. 🏠):') ||'🏢';
-  var desc=prompt('Short description:') ||'';
-  customSBUs.push({name:name.trim(),icon:icon,desc:desc});
-  localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
-  renderSBU();
+  editSBUIdx=-1; // -1 = new SBU
+  pendingSBUPhoto=null;
+  document.getElementById('sbuSheetTitle').textContent='Add SBU';
+  document.getElementById('sbuName').value='';
+  document.getElementById('sbuShort').value='';
+  document.getElementById('sbuPhotoPreview').innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:#f2f2f7;color:#8e8e93;">🏢</div>';
+  openSheet('sbuEditOverlay','sbuEditSheet');
 }
 
 function filterMeetings(){
