@@ -776,7 +776,13 @@ async function distributeMeeting(meeting, row){
   if(!confirm(msg)) return;
   var newVal=isDraft?true:false;
   try{
-    await sbPatch(TABLE_MEETINGS, meeting.id, {is_distributed:newVal});
+    // Use RPC to bypass PostgREST schema cache issues
+    var r=await fetch(SUPABASE_URL+'/rest/v1/rpc/set_meeting_distributed',{
+      method:'POST',
+      headers:sbH(),
+      body:JSON.stringify({meeting_id:meeting.id, distributed:newVal})
+    });
+    if(!r.ok){var err=await r.text();throw new Error(err);}
     meeting.is_distributed=newVal;
     var idx=allMeetings.findIndex(function(m){return m.id===meeting.id;});
     if(idx>-1) allMeetings[idx].is_distributed=newVal;
