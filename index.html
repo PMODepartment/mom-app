@@ -14,7 +14,7 @@
   <style>
 
     /* HAMBURGER MENU */
-    #hamburgerBtn{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:0.4rem;border-radius:8px;}
+    #hamburgerBtn{display:none !important;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:0.4rem;border-radius:8px;}
     #hamburgerBtn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all 0.2s;}
     #hamburgerBtn:active{background:rgba(255,255,255,0.15);}
     #hamburgerMenu{display:none;position:fixed;top:70px;right:1.5rem;background:var(--surface);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:0.75rem;min-width:180px;z-index:99999;border:1px solid var(--border);}
@@ -24,10 +24,9 @@
     .hm-signout{width:100%;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.55rem 0.75rem;border:none;border-radius:var(--r);background:var(--red-l);color:var(--red);cursor:pointer;text-align:left;}
     @media(max-width:599px){
       #userInfo{display:none !important;}
-      #hamburgerBtn{display:flex;}
     }
     @media(min-width:600px){
-      #hamburgerBtn{display:flex !important;}
+
       #userInfo .user-meta{display:none;}
       #userInfo .manage-users-btn{display:none !important;}
       #logoutBtn{display:none !important;}
@@ -1311,7 +1310,7 @@ function setState(s){
   if(m[s])document.getElementById(m[s]).style.display='block';
   // Hide hamburger on login/loading/noAccess screens
   var hBtn=document.getElementById('hamburgerBtn');
-  if(hBtn) hBtn.style.display=(s==='projects')?'':'none';
+  if(hBtn) hBtn.style.display=(s==='projects')?'flex':'none';
 }
 var bTimer;
 function flash(msg,err){var b=document.getElementById('flashBanner');b.textContent=msg;b.style.color=err?'var(--red)':'var(--ink2)';b.style.display='block';clearTimeout(bTimer);bTimer=setTimeout(function(){b.style.display='none';},4000);}
