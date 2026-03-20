@@ -145,6 +145,8 @@
     /* Meetings list */
     .meetings-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.6rem 1rem 0.35rem;display:flex;align-items:center;justify-content:space-between;}
     .meetings-label span{font-size:0.7rem;font-weight:600;color:var(--blue);cursor:pointer;}
+    .meeting-group-header{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:0.85rem 0 0.35rem;border-bottom:1px solid var(--border);margin-bottom:0.4rem;}
+    .meeting-group-header:first-child{padding-top:0;}
     .meetings-list{padding:0 1rem 5rem;display:flex;flex-direction:column;gap:0.5rem;}
     .meeting-row{
       background:var(--surface);border-radius:var(--rl);padding:1rem 1.1rem;
@@ -779,23 +781,40 @@ function filterMeetings(){
     return true;
   });
   meets.sort(function(a,b){return (b.meeting_date||'').localeCompare(a.meeting_date||'');});
-  if(!meets.length){list.innerHTML='<div class="empty-msg">No meetings yet. Tap + New Meeting to add one.</div>';return;}
-  meets.forEach(function(meeting,idx){
-    var isDraft=!meeting.is_distributed;
-    // Viewers cannot see draft meetings
-    if(isDraft && currentRole==='viewer') return;
-    var itemCount=allItems.filter(function(it){return it.meeting_id===meeting.id;}).length;
-    var row=document.createElement('div');row.className='meeting-row';
-    var draftBadge=isDraft?'<span class="badge-draft">Draft</span>':'';
-    var editBtn=currentRole==='admin'?'<button class="btn-meeting-edit">Edit</button>':'';
-    var distributeBtn='';
-    row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title" style="display:flex;align-items:center;gap:0.4rem;">'+esc(meeting.title||'Untitled Meeting')+draftBadge+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+distributeBtn+editBtn+'<span class="meeting-chevron">›</span></div>';
-    row.onclick=function(){openMeetingItems(meeting);};
-    if(currentRole==='admin'){
-      row.querySelector('.btn-meeting-edit')&&row.querySelector('.btn-meeting-edit').addEventListener('click',function(e){e.stopPropagation();openMeetingSheet(meeting);});
-    }
-
-    list.appendChild(row);
+  // Filter out drafts for viewers before grouping
+  var visibleMeets=meets.filter(function(m){
+    if(!m.is_distributed && currentRole==='viewer') return false;
+    return true;
+  });
+  if(!visibleMeets.length){list.innerHTML='<div class="empty-msg">No meetings yet. Tap + New Meeting to add one.</div>';return;}
+  // Group by meeting_type
+  var groups={};
+  var groupOrder=[];
+  visibleMeets.forEach(function(m){
+    var key=m.meeting_type||'Other';
+    if(!groups[key]){groups[key]=[];groupOrder.push(key);}
+    groups[key].push(m);
+  });
+  groupOrder.forEach(function(groupName){
+    // Group header
+    var header=document.createElement('div');
+    header.className='meeting-group-header';
+    header.textContent=groupName;
+    list.appendChild(header);
+    groups[groupName].forEach(function(meeting){
+      var isDraft=!meeting.is_distributed;
+      var itemCount=allItems.filter(function(it){return it.meeting_id===meeting.id;}).length;
+      var row=document.createElement('div');row.className='meeting-row';
+      var draftBadge=isDraft?'<span class="badge-draft">Draft</span>':'';
+      var editBtn=currentRole==='admin'?'<button class="btn-meeting-edit">Edit</button>':'';
+      var distributeBtn='';
+      row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title" style="display:flex;align-items:center;gap:0.4rem;">'+esc(meeting.title||'Untitled Meeting')+draftBadge+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+distributeBtn+editBtn+'<span class="meeting-chevron">›</span></div>';
+      row.onclick=function(){openMeetingItems(meeting);};
+      if(currentRole==='admin'){
+        row.querySelector('.btn-meeting-edit')&&row.querySelector('.btn-meeting-edit').addEventListener('click',function(e){e.stopPropagation();openMeetingSheet(meeting);});
+      }
+      list.appendChild(row);
+    });
   });
 }
 
