@@ -602,6 +602,11 @@
       <div class="ff"><label>Short Name</label><input type="text" id="pShort" placeholder="CMPS"/></div>
       <div class="ff"><label>Project Code</label><input type="text" id="pCode" placeholder="EPC-001"/></div>
     </div>
+    <div class="ff"><label>SBU</label>
+      <select id="pSBU">
+        <option value="">— Select SBU —</option>
+      </select>
+    </div>
     <div class="ff"><label>Color (for avatar)</label>
       <select id="pColor">
         <option value="#007aff">Blue</option><option value="#34c759">Green</option>
@@ -1489,6 +1494,16 @@ function openProjSheet(proj){
   document.getElementById('pShort').value=proj?proj.short_name||'':'';
   document.getElementById('pCode').value=proj?proj.code||'':'';
   document.getElementById('pColor').value=proj?proj.color||'#007aff':'#007aff';
+  // Populate SBU dropdown
+  var pSBU=document.getElementById('pSBU');
+  pSBU.innerHTML='<option value="">— Select SBU —</option>';
+  getSBUs().forEach(function(sbu){
+    var opt=document.createElement('option');
+    opt.value=sbu.name;
+    opt.textContent=(sbu.short_name||sbu.name)+(sbu.short_name&&sbu.name!==sbu.short_name?' — '+sbu.name:'');
+    pSBU.appendChild(opt);
+  });
+  pSBU.value=proj?proj.sbu||'':'';
   document.getElementById('projDelBtn').style.display=(currentRole==='admin'&&proj)?'':'none';
   pendingProjPhoto=null;
   var preview=document.getElementById('projPhotoPreview');
@@ -1504,7 +1519,7 @@ function handleProjPhoto(e){
 }
 async function saveProject(){
   var btn=document.getElementById('projSaveBtn');btn.disabled=true;btn.textContent='Saving...';
-  var data={name:document.getElementById('pName').value||'Unnamed',short_name:document.getElementById('pShort').value||null,code:document.getElementById('pCode').value||null,color:document.getElementById('pColor').value||'#007aff'};
+  var data={name:document.getElementById('pName').value||'Unnamed',short_name:document.getElementById('pShort').value||null,code:document.getElementById('pCode').value||null,color:document.getElementById('pColor').value||'#007aff',sbu:document.getElementById('pSBU').value||null};
   try{
     if(pendingProjPhoto){var path='projects/'+Date.now()+'_'+pendingProjPhoto.name;data.photo_url=await sbUpload(path,pendingProjPhoto);}
     var saved=editProjectId?await sbPatch(TABLE_PROJECTS,editProjectId,data):await sbPost(TABLE_PROJECTS,data);
