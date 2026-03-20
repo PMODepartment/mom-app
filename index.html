@@ -798,6 +798,16 @@ async function openMeetingItems(meeting){
   var si=document.getElementById('screenItems');si.style.display='flex';si.style.top=headerH+'px';
   var canAdd=currentRole==='admin'||currentRole==='editor';
   document.getElementById('fab').style.display=canAdd?'flex':'none';
+  // Show/update distribute button
+  var dBtn=document.getElementById('distributeBtn');
+  if(dBtn){
+    if(currentRole==='admin'||currentRole==='editor'){
+      dBtn.style.display='';
+      updateDistributeBtn();
+    } else {
+      dBtn.style.display='none';
+    }
+  }
   // Load items for this meeting
   setState2('loading');
   try{
