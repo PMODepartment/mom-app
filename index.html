@@ -1699,7 +1699,7 @@ function renderProjectCheckboxes(sbuFilter, selectedCodes){
 
     var roleSelect=document.createElement('select');
     roleSelect.dataset.projRole='1';
-    roleSelect.style.cssText='font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.25rem 0.5rem;border:none;border-radius:20px;background:var(--surface3);color:var(--ink2);cursor:pointer;display:'+(checked?'':'none')+';';
+    roleSelect.style.cssText='font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.2rem 0.5rem;border:none;border-radius:20px;background:var(--surface3);color:var(--ink2);cursor:pointer;width:auto;flex-shrink:0;display:'+(checked?'':'none')+';';
     ['editor','viewer'].forEach(function(r){
       var opt=document.createElement('option');
       opt.value=r;opt.textContent=r.charAt(0).toUpperCase()+r.slice(1);
