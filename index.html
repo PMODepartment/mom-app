@@ -160,8 +160,8 @@
     .proj-avatar img{width:100%;height:100%;object-fit:cover;}
     .proj-card-name{font-size:0.72rem;font-weight:600;color:var(--ink);text-align:center;line-height:1.3;word-break:break-word;}
     .proj-card-code{font-size:0.6rem;font-weight:500;color:var(--muted);text-align:center;}
-    .proj-card-edit{font-family:var(--font);font-size:0.62rem;font-weight:600;padding:0.2rem 0.55rem;border:none;border-radius:20px;background:rgba(0,0,0,0.08);color:var(--ink2);cursor:pointer;margin-top:0.3rem;display:none;}
-    .proj-card.active .proj-card-edit{display:inline-block;}
+    .proj-card-edit{font-family:var(--font);font-size:0.62rem;font-weight:600;padding:0.2rem 0.55rem;border:none;border-radius:20px;background:rgba(0,0,0,0.08);color:var(--ink2);cursor:pointer;margin-top:0.3rem;display:inline-block;}
+    @media(min-width:600px){.proj-card-edit{display:none;} .proj-card.active .proj-card-edit{display:inline-block;}}
 
     /* Meetings list */
     .meetings-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.6rem 1rem 0.35rem;display:flex;align-items:center;justify-content:space-between;}
