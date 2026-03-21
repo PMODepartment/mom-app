@@ -107,7 +107,7 @@
     .sbu-subtitle{font-size:0.82rem;color:var(--muted);margin-bottom:2.5rem;max-width:320px;line-height:1.6;}
     .sbu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;width:100%;max-width:440px;}
     @media(min-width:600px){.sbu-grid{grid-template-columns:repeat(3,1fr);max-width:620px;}}
-    .sbu-card{background:var(--surface);border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08),0 0 0 1px var(--border2);padding:1.5rem 1rem;display:flex;flex-direction:column;align-items:flex-start;gap:0.85rem;cursor:pointer;transition:transform 0.18s,box-shadow 0.18s;border:2px solid transparent;text-align:left;min-height:150px;}
+    .sbu-card{background:var(--surface);border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08),0 0 0 1px var(--border2);padding:1rem;display:flex;flex-direction:column;align-items:flex-start;gap:0.75rem;cursor:pointer;transition:transform 0.18s,box-shadow 0.18s;border:2px solid transparent;text-align:left;min-height:150px;}
     .sbu-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.12),0 0 0 1px var(--border2);}
     .sbu-card:active{transform:scale(0.97);}
     .sbu-card.selected{border-color:var(--blue);}
@@ -891,9 +891,10 @@ function renderSBU(){
       :'';
     card.innerHTML=
       editBtn
-      +'<div style="width:56px;height:56px;border-radius:14px;background:'+color+'20;color:'+color+';display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;">'
-      +(sbu.photo_url?'<img src="'+sbu.photo_url+'" alt="" style="width:100%;height:100%;object-fit:cover;"/>':sbu.icon)
-      +'</div>'
+      +(sbu.photo_url
+        ?'<div style="width:100%;height:120px;border-radius:10px;overflow:hidden;margin-bottom:0.25rem;flex-shrink:0;"><img src="'+sbu.photo_url+'" alt="" style="width:100%;height:100%;object-fit:contain;background:#f7f7f8;"/></div>'
+        :'<div style="width:56px;height:56px;border-radius:14px;background:'+color+'20;color:'+color+';display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;">'+sbu.icon+'</div>'
+      )
       +'<div>'
         +'<div class="sbu-card-short">'+esc(sbu.short_name||sbu.name)+'</div>'
         +'<div class="sbu-card-name">'+esc(sbu.name)+'</div>'
