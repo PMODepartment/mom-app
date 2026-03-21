@@ -983,6 +983,14 @@ function closeSBUSheet(){
 
 function selectSBU(name){
   selectedSBU=name;
+  selectedProject=null; // reset selected project
+  // Clear active state on carousel
+  document.querySelectorAll('.proj-card').forEach(function(c){c.classList.remove('active');});
+  // Clear meetings list
+  var ml=document.getElementById('meetingsList');
+  if(ml)ml.innerHTML='';
+  var mt=document.getElementById('meetingsTitle');
+  if(mt)mt.textContent='Meetings';
   setState('projects');
   renderProjects();
   filterMeetings();
