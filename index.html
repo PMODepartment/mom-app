@@ -411,6 +411,9 @@
 
   <!-- PROJECTS SCREEN -->
   <div id="screenProjects" style="display:none">
+    <div style="display:flex;align-items:center;padding:0.6rem 1rem 0.1rem;" id="projScreenHeader">
+      <button onclick="goToSBU()" style="font-family:var(--font);font-size:0.8rem;font-weight:600;background:none;border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:0.3rem;padding:0.3rem 0;">‹ <span id="sbuBackLabel">SBU</span></button>
+    </div>
     <div class="proj-search-wrap">
       <span class="proj-search-icon">🔍</span>
       <input type="text" id="projSearch" placeholder="Search projects…" oninput="filterProjects()"/>
@@ -983,6 +986,13 @@ function selectSBU(name){
   setState('projects');
   renderProjects();
   filterMeetings();
+  // Update back button label
+  var lbl=document.getElementById('sbuBackLabel');
+  if(lbl){
+    var all=getSBUs();
+    var sbu=all.find(function(s){return s.name===name;});
+    lbl.textContent=sbu?(sbu.short_name||sbu.name):name;
+  }
 }
 
 function addSBU(){
