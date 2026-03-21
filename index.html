@@ -668,6 +668,7 @@
 var SUPABASE_URL    = 'https://wmhothmuzghtvpckxfzk.supabase.co';
 var SUPABASE_ANON   = 'sb_publishable_oAFf-7awZLxdVTGA2mxp0g_bnzistDx';
 var TABLE_PROJECTS  = 'projects';
+var TABLE_SBUS      = 'sbus';
 var TABLE_MEETINGS  = 'meetings';
 var TABLE_MOM       = 'mom_items';
 var TABLE_ROLES     = 'mom_users';
@@ -776,6 +777,7 @@ async function loadAll(){
     }
 
     // 3. Meetings
+    await loadSBUs();
     try{var meets=await sbGet(TABLE_MEETINGS,'order=meeting_date.desc&select=*');allMeetings=meets||[];}catch(e2){allMeetings=[];}
 
     // 4. Items lightweight for counts (ignore errors from legacy data)
@@ -855,18 +857,24 @@ function filterProjects(){
     card.style.display=(!q||isAdd||name.toLowerCase().includes(q)||code.toLowerCase().includes(q))?'':'none';
   });
 }
-var DEFAULT_SBUS=[
-  {name:'EPC',icon:'🏗',desc:'Engineering, Procurement & Construction'},
-  {name:'Holdco',icon:'🏢',desc:'Holdings & Corporate'},
-  {name:'PH1',icon:'🌐',desc:'PH1 World Builders'}
-];
-var customSBUs=JSON.parse(localStorage.getItem('mom_sbus')||'[]');
-// Restore any edited default SBUs
-var savedDefaults=localStorage.getItem('mom_sbus_defaults');
-if(savedDefaults){try{DEFAULT_SBUS=JSON.parse(savedDefaults);}catch(e){}}
+var allSBUs=[]; // loaded from Supabase
 var selectedSBU=null;
 
-function getSBUs(){return DEFAULT_SBUS.concat(customSBUs);}
+function getSBUs(){return allSBUs;}
+
+async function loadSBUs(){
+  try{
+    var rows=await sbGet(TABLE_SBUS,'order=created_at.asc&select=*');
+    allSBUs=rows||[];
+  }catch(e){
+    // fallback defaults if table not ready
+    allSBUs=[
+      {id:'epc',name:'Engineering, Procurement & Construction',short_name:'EPC',icon:'🏗',color:'#b40000',photo_url:null},
+      {id:'holdco',name:'Holdings & Corporate',short_name:'Holdco',icon:'🏢',color:'#1a56db',photo_url:null},
+      {id:'ph1',name:'PH1 World Builders',short_name:'PH1',icon:'🌐',color:'#1a8f3a',photo_url:null}
+    ];
+  }
+}
 
 function renderSBU(){
   var grid=document.getElementById('sbuGrid');
@@ -881,11 +889,17 @@ function renderSBU(){
       :'';
     card.innerHTML=
       editBtn
-      +'<div style="width:56px;height:56px;border-radius:14px;background:'+color+'20;color:'+color+';display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;">'      +(sbu.photo_url?'<img src="'+sbu.photo_url+'" alt="" style="width:100%;height:100%;object-fit:cover;"/>':sbu.icon)      +'</div>'      +'<div>'        +'<div class="sbu-card-short">'+esc(sbu.short_name||sbu.name)+'</div>'        +'<div class="sbu-card-name">'+esc(sbu.name)+'</div>'      +'</div>';
+      +'<div style="width:56px;height:56px;border-radius:14px;background:'+color+'20;color:'+color+';display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;">'
+      +(sbu.photo_url?'<img src="'+sbu.photo_url+'" alt="" style="width:100%;height:100%;object-fit:cover;"/>':sbu.icon)
+      +'</div>'
+      +'<div>'
+        +'<div class="sbu-card-short">'+esc(sbu.short_name||sbu.name)+'</div>'
+        +'<div class="sbu-card-name">'+esc(sbu.name)+'</div>'
+      +'</div>';
     card.onclick=function(){selectSBU(sbu.name);};
     if(currentRole==='admin'){
       var eb=card.querySelector('.btn-sbu-edit');
-      if(eb) eb.addEventListener('click',function(e){e.stopPropagation();editSBU(i);});
+      if(eb) eb.addEventListener('click',(function(s){return function(e){e.stopPropagation();editSBU(s);};})(sbu));
     }
     grid.appendChild(card);
   });
@@ -895,16 +909,13 @@ function renderSBU(){
 var editSBUIdx=null;
 var pendingSBUPhoto=null;
 
-function editSBU(idx){
-  var all=getSBUs();
-  var sbu=all[idx];
+function editSBU(sbu){
   if(!sbu) return;
-  editSBUIdx=idx;
+  editSBUIdx=sbu.id; // store id not index
   pendingSBUPhoto=null;
   document.getElementById('sbuSheetTitle').textContent='Edit SBU';
   document.getElementById('sbuName').value=sbu.name||'';
   document.getElementById('sbuShort').value=sbu.short_name||'';
-  // Photo preview
   var preview=document.getElementById('sbuPhotoPreview');
   if(sbu.photo_url){
     preview.innerHTML='<img src="'+sbu.photo_url+'" alt=""/>';
@@ -912,7 +923,6 @@ function editSBU(idx){
     var color=sbu.color||'#007aff';
     preview.innerHTML='<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:'+color+'20;color:'+color+';">'+sbu.icon+'</div>';
   }
-  document.getElementById('sbuDelBtn').style.display='';
   document.getElementById('sbuDelBtn').style.display='';
   openSheet('sbuEditOverlay','sbuEditSheet');
 }
@@ -928,53 +938,44 @@ function handleSBUPhoto(e){
   reader.readAsDataURL(file);
 }
 
-function saveSBUSheet(){
-  var idx=editSBUIdx;
+async function saveSBUSheet(){
+  var btn=document.getElementById('sbuEditSheet').querySelector('.btn-save');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
   var nameVal=document.getElementById('sbuName').value.trim();
   var shortVal=document.getElementById('sbuShort').value.trim();
-  if(!nameVal){flash('SBU name is required',true);return;}
-  if(idx===-1){
-    // New SBU
-    var newSBU={name:nameVal,short_name:shortVal,icon:'🏢',desc:'',color:'#007aff',photo_url:pendingSBUPhoto||null};
-    customSBUs.push(newSBU);
-    localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
-  } else {
-    var all=getSBUs();
-    var sbu=all[idx];
-    if(!sbu) return;
-    var updated={name:nameVal,short_name:shortVal,desc:sbu.desc||'',icon:sbu.icon,color:sbu.color,photo_url:pendingSBUPhoto||sbu.photo_url||null};
-    var isDefault=idx<DEFAULT_SBUS.length;
-    if(isDefault){
-      DEFAULT_SBUS[idx]=updated;
-      localStorage.setItem('mom_sbus_defaults',JSON.stringify(DEFAULT_SBUS));
+  if(!nameVal){flash('SBU name is required',true);if(btn){btn.disabled=false;btn.textContent='Save';}return;}
+  var id=editSBUIdx;
+  var existing=allSBUs.find(function(s){return s.id===id;});
+  var data={name:nameVal,short_name:shortVal||null,photo_url:pendingSBUPhoto||(existing?existing.photo_url:null)||null};
+  try{
+    if(id===-1){
+      // New SBU
+      data.icon='🏢';data.color='#007aff';
+      var saved=await sbPost(TABLE_SBUS,data);
+      allSBUs.push(Array.isArray(saved)?saved[0]:saved);
     } else {
-      var ci=idx-DEFAULT_SBUS.length;
-      customSBUs[ci]=updated;
-      localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
+      await sbPatch(TABLE_SBUS,id,data);
+      allSBUs=allSBUs.map(function(s){return s.id===id?Object.assign({},s,data):s;});
     }
-  }
-  closeSBUSheet();
-  renderSBU();
+    closeSBUSheet();
+    renderSBU();
+    flash('SBU saved.');
+  }catch(e){flash('Error: '+e.message,true);}
+  if(btn){btn.disabled=false;btn.textContent='Save';}
 }
 
-function deleteSBU(){
-  var idx=editSBUIdx;
-  if(idx===null||idx===-1) return;
-  var all=getSBUs();
-  var sbu=all[idx];
-  if(!confirm('Delete "'+sbu.name+'"? This cannot be undone.')) return;
-  var isDefault=idx<DEFAULT_SBUS.length;
-  if(isDefault){
-    flash('Default SBUs cannot be deleted.',true);
-    return;
-  } else {
-    var ci=idx-DEFAULT_SBUS.length;
-    customSBUs.splice(ci,1);
-    localStorage.setItem('mom_sbus',JSON.stringify(customSBUs));
-  }
-  closeSBUSheet();
-  renderSBU();
-  flash('SBU deleted.');
+async function deleteSBU(){
+  var id=editSBUIdx;
+  if(!id||id===-1) return;
+  var sbu=allSBUs.find(function(s){return s.id===id;});
+  if(!sbu||!confirm('Delete "'+sbu.name+'"? This cannot be undone.')) return;
+  try{
+    await sbDelete(TABLE_SBUS,id);
+    allSBUs=allSBUs.filter(function(s){return s.id!==id;});
+    closeSBUSheet();
+    renderSBU();
+    flash('SBU deleted.');
+  }catch(e){flash('Error: '+e.message,true);}
 }
 function closeSBUSheet(){
   closeSheet('sbuEditOverlay','sbuEditSheet');
@@ -1004,7 +1005,7 @@ function selectSBU(name){
 }
 
 function addSBU(){
-  editSBUIdx=-1; // -1 = new SBU
+  editSBUIdx=-1;
   pendingSBUPhoto=null;
   document.getElementById('sbuSheetTitle').textContent='Add SBU';
   document.getElementById('sbuName').value='';
