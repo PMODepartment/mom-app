@@ -698,7 +698,7 @@ var currentProjectRoles=null; // map of projId/code -> role
 var currentEditCodes=''; // tracks codes during user edit
 
 function getEffectiveRole(proj){
-  if(currentRole==='superadmin') return 'admin';
+  if(currentRole==='superadmin') return 'superadmin';
   if(!currentProjectRoles||!proj) return currentRole;
   var key1=(proj.code||'').toLowerCase();
   var key2=(proj.id||'').toLowerCase();
@@ -754,8 +754,10 @@ async function loadAll(){
     // 1. Role
     var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(currentEmail)+'&select=*');
     var user=users[0];
-    if(!user||!['superadmin','editor','viewer'].includes((user.role||'').toLowerCase())){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
-    currentRole=user.role.toLowerCase();
+    var rawRole=(user.role||'').toLowerCase().trim();
+    if(rawRole==='admin') rawRole='superadmin'; // normalize legacy role
+    if(!['superadmin','editor','viewer'].includes(rawRole)){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
+    currentRole=rawRole;
     currentProjectCodes=(currentRole==='superadmin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):null);
     currentProjectRoles=(currentRole==='superadmin')?null:(user.project_codes?parseProjectCodesForAccess(user.project_codes):null);
     localStorage.setItem('mom_role',currentRole);
