@@ -892,8 +892,8 @@ function renderSBU(){
     card.innerHTML=
       editBtn
       +(sbu.photo_url
-        ?'<div style="width:100%;height:120px;border-radius:10px;overflow:hidden;margin-bottom:0.25rem;flex-shrink:0;"><img src="'+sbu.photo_url+'" alt="" style="width:100%;height:100%;object-fit:contain;background:#f7f7f8;"/></div>'
-        :'<div style="width:56px;height:56px;border-radius:14px;background:'+color+'20;color:'+color+';display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;">'+sbu.icon+'</div>'
+        ?'<div style="width:72px;height:72px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;"><img src="'+sbu.photo_url+'" alt="" style="width:80%;height:80%;object-fit:contain;"/></div>'
+        :'<div style="width:56px;height:56px;border-radius:50%;background:'+color+'20;color:'+color+';display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;flex-shrink:0;">'+sbu.icon+'</div>'
       )
       +'<div>'
         +'<div class="sbu-card-short">'+esc(sbu.short_name||sbu.name)+'</div>'
