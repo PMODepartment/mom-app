@@ -901,7 +901,7 @@ function sampleCircleColor(img){
     var circle=img.parentElement;
     if(circle){
       circle.style.background=bgColor;
-      circle.style.boxShadow='0 4px 20px '+shadowColor+',0 0 0 1px rgba('+r+','+g+','+b+',0.2)';
+      circle.style.boxShadow='0 4px 16px rgba(0,0,0,0.18),0 0 0 1px rgba(0,0,0,0.06)';
     }
   }catch(e){} // CORS or tainted canvas — silently ignore
 }
@@ -920,8 +920,8 @@ function renderSBU(){
     card.innerHTML=
       editBtn
       +(sbu.photo_url
-        ?'<div id="sbu-circle-'+esc(sbu.id)+'" style="width:80px;height:80px;border-radius:50%;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.12),0 0 0 1px var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;transition:background 0.3s;"><img src="'+sbu.photo_url+'" alt="" crossorigin="anonymous" style="width:80%;height:80%;object-fit:contain;" onload="sampleCircleColor(this)"/></div>'
-        :'<div style="width:80px;height:80px;border-radius:50%;background:'+color+'20;color:'+color+';box-shadow:0 4px 16px '+color+'40;display:flex;align-items:center;justify-content:center;font-size:2rem;overflow:hidden;flex-shrink:0;">'+sbu.icon+'</div>'
+        ?'<div id="sbu-circle-'+esc(sbu.id)+'" style="width:80px;height:80px;border-radius:50%;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.18),0 0 0 1px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;transition:background 0.3s;"><img src="'+sbu.photo_url+'" alt="" crossorigin="anonymous" style="width:80%;height:80%;object-fit:contain;" onload="sampleCircleColor(this)"/></div>'
+        :'<div style="width:80px;height:80px;border-radius:50%;background:'+color+'20;color:'+color+';box-shadow:0 4px 16px rgba(0,0,0,0.18),0 0 0 1px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:2rem;overflow:hidden;flex-shrink:0;">'+sbu.icon+'</div>'
       )
       +'<div>'
         +'<div class="sbu-card-short">'+esc(sbu.short_name||sbu.name)+'</div>'
