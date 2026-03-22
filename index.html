@@ -105,7 +105,7 @@
     .auth-link{font-size:0.82rem;color:var(--blue);cursor:pointer;font-weight:600;background:none;border:none;padding:0;}
     .auth-link:hover{text-decoration:underline;}
     .auth-footer{text-align:center;margin-top:1.25rem;font-size:0.82rem;color:var(--muted);}
-    .auth-error{font-size:0.8rem;font-weight:600;color:#b40000;background:#fde8e8;border-radius:var(--r);padding:0.6rem 0.85rem;margin-top:0.5rem;display:none;border-left:3px solid #b40000;}
+    .auth-error{font-size:0.75rem;font-weight:500;color:#b40000;margin-top:0.4rem;display:none;}
     .btn-auth{width:100%;font-family:var(--font);font-size:0.95rem;font-weight:700;padding:0.75rem;border:none;border-radius:var(--r);background:#b40000;color:#fff;cursor:pointer;margin-top:0.5rem;transition:opacity 0.15s;}
     .btn-auth:active{opacity:0.8;}
     .btn-auth:disabled{opacity:0.5;}
@@ -771,21 +771,31 @@ function showSignup(){
   document.getElementById('signupError').style.display='none';
 }
 
+var authErrTimer=null;
+function showAuthError(elId, msg){
+  var el=document.getElementById(elId);
+  if(!el) return;
+  el.textContent=msg;
+  el.style.display='block';
+  clearTimeout(authErrTimer);
+  authErrTimer=setTimeout(function(){el.style.display='none';},15000);
+}
+
 async function doLogin(){
   var btn=document.querySelector('#authLogin .btn-auth');
   var errEl=document.getElementById('loginError');
   errEl.style.display='none';
   var email=(document.getElementById('loginEmail').value||'').trim().toLowerCase();
   var pwd=document.getElementById('loginPassword').value||'';
-  if(!email||!pwd){errEl.textContent='Please enter email and password.';errEl.style.display='block';return;}
+  if(!email||!pwd){showAuthError('loginError','Please enter email and password.');return;}
   btn.disabled=true;btn.textContent='Signing in…';
   try{
     var hash=hashPassword(pwd);
     var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=*');
-    if(!users||!users.length){errEl.textContent='Account not found.';errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
+    if(!users||!users.length){showAuthError('loginError','Account not found.');btn.disabled=false;btn.textContent='Sign In';return;}
     var user=users[0];
-    if(!user.password_hash){errEl.textContent='No password set. Contact your Super Admin.';errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
-    if(user.password_hash!==hash){errEl.textContent='Incorrect password.';errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
+    if(!user.password_hash){showAuthError('loginError','No password set. Contact your Super Admin.');btn.disabled=false;btn.textContent='Sign In';return;}
+    if(user.password_hash!==hash){showAuthError('loginError','Incorrect password.');btn.disabled=false;btn.textContent='Sign In';return;}
     currentEmail=email;
     localStorage.setItem('mom_session',JSON.stringify({email:email,ts:Date.now()}));
     await onSignedIn();
@@ -802,15 +812,15 @@ async function doSignup(){
   var email=(document.getElementById('signupEmail').value||'').trim().toLowerCase();
   var pwd=document.getElementById('signupPassword').value||'';
   var confirm=document.getElementById('signupConfirm').value||'';
-  if(!fullName||!username||!email||!pwd){errEl.textContent='All fields are required.';errEl.style.display='block';return;}
-  if(pwd.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='block';return;}
-  if(pwd!==confirm){errEl.textContent='Passwords do not match.';errEl.style.display='block';return;}
+  if(!fullName||!username||!email||!pwd){showAuthError('signupError','All fields are required.');return;}
+  if(pwd.length<6){showAuthError('signupError','Password must be at least 6 characters.');return;}
+  if(pwd!==confirm){showAuthError('signupError','Passwords do not match.');return;}
   btn.disabled=true;btn.textContent='Creating account…';
   try{
     // Check if email already exists
     var existing=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,password_hash');
     if(existing&&existing.length&&existing[0].password_hash){
-      errEl.textContent='An account with this email already exists.';errEl.style.display='block';btn.disabled=false;btn.textContent='Create Account';return;
+      showAuthError('signupError','An account with this email already exists.');btn.disabled=false;btn.textContent='Create Account';return;
     }
     var hash=hashPassword(pwd);
     if(existing&&existing.length){
@@ -823,7 +833,7 @@ async function doSignup(){
     currentEmail=email;
     localStorage.setItem('mom_session',JSON.stringify({email:email,ts:Date.now()}));
     await onSignedIn();
-  }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
+  }catch(e){showAuthError('signupError','Error: '+e.message);}
   btn.disabled=false;btn.textContent='Create Account';
 }
 
