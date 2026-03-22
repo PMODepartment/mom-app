@@ -2071,7 +2071,8 @@ function renderUsersList(){
     // Editors cannot edit superadmins or other editors' accounts
     var canEditUser=currentRole==='superadmin'||(currentRole==='editor'&&(u.role||'').toLowerCase()!=='superadmin');
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
-    row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right"><span class="badge '+(u.role==='superadmin'?'b-issue':u.role==='editor'?'b-open':'b-fyi')+'">'+cap(u.role==='superadmin'?'Super Admin':u.role)+'</span>'+editBtnHtml+'</div>';
+    var roleBadge=u.role==='superadmin'?'<span class="badge b-issue">Super Admin</span>':'';
+    row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right">'+roleBadge+editBtnHtml+'</div>';
     if(canEditUser) row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
     list.appendChild(row);
   });
