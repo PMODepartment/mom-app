@@ -367,6 +367,7 @@
       <button class="manage-users-btn" id="desktopUsersBtn" onclick="openUsersSheet()">Manage Users</button>
       <button class="hbtn" id="logoutBtn" onclick="signOut()" style="display:block;">Sign Out</button>
     </div>
+    <span id="headerGreeting" style="display:none;font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.9);white-space:nowrap;"></span>
     <button id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
@@ -986,6 +987,7 @@ function signOut(){
   currentRole='';currentEmail='';selectedSBU=null;
   localStorage.removeItem('mom_session');
   document.getElementById('userInfo').style.display='none';
+  var gr=document.getElementById('headerGreeting');if(gr)gr.style.display='none';
   document.getElementById('fab').style.display='none';
   showLogin();
   setState('login');
