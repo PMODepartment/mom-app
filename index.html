@@ -1159,7 +1159,7 @@ function applyUserUI(){
   if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='';}
   var canAdd=currentRole==='superadmin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
-  document.getElementById('addMeetingBtn').style.display=isAdmin?'':'none';
+  document.getElementById('addMeetingBtn').style.display=(currentRole==='superadmin'||currentRole==='editor')?'':'none';
   var canManageUsers=currentRole==='superadmin'||currentRole==='editor';
   var hmBtn=document.getElementById('hmUsersBtn');
   if(hmBtn) hmBtn.style.display=canManageUsers?'block':'none';
