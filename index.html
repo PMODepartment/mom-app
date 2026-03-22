@@ -626,6 +626,24 @@
         </label>
       </div>
     </div>
+    <div class="ff" id="uAdminWrap">
+      <label>SBU Admin</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:var(--r);padding:0.65rem 0.85rem;box-shadow:0 0 0 1px var(--border);">
+        <span style="font-size:0.84rem;color:var(--muted);">Full access within an SBU</span>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+          <input type="checkbox" id="uIsAdmin" onchange="onAdminToggle()" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="uAdminSlider" style="position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:24px;transition:0.3s;"></span>
+          <span id="uAdminKnob" style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+        </label>
+      </div>
+    </div>
+    <div class="ff" id="uAdminSBUWrap" style="display:none;">
+      <label>Admin SBU</label>
+      <select id="uAdminSBU" style="font-family:var(--font);font-size:0.82rem;padding:0.45rem 0.7rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);width:100%;box-shadow:0 0 0 1px var(--border);">
+        <option value="">— Select SBU —</option>
+      </select>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:0.3rem;">Admin has full access to all projects in this SBU.</div>
+    </div>
     <div class="ff" id="uProjectsWrap">
       <label>Assigned Projects</label>
       <select id="uSBUFilter" onchange="renderProjectCheckboxes(document.getElementById('uSBUFilter').value,currentEditCodes)" style="font-family:var(--font);font-size:0.82rem;padding:0.45rem 0.7rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);width:100%;margin-bottom:0.5rem;box-shadow:0 0 0 1px var(--border);">
@@ -824,6 +842,13 @@ var currentEditCodes=''; // tracks codes during user edit
 
 function getEffectiveRole(proj){
   if(currentRole==='superadmin') return 'superadmin';
+  if(currentRole==='admin'){
+    // Admin has full access to all projects in their SBU
+    if(!window._adminSBU) return 'admin';
+    if(!proj) return 'admin';
+    var projSBU=(proj.sbu||'');
+    return projSBU===window._adminSBU?'admin':'viewer';
+  }
   if(!currentProjectRoles||!proj) return currentRole;
   var key1=(proj.code||'').toLowerCase();
   var key2=(proj.id||'').toLowerCase();
@@ -1111,11 +1136,12 @@ async function loadAll(){
     if(!users||!users.length){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
     var user=users[0];
     var rawRole=(user.role||'').toLowerCase().trim();
-    if(rawRole==='admin') rawRole='superadmin'; // normalize legacy role
-    if(!['superadmin','editor','viewer'].includes(rawRole)){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
+    if(!['superadmin','admin','editor','viewer'].includes(rawRole)){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
     currentRole=rawRole;
-    currentProjectCodes=(currentRole==='superadmin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):null);
-    currentProjectRoles=(currentRole==='superadmin')?null:(user.project_codes?parseProjectCodesForAccess(user.project_codes):null);
+    currentProjectCodes=(currentRole==='superadmin'||currentRole==='admin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):null);
+    currentProjectRoles=(currentRole==='superadmin'||currentRole==='admin')?null:(user.project_codes?parseProjectCodesForAccess(user.project_codes):null);
+    // Admin's SBU assignment stored in project_codes as "sbu:SBUName"
+    window._adminSBU=(currentRole==='admin'&&user.project_codes)?user.project_codes.replace('sbu:','').trim():null;
     localStorage.setItem('mom_role',currentRole);
     window._currentUser=user; // store for applyUserUI
     applyUserUI();
@@ -1167,10 +1193,10 @@ function applyUserUI(){
   var greetingName=(userRec&&userRec.username)||(userRec&&userRec.full_name)||displayName;
   var greeting=document.getElementById('headerGreeting');
   if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='';}
-  var canAdd=currentRole==='superadmin'||currentRole==='editor';
+  var canAdd=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
-  document.getElementById('addMeetingBtn').style.display=(currentRole==='superadmin'||currentRole==='editor')?'inline':'none';
-  var canManageUsers=currentRole==='superadmin'||currentRole==='editor';
+  document.getElementById('addMeetingBtn').style.display=(currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor')?'inline':'none';
+  var canManageUsers=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor';
   var hmBtn=document.getElementById('hmUsersBtn');
   if(hmBtn) hmBtn.style.display=canManageUsers?'block':'none';
   var dtBtn=document.getElementById('desktopUsersBtn');
@@ -1189,14 +1215,18 @@ function renderProjects(){
     carousel.appendChild(addCard);
   }
   var sbuProjects=selectedSBU?allProjects.filter(function(p){return (p.sbu||'')=== selectedSBU;}):allProjects;
+  // Admin only sees projects in their assigned SBU
+  if(currentRole==='admin'&&window._adminSBU){
+    sbuProjects=sbuProjects.filter(function(p){return (p.sbu||'')===window._adminSBU;});
+  }
   sbuProjects.forEach(function(proj){
     var card=document.createElement('div');card.className='proj-card';card.id='proj-card-'+proj.id;
     var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
     var effRoleProj=getEffectiveRole(proj);
-    var editBtn=(effRoleProj==='superadmin'||effRoleProj==='editor')?'<button class="proj-card-edit">✏ Edit</button>':'';
+    var editBtn=(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor')?'<button class="proj-card-edit">✏ Edit</button>':'';
     card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.short_name||proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>'+editBtn;
     card.onclick=function(){selectProject(proj);};
-    if(effRoleProj==='superadmin'||effRoleProj==='editor'){
+    if(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor'){
       card.onlongpress=function(){openProjSheet(proj);};
       var eb=card.querySelector('.proj-card-edit');
       if(eb)eb.addEventListener('click',function(e){e.stopPropagation();openProjSheet(proj);});
@@ -1214,7 +1244,7 @@ function selectProject(proj){
   document.getElementById('meetingsTitle').textContent=proj.name+' · Meetings';
   // Show/hide New Meeting based on effective role for this project
   var effRole=getEffectiveRole(proj);
-  document.getElementById('addMeetingBtn').style.display=(effRole==='superadmin'||effRole==='editor')?'inline':'none';
+  document.getElementById('addMeetingBtn').style.display=(effRole==='superadmin'||effRole==='admin'||effRole==='editor')?'inline':'none';
   filterMeetings();
 }
 
@@ -1279,7 +1309,11 @@ function renderSBU(){
   var grid=document.getElementById('sbuGrid');
   grid.innerHTML='';
   var sbuColors=['#b40000','#1a56db','#1a8f3a','#b06800','#6b21a8','#0e7490'];
-  getSBUs().forEach(function(sbu,i){
+  var sbuList=getSBUs();
+  if(currentRole==='admin'&&window._adminSBU){
+    sbuList=sbuList.filter(function(s){return s.name===window._adminSBU;});
+  }
+  sbuList.forEach(function(sbu,i){
     var color=sbu.color||sbuColors[i%sbuColors.length];
     var card=document.createElement('div');
     card.className='sbu-card'+(selectedSBU===sbu.name?' selected':'');
@@ -1452,7 +1486,7 @@ function filterMeetings(){
       var row=document.createElement('div');row.className='meeting-row';
       var draftBadge=isDraft?'<span class="badge-draft">Draft</span>':'';
       var effRoleMtgList=getEffectiveRole(selectedProject);
-    var editBtn=(effRoleMtgList==='superadmin'||effRoleMtgList==='editor')?'<button class="btn-meeting-edit">Edit</button>':'';
+    var editBtn=(effRoleMtgList==='superadmin'||effRoleMtgList==='admin'||effRoleMtgList==='editor')?'<button class="btn-meeting-edit">Edit</button>':'';
       var distributeBtn='';
       row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title" style="display:flex;align-items:center;gap:0.4rem;">'+esc(meeting.title||'Untitled Meeting')+draftBadge+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+distributeBtn+editBtn+'<span class="meeting-chevron">›</span></div>';
       row.onclick=function(){openMeetingItems(meeting);};
@@ -1498,13 +1532,13 @@ async function openMeetingItems(meeting){
   var headerH=document.querySelector('header').offsetHeight;
   var si=document.getElementById('screenItems');si.style.display='flex';si.style.top=headerH+'px';
   var effRole=getEffectiveRole(selectedProject);
-  var canAdd=effRole==='superadmin'||effRole==='editor';
+  var canAdd=effRole==='superadmin'||effRole==='admin'||effRole==='editor';
   document.getElementById('fab').style.display=canAdd?'flex':'none';
   // Show/update distribute button
   var dBtn=document.getElementById('distributeBtn');
   if(dBtn){
     var effRole2=getEffectiveRole(selectedProject);
-    if(effRole2==='superadmin'||effRole2==='editor'){
+    if(effRole2==='superadmin'||effRole2==='admin'||effRole2==='editor'){
       dBtn.style.display='';
       updateDistributeBtn();
     } else {
@@ -1663,8 +1697,8 @@ function loadMore(){displayCount+=20;renderCards();}
 function openDetail(idx){
   var item=filteredItems[idx];if(!item)return;
   var effRoleDetail=getEffectiveRole(selectedProject);
-  var canEdit=effRoleDetail==='superadmin'||effRoleDetail==='editor';
-  var canDel=effRoleDetail==='superadmin';
+  var canEdit=effRoleDetail==='superadmin'||effRoleDetail==='admin'||effRoleDetail==='admin'||effRoleDetail==='editor';
+  var canDel=effRoleDetail==='superadmin'||effRoleDetail==='admin';
   var globalIdx=(window._meetingItems||[]).indexOf(item);
   // Store refs for dot menu
   window._detailItemIdx = globalIdx;
@@ -1822,7 +1856,7 @@ function openMeetingSheet(meeting){
   document.getElementById('mDate').value=meeting?meeting.meeting_date||'':'';
   document.getElementById('mLocation').value=meeting?meeting.location||'':'';
   var effRoleMtgDel=getEffectiveRole(selectedProject);
-  document.getElementById('meetingDelBtn').style.display=((effRoleMtgDel==='superadmin'||effRoleMtgDel==='editor')&&meeting&&meeting.id)?'':'none';
+  document.getElementById('meetingDelBtn').style.display=((effRoleMtgDel==='superadmin'||effRoleMtgDel==='admin'||effRoleMtgDel==='editor')&&meeting&&meeting.id)?'':'none';
   // Show carry-over only for new meetings
   var carryWrap=document.getElementById('carryOverWrap');
   var carrySelect=document.getElementById('mCarryOver');
@@ -2076,6 +2110,7 @@ function renderUsersList(){
     if(currentRole==='editor'){
       var r=(u.role||'').toLowerCase();
       if(r==='superadmin') return false;
+      if(r==='admin'&&currentRole!=='admin') return false; // editors can't see admins
       // Editor can only manage users on their own projects
       if(!currentProjectCodes) return true;
       if(!u.project_codes) return false;
@@ -2101,7 +2136,7 @@ function renderUsersList(){
     // Editors cannot edit superadmins or other editors' accounts
     var canEditUser=currentRole==='superadmin'||(currentRole==='editor'&&(u.role||'').toLowerCase()!=='superadmin');
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
-    var roleBadge=u.role==='superadmin'?'<span class="badge b-issue">Super Admin</span>':'';
+    var roleBadge=u.role==='superadmin'?'<span class="badge b-issue">Super Admin</span>':(u.role==='admin'?'<span class="badge b-open">Admin</span>':'');
     row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right">'+roleBadge+editBtnHtml+'</div>';
     if(canEditUser) row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
     list.appendChild(row);
@@ -2114,14 +2149,52 @@ function onSuperAdminToggle(){
   var knob=document.getElementById('uSuperAdminKnob');
   if(slider) slider.style.background=isSA?'#b40000':'#ccc';
   if(knob) knob.style.transform=isSA?'translateX(20px)':'translateX(0)';
-  var wrap=document.getElementById('uProjectsWrap');
-  if(wrap) wrap.style.display=isSA?'none':'';
+  if(isSA){
+    document.getElementById('uIsAdmin').checked=false;
+    onAdminToggle();
+  }
+  refreshProjectsWrap();
+}
+
+function onAdminToggle(){
+  var isAdm=document.getElementById('uIsAdmin').checked;
+  var slider=document.getElementById('uAdminSlider');
+  var knob=document.getElementById('uAdminKnob');
+  if(slider) slider.style.background=isAdm?'#1a56db':'#ccc';
+  if(knob) knob.style.transform=isAdm?'translateX(20px)':'translateX(0)';
+  if(isAdm){
+    document.getElementById('uIsSuperAdmin').checked=false;
+    onSuperAdminToggle();
+  }
+  refreshProjectsWrap();
+}
+
+function refreshProjectsWrap(){
+  var isSA=document.getElementById('uIsSuperAdmin').checked;
+  var isAdm=document.getElementById('uIsAdmin').checked;
+  var projWrap=document.getElementById('uProjectsWrap');
+  var adminSBUWrap=document.getElementById('uAdminSBUWrap');
+  if(projWrap) projWrap.style.display=(isSA||isAdm)?'none':'';
+  if(adminSBUWrap) adminSBUWrap.style.display=isAdm?'block':'none';
 }
 
 function updateRoleOptions(){
-  // Show super admin toggle only for superadmin users
+  var canAssignSA=currentRole==='superadmin';
+  var canAssignAdmin=currentRole==='superadmin'||currentRole==='admin';
   var saWrap=document.getElementById('uSuperAdminWrap');
-  if(saWrap) saWrap.style.display=currentRole==='superadmin'?'block':'none';
+  var adminWrap=document.getElementById('uAdminWrap');
+  if(saWrap) saWrap.style.display=canAssignSA?'block':'none';
+  if(adminWrap) adminWrap.style.display=canAssignAdmin?'block':'none';
+  // Populate SBU dropdown in admin wrap
+  var sbuSel=document.getElementById('uAdminSBU');
+  if(sbuSel){
+    sbuSel.innerHTML='<option value="">— Select SBU —</option>';
+    getSBUs().forEach(function(sbu){
+      var opt=document.createElement('option');
+      opt.value=sbu.name;opt.textContent=sbu.short_name||sbu.name;
+      sbuSel.appendChild(opt);
+    });
+  }
 }
 
 // Parse project_codes with roles: "projId:role,projId2:role2"
@@ -2215,11 +2288,19 @@ function openUserEditSheet(id){
   document.getElementById('userEditTitle').textContent=u?'Edit User':'Add User';
   document.getElementById('uEmail').value=u?u.email:'';
   document.getElementById('uEmail').disabled=!!u;
-  var isSA=u&&(u.role||'').toLowerCase()==='superadmin';
-  var cb=document.getElementById('uIsSuperAdmin');
-  if(cb) cb.checked=isSA;
-  onSuperAdminToggle();
+  var rawR=(u&&(u.role||'').toLowerCase())||'viewer';
+  var isSA=rawR==='superadmin';
+  var isAdm=rawR==='admin';
+  var cb=document.getElementById('uIsSuperAdmin');if(cb)cb.checked=isSA;
+  var cb2=document.getElementById('uIsAdmin');if(cb2)cb2.checked=isAdm;
   updateRoleOptions();
+  // Set admin SBU if applicable
+  if(isAdm&&u&&u.project_codes){
+    var sbuVal=u.project_codes.replace('sbu:','').trim();
+    setTimeout(function(){var s=document.getElementById('uAdminSBU');if(s)s.value=sbuVal;},50);
+  }
+  onSuperAdminToggle();
+  onAdminToggle();
   currentEditCodes=u?u.project_codes||'':'';
   // Populate SBU filter
   var sbuSel=document.getElementById('uSBUFilter');
@@ -2240,23 +2321,24 @@ async function saveUser(){
   var btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Saving...';
   var email=document.getElementById('uEmail').value.trim().toLowerCase();
   var isSuperAdmin=document.getElementById('uIsSuperAdmin').checked;
-  var role=isSuperAdmin?'superadmin':'editor'; // will be overridden by per-project roles for non-superadmin
-  // Determine actual role: if no projects checked and not superadmin, default to viewer
-  var selectedCodes=isSuperAdmin?null:getSelectedProjectCodes();
-  if(!isSuperAdmin&&selectedCodes){
-    // Role is determined by what's assigned — keep as 'editor' base, actual role per project
-    role='editor';
-  } else if(!isSuperAdmin){
-    role='viewer';
+  var isAdmin=document.getElementById('uIsAdmin').checked;
+  var role,codes;
+  if(isSuperAdmin){role='superadmin';codes=null;}
+  else if(isAdmin){
+    var adminSBU=document.getElementById('uAdminSBU').value||'';
+    role='admin';codes=adminSBU?'sbu:'+adminSBU:null;
+  } else {
+    var selectedCodes=getSelectedProjectCodes();
+    role=selectedCodes?'editor':'viewer';
+    codes=selectedCodes;
   }
-  var codes=isSuperAdmin?null:selectedCodes;
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
   try{
     if(editUserId){
-      await sbPatch(TABLE_ROLES,editUserId,{role:isSuperAdmin?'superadmin':role,project_codes:codes});
+      await sbPatch(TABLE_ROLES,editUserId,{role:role,project_codes:codes});
       allUsers=allUsers.map(function(u){return u.id===editUserId?Object.assign({},u,{role:role,project_codes:codes}):u;});
     }else{
-      var saved=await sbPost(TABLE_ROLES,{email:email,role:isSuperAdmin?'superadmin':role,project_codes:codes});
+      var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
       allUsers.push(Array.isArray(saved)?saved[0]:saved);
     }
     renderUsersList();
