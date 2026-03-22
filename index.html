@@ -1059,6 +1059,9 @@ function applyUserUI(){
   // Use full_name or username from allUsers cache
   var userRec=window._currentUser||(allUsers.find(function(u){return u.email===currentEmail;})||null);
   var displayName=(userRec&&(userRec.full_name||userRec.username))||currentEmail.split('@')[0];document.getElementById('userNameLabel').textContent=displayName;var hmName=document.getElementById('hmName');if(hmName)hmName.textContent=displayName;var hmChip=document.getElementById('hmChip');if(hmChip){hmChip.textContent=cap(currentRole);hmChip.className='role-chip rc-'+currentRole;}
+  var greetingName=(userRec&&userRec.username)||(userRec&&userRec.full_name)||displayName;
+  var greeting=document.getElementById('headerGreeting');
+  if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='';}
   var canAdd=currentRole==='superadmin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
   document.getElementById('addMeetingBtn').style.display=isAdmin?'':'none';
