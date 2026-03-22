@@ -35,6 +35,7 @@
     /* USER MANAGEMENT */
     .hm-users{width:100%;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.55rem 0.75rem;border:none;border-radius:var(--r);background:var(--blue-l);color:var(--blue);cursor:pointer;text-align:left;margin-bottom:0.4rem;}
     .hm-sbu{width:100%;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.55rem 0.75rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink2);cursor:pointer;text-align:left;margin-bottom:0.4rem;}
+    .hm-profile{width:100%;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.55rem 0.75rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink2);cursor:pointer;text-align:left;margin-bottom:0.4rem;}
     .user-row{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;padding:0.75rem 0.9rem;background:var(--surface);border-radius:var(--r);box-shadow:0 0 0 1px var(--border2);margin-bottom:0.5rem;}
     .user-row-left{flex:1;min-width:0;}
     .user-row-email{font-size:0.82rem;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -375,6 +376,7 @@
       <div class="hm-name" id="hmName"></div>
       <span class="role-chip" id="hmChip"></span>
       <div class="hm-divider"></div>
+      <button class="hm-profile" onclick="openProfileSheet();toggleHamburger()">👤 Profile Settings</button>
       <button class="hm-sbu" onclick="goToSBU()">🏢 Change SBU</button>
       <button class="hm-users" id="hmUsersBtn" onclick="openUsersSheet();toggleHamburger()" style="display:none">Manage Users</button>
       <button class="hm-signout" onclick="signOut()">Sign Out</button>
@@ -465,6 +467,41 @@
     </div>
     <div class="sh-foot">
       <button class="btn-save" onclick="saveSecurityQuestion()">Save</button>
+    </div>
+  </div>
+
+  <!-- PROFILE SHEET -->
+  <div class="sh-overlay" id="profileOverlay" onclick="closeProfileSheet()"></div>
+  <div class="bsheet" id="profileSheet">
+    <div class="sh-handle"></div>
+    <div class="sh-head"><h2>Profile Settings</h2><button class="sh-x" onclick="closeProfileSheet()">✕</button></div>
+    <div class="sh-body">
+      <div class="ff"><label>Full Name</label><input type="text" id="profileFullName" placeholder="Juan dela Cruz"/></div>
+      <div class="ff"><label>Username</label><input type="text" id="profileUsername" placeholder="jdelacruz"/></div>
+      <div class="hm-divider" style="margin:0.75rem 0;"></div>
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:0.75rem;">Change Password</div>
+      <div class="ff"><label>Current Password</label><input type="password" id="profileCurrentPwd" placeholder="••••••••"/></div>
+      <div class="ff"><label>New Password</label><input type="password" id="profileNewPwd" placeholder="Min. 6 characters"/></div>
+      <div class="ff"><label>Confirm New Password</label><input type="password" id="profileConfirmPwd" placeholder="Re-enter new password"/></div>
+      <div class="hm-divider" style="margin:0.75rem 0;"></div>
+      <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:0.75rem;">Security Question</div>
+      <div class="ff"><label>Question</label>
+        <select id="profileSecQ">
+          <option value="">— Pick a question —</option>
+          <option>What is the name of your first pet?</option>
+          <option>What is your mother's maiden name?</option>
+          <option>What city were you born in?</option>
+          <option>What was the name of your first school?</option>
+          <option>What is your favorite movie?</option>
+          <option>What is your childhood nickname?</option>
+        </select>
+      </div>
+      <div class="ff"><label>New Answer</label><input type="text" id="profileSecA" placeholder="Leave blank to keep current"/></div>
+      <div class="auth-error" id="profileError"></div>
+    </div>
+    <div class="sh-foot">
+      <button class="btn-cancel" onclick="closeProfileSheet()">Cancel</button>
+      <button class="btn-save" onclick="saveProfile()">Save</button>
     </div>
   </div>
 
@@ -847,6 +884,64 @@ async function saveSecurityQuestion(){
       flash('Security question saved!');
     }
   }catch(e){showAuthError('setupSecError','Error: '+e.message);}
+  btn.disabled=false;btn.textContent='Save';
+}
+
+function openProfileSheet(){
+  var u=window._currentUser||{};
+  document.getElementById('profileFullName').value=u.full_name||'';
+  document.getElementById('profileUsername').value=u.username||'';
+  document.getElementById('profileCurrentPwd').value='';
+  document.getElementById('profileNewPwd').value='';
+  document.getElementById('profileConfirmPwd').value='';
+  document.getElementById('profileSecQ').value=u.security_question||'';
+  document.getElementById('profileSecA').value='';
+  document.getElementById('profileError').style.display='none';
+  openSheet('profileOverlay','profileSheet');
+}
+
+function closeProfileSheet(){closeSheet('profileOverlay','profileSheet');}
+
+async function saveProfile(){
+  var btn=document.querySelector('#profileSheet .btn-save');
+  btn.disabled=true;btn.textContent='Saving…';
+  var fullName=document.getElementById('profileFullName').value.trim();
+  var username=document.getElementById('profileUsername').value.trim();
+  var currentPwd=document.getElementById('profileCurrentPwd').value;
+  var newPwd=document.getElementById('profileNewPwd').value;
+  var confirmPwd=document.getElementById('profileConfirmPwd').value;
+  var secQ=document.getElementById('profileSecQ').value;
+  var secA=document.getElementById('profileSecA').value.trim().toLowerCase();
+  var u=window._currentUser||{};
+  var patchData={};
+  if(fullName) patchData.full_name=fullName;
+  if(username) patchData.username=username;
+  // Password change
+  if(newPwd||currentPwd){
+    if(!currentPwd){showAuthError('profileError','Enter your current password.');btn.disabled=false;btn.textContent='Save';return;}
+    if(hashPassword(currentPwd)!==u.password_hash){showAuthError('profileError','Current password is incorrect.');btn.disabled=false;btn.textContent='Save';return;}
+    if(newPwd.length<6){showAuthError('profileError','New password must be at least 6 characters.');btn.disabled=false;btn.textContent='Save';return;}
+    if(newPwd!==confirmPwd){showAuthError('profileError','New passwords do not match.');btn.disabled=false;btn.textContent='Save';return;}
+    patchData.password_hash=hashPassword(newPwd);
+  }
+  // Security question
+  if(secQ&&secA){patchData.security_question=secQ;patchData.security_answer_hash=hashPassword(secA);}
+  if(!Object.keys(patchData).length){closeProfileSheet();btn.disabled=false;btn.textContent='Save';return;}
+  try{
+    var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(currentEmail)+'&select=id');
+    if(!users||!users.length){showAuthError('profileError','User not found.');btn.disabled=false;btn.textContent='Save';return;}
+    await sbPatch(TABLE_ROLES,users[0].id,patchData);
+    // Update local cache
+    window._currentUser=Object.assign({},u,patchData);
+    // Update greeting if username changed
+    if(patchData.username||patchData.full_name){
+      var greetingName=(window._currentUser.username)||(window._currentUser.full_name)||currentEmail.split('@')[0];
+      var gr=document.getElementById('headerGreeting');
+      if(gr) gr.textContent='Hi '+greetingName+' !';
+    }
+    closeProfileSheet();
+    flash('Profile updated!');
+  }catch(e){showAuthError('profileError','Error: '+e.message);}
   btn.disabled=false;btn.textContent='Save';
 }
 
