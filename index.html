@@ -1012,6 +1012,7 @@ async function loadAll(){
     currentProjectCodes=(currentRole==='superadmin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):null);
     currentProjectRoles=(currentRole==='superadmin')?null:(user.project_codes?parseProjectCodesForAccess(user.project_codes):null);
     localStorage.setItem('mom_role',currentRole);
+    window._currentUser=user; // store for applyUserUI
     applyUserUI();
 
     // 2. Projects
@@ -1056,7 +1057,7 @@ function applyUserUI(){
   var info=document.getElementById('userInfo');info.style.display='flex';
   var hBtn=document.getElementById('hamburgerBtn');if(hBtn)hBtn.style.display='flex';
   // Use full_name or username from allUsers cache
-  var userRec=allUsers.find(function(u){return u.email===currentEmail;});
+  var userRec=window._currentUser||(allUsers.find(function(u){return u.email===currentEmail;})||null);
   var displayName=(userRec&&(userRec.full_name||userRec.username))||currentEmail.split('@')[0];document.getElementById('userNameLabel').textContent=displayName;var hmName=document.getElementById('hmName');if(hmName)hmName.textContent=displayName;var hmChip=document.getElementById('hmChip');if(hmChip){hmChip.textContent=cap(currentRole);hmChip.className='role-chip rc-'+currentRole;}
   var canAdd=currentRole==='superadmin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
