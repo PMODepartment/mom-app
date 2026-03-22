@@ -176,6 +176,7 @@
     /* Meetings list */
     .meetings-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.6rem 1rem 0.35rem;display:flex;align-items:center;justify-content:space-between;}
     .meetings-label span{font-size:0.7rem;font-weight:600;color:var(--blue);cursor:pointer;}
+    #addMeetingBtn{display:none;}
     .meeting-group-header{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:0.85rem 0 0.35rem;border-bottom:1px solid var(--border);margin-bottom:0.4rem;}
     .meeting-group-header:first-child{padding-top:0;}
     .meetings-list{padding:0 1rem 5rem;display:flex;flex-direction:column;gap:0.5rem;}
@@ -1159,7 +1160,7 @@ function applyUserUI(){
   if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='';}
   var canAdd=currentRole==='superadmin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
-  document.getElementById('addMeetingBtn').style.display=(currentRole==='superadmin'||currentRole==='editor')?'':'none';
+  document.getElementById('addMeetingBtn').style.display=(currentRole==='superadmin'||currentRole==='editor')?'inline':'none';
   var canManageUsers=currentRole==='superadmin'||currentRole==='editor';
   var hmBtn=document.getElementById('hmUsersBtn');
   if(hmBtn) hmBtn.style.display=canManageUsers?'block':'none';
