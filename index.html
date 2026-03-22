@@ -396,6 +396,7 @@
       <div class="auth-sub">Sign in to Minutes of Meeting</div>
       <div class="ff"><label>Email</label><input type="email" id="loginEmail" placeholder="you@megawide.com.ph" autocomplete="email"/></div>
       <div class="ff"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/></div>
+      <div style="text-align:right;margin-top:-0.3rem;margin-bottom:0.2rem;"><button class="auth-link" style="font-size:0.75rem;" onclick="showForgotPassword()">Forgot password?</button></div>
       <div class="auth-error" id="loginError"></div>
       <button class="btn-auth" onclick="doLogin()">Sign In</button>
       <div class="auth-footer">Don't have an account? <button class="auth-link" onclick="showSignup()">Create Account</button></div>
@@ -408,9 +409,33 @@
       <div class="ff"><label>Email</label><input type="email" id="signupEmail" placeholder="you@megawide.com.ph" autocomplete="email"/></div>
       <div class="ff"><label>Password</label><input type="password" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password"/></div>
       <div class="ff"><label>Confirm Password</label><input type="password" id="signupConfirm" placeholder="Re-enter password"/></div>
+      <div class="ff"><label>Security Question</label>
+        <select id="signupSecQ">
+          <option value="">— Pick a question —</option>
+          <option>What is the name of your first pet?</option>
+          <option>What is your mother's maiden name?</option>
+          <option>What city were you born in?</option>
+          <option>What was the name of your first school?</option>
+          <option>What is your favorite movie?</option>
+          <option>What is your childhood nickname?</option>
+        </select>
+      </div>
+      <div class="ff"><label>Security Answer</label><input type="text" id="signupSecA" placeholder="Your answer"/></div>
       <div class="auth-error" id="signupError"></div>
       <button class="btn-auth" onclick="doSignup()">Create Account</button>
       <div class="auth-footer">Already have an account? <button class="auth-link" onclick="showLogin()">Sign In</button></div>
+    </div>
+    <div id="authForgot" class="auth-card" style="display:none;">
+      <div class="auth-title">Reset Password</div>
+      <div class="auth-sub">Verify your identity to reset your password.</div>
+      <div class="ff"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@megawide.com.ph" oninput="loadSecurityQuestion()"/></div>
+      <div class="ff" id="forgotSecQWrap" style="display:none;"><label>Security Question</label><div id="forgotSecQText" style="font-size:0.84rem;font-weight:600;color:var(--ink);padding:0.5rem 0;"></div></div>
+      <div class="ff" id="forgotSecAWrap" style="display:none;"><label>Your Answer</label><input type="text" id="forgotSecA" placeholder="Your answer"/></div>
+      <div class="ff" id="forgotNewPwdWrap" style="display:none;"><label>New Password</label><input type="password" id="forgotPassword" placeholder="Min. 6 characters"/></div>
+      <div class="ff" id="forgotConfirmWrap" style="display:none;"><label>Confirm Password</label><input type="password" id="forgotConfirm" placeholder="Re-enter password"/></div>
+      <div class="auth-error" id="forgotError"></div>
+      <button class="btn-auth" onclick="doResetPassword()">Reset Password</button>
+      <div class="auth-footer"><button class="auth-link" onclick="showLogin()">Back to Sign In</button></div>
     </div>
   </div>
 
@@ -762,16 +787,79 @@ function hashPassword(pwd){
 function showLogin(){
   document.getElementById('authLogin').style.display='';
   document.getElementById('authSignup').style.display='none';
+  document.getElementById('authForgot').style.display='none';
   document.getElementById('loginError').style.display='none';
 }
 
 function showSignup(){
   document.getElementById('authLogin').style.display='none';
   document.getElementById('authSignup').style.display='';
+  document.getElementById('authForgot').style.display='none';
   document.getElementById('signupError').style.display='none';
 }
 
 var authErrTimer=null;
+
+function showForgotPassword(){
+  document.getElementById('authLogin').style.display='none';
+  document.getElementById('authSignup').style.display='none';
+  document.getElementById('authForgot').style.display='';
+  document.getElementById('forgotError').style.display='none';
+  document.getElementById('forgotEmail').value='';
+  document.getElementById('forgotPassword').value='';
+  document.getElementById('forgotConfirm').value='';
+  document.getElementById('forgotSecA').value='';
+  document.getElementById('forgotSecQWrap').style.display='none';
+  document.getElementById('forgotSecAWrap').style.display='none';
+  document.getElementById('forgotNewPwdWrap').style.display='none';
+  document.getElementById('forgotConfirmWrap').style.display='none';
+  forgotUserRecord=null;
+}
+
+var forgotUserRecord=null;
+
+async function loadSecurityQuestion(){
+  var email=(document.getElementById('forgotEmail').value||'').trim().toLowerCase();
+  forgotUserRecord=null;
+  document.getElementById('forgotSecQWrap').style.display='none';
+  document.getElementById('forgotSecAWrap').style.display='none';
+  document.getElementById('forgotNewPwdWrap').style.display='none';
+  document.getElementById('forgotConfirmWrap').style.display='none';
+  if(!email||!email.includes('@')) return;
+  try{
+    var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,security_question,security_answer_hash');
+    if(users&&users.length&&users[0].security_question){
+      forgotUserRecord=users[0];
+      document.getElementById('forgotSecQText').textContent=users[0].security_question;
+      document.getElementById('forgotSecQWrap').style.display='';
+      document.getElementById('forgotSecAWrap').style.display='';
+      document.getElementById('forgotNewPwdWrap').style.display='';
+      document.getElementById('forgotConfirmWrap').style.display='';
+    }
+  }catch(e){}
+}
+
+async function doResetPassword(){
+  var btn=document.querySelector('#authForgot .btn-auth');
+  var email=(document.getElementById('forgotEmail').value||'').trim().toLowerCase();
+  var secA=(document.getElementById('forgotSecA').value||'').trim().toLowerCase();
+  var pwd=document.getElementById('forgotPassword').value||'';
+  var confirm=document.getElementById('forgotConfirm').value||'';
+  if(!email){showAuthError('forgotError','Please enter your email.');return;}
+  if(!forgotUserRecord){showAuthError('forgotError','Account not found or no security question set.');return;}
+  if(!secA){showAuthError('forgotError','Please answer your security question.');return;}
+  if(hashPassword(secA)!==forgotUserRecord.security_answer_hash){showAuthError('forgotError','Incorrect answer. Please try again.');return;}
+  if(!pwd||pwd.length<6){showAuthError('forgotError','Password must be at least 6 characters.');return;}
+  if(pwd!==confirm){showAuthError('forgotError','Passwords do not match.');return;}
+  btn.disabled=true;btn.textContent='Resetting…';
+  try{
+    var hash=hashPassword(pwd);
+    await sbPatch(TABLE_ROLES,forgotUserRecord.id,{password_hash:hash});
+    flash('Password reset successfully! Please sign in.');
+    showLogin();
+  }catch(e){showAuthError('forgotError','Error: '+e.message);}
+  btn.disabled=false;btn.textContent='Reset Password';
+}
 function showAuthError(elId, msg){
   var el=document.getElementById(elId);
   if(!el) return;
@@ -825,10 +913,18 @@ async function doSignup(){
     var hash=hashPassword(pwd);
     if(existing&&existing.length){
       // Account exists (created by admin) — just set password
-      await sbPatch(TABLE_ROLES,existing[0].id,{password_hash:hash,full_name:fullName,username:username});
+      var secQ2=document.getElementById('signupSecQ').value||'';
+      var secA2=(document.getElementById('signupSecA').value||'').trim().toLowerCase();
+      var patchData={password_hash:hash,full_name:fullName,username:username};
+      if(secQ2&&secA2){patchData.security_question=secQ2;patchData.security_answer_hash=hashPassword(secA2);}
+      await sbPatch(TABLE_ROLES,existing[0].id,patchData);
     } else {
       // New account — role will be 'viewer' until admin assigns
-      await sbPost(TABLE_ROLES,{email:email,role:'viewer',password_hash:hash,full_name:fullName,username:username,project_codes:null});
+      var secQ=document.getElementById('signupSecQ').value||'';
+      var secA=(document.getElementById('signupSecA').value||'').trim().toLowerCase();
+      if(!secQ||!secA){showAuthError('signupError','Please pick a security question and answer.');btn.disabled=false;btn.textContent='Create Account';return;}
+      var secAHash=hashPassword(secA);
+      await sbPost(TABLE_ROLES,{email:email,role:'viewer',password_hash:hash,full_name:fullName,username:username,project_codes:null,security_question:secQ,security_answer_hash:secAHash});
     }
     currentEmail=email;
     localStorage.setItem('mom_session',JSON.stringify({email:email,ts:Date.now()}));
