@@ -127,6 +127,7 @@
     .sbu-card-short{font-size:1.1rem;font-weight:800;color:var(--ink);letter-spacing:-0.02em;margin-bottom:0.15rem;text-align:center;}
     .btn-sbu-add{margin-top:1.25rem;font-family:var(--font);font-size:0.78rem;font-weight:600;padding:0.55rem 1.4rem;border:1.5px dashed var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;}
     .btn-sbu-add:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-l);}
+    #uSuperAdminWrap{display:none;}
     .btn-sbu-edit{position:absolute;top:0.6rem;right:0.6rem;font-family:var(--font);font-size:0.62rem;font-weight:600;padding:0.2rem 0.5rem;border:none;border-radius:20px;background:rgba(0,0,0,0.06);color:var(--muted);cursor:pointer;opacity:1;transition:opacity 0.15s;}
     @media(min-width:600px){.btn-sbu-edit{opacity:0;} .sbu-card:hover .btn-sbu-edit{opacity:1;}}
     .sbu-card{position:relative;}
@@ -610,12 +611,16 @@
   <div class="sh-head"><h2 id="userEditTitle">Add User</h2><button class="sh-x" onclick="closeUserEditSheet()">✕</button></div>
   <div class="sh-body">
     <div class="ff"><label>Email Address</label><input type="email" id="uEmail" placeholder="user@megawide.com.ph"/></div>
-    <div class="ff"><label>Role</label>
-      <select id="uRole" onchange="onUserRoleChange()">
-        <option value="superadmin">Super Admin</option>
-        <option value="editor">Editor</option>
-        <option value="viewer" selected>Viewer</option>
-      </select>
+    <div class="ff" id="uSuperAdminWrap">
+      <label>Super Admin</label>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:var(--r);padding:0.65rem 0.85rem;box-shadow:0 0 0 1px var(--border);">
+        <span style="font-size:0.84rem;color:var(--muted);">Grant full system access</span>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+          <input type="checkbox" id="uIsSuperAdmin" onchange="onSuperAdminToggle()" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="uSuperAdminSlider" style="position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:24px;transition:0.3s;"></span>
+          <span id="uSuperAdminKnob" style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+        </label>
+      </div>
     </div>
     <div class="ff" id="uProjectsWrap">
       <label>Assigned Projects</label>
@@ -2072,16 +2077,20 @@ function renderUsersList(){
   });
 }
 
-function onUserRoleChange(){
-  var role=document.getElementById('uRole').value;
+function onSuperAdminToggle(){
+  var isSA=document.getElementById('uIsSuperAdmin').checked;
+  var slider=document.getElementById('uSuperAdminSlider');
+  var knob=document.getElementById('uSuperAdminKnob');
+  if(slider) slider.style.background=isSA?'#b40000':'#ccc';
+  if(knob) knob.style.transform=isSA?'translateX(20px)':'translateX(0)';
   var wrap=document.getElementById('uProjectsWrap');
-  if(wrap) wrap.style.display=role==='superadmin'?'none':'';
+  if(wrap) wrap.style.display=isSA?'none':'';
 }
 
 function updateRoleOptions(){
-  var sel=document.getElementById('uRole');
-  var saOpt=sel.querySelector('option[value="superadmin"]');
-  if(saOpt) saOpt.style.display=currentRole==='superadmin'?'':'none';
+  // Show super admin toggle only for superadmin users
+  var saWrap=document.getElementById('uSuperAdminWrap');
+  if(saWrap) saWrap.style.display=currentRole==='superadmin'?'':'none';
 }
 
 // Parse project_codes with roles: "projId:role,projId2:role2"
@@ -2175,7 +2184,10 @@ function openUserEditSheet(id){
   document.getElementById('userEditTitle').textContent=u?'Edit User':'Add User';
   document.getElementById('uEmail').value=u?u.email:'';
   document.getElementById('uEmail').disabled=!!u;
-  document.getElementById('uRole').value=u?u.role:'viewer';
+  var isSA=u&&(u.role||'').toLowerCase()==='superadmin';
+  var cb=document.getElementById('uIsSuperAdmin');
+  if(cb) cb.checked=isSA;
+  onSuperAdminToggle();
   updateRoleOptions();
   currentEditCodes=u?u.project_codes||'':'';
   // Populate SBU filter
@@ -2197,15 +2209,24 @@ function closeUserEditSheet(){closeSheet('userEditOverlay','userEditSheet');edit
 async function saveUser(){
   var btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Saving...';
   var email=document.getElementById('uEmail').value.trim().toLowerCase();
-  var role=document.getElementById('uRole').value;
-  var role2=document.getElementById('uRole').value;var codes=role2==='superadmin'?null:getSelectedProjectCodes();
+  var isSuperAdmin=document.getElementById('uIsSuperAdmin').checked;
+  var role=isSuperAdmin?'superadmin':'editor'; // will be overridden by per-project roles for non-superadmin
+  // Determine actual role: if no projects checked and not superadmin, default to viewer
+  var selectedCodes=isSuperAdmin?null:getSelectedProjectCodes();
+  if(!isSuperAdmin&&selectedCodes){
+    // Role is determined by what's assigned — keep as 'editor' base, actual role per project
+    role='editor';
+  } else if(!isSuperAdmin){
+    role='viewer';
+  }
+  var codes=isSuperAdmin?null:selectedCodes;
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
   try{
     if(editUserId){
-      await sbPatch(TABLE_ROLES,editUserId,{role:role,project_codes:codes});
+      await sbPatch(TABLE_ROLES,editUserId,{role:isSuperAdmin?'superadmin':role,project_codes:codes});
       allUsers=allUsers.map(function(u){return u.id===editUserId?Object.assign({},u,{role:role,project_codes:codes}):u;});
     }else{
-      var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
+      var saved=await sbPost(TABLE_ROLES,{email:email,role:isSuperAdmin?'superadmin':role,project_codes:codes});
       allUsers.push(Array.isArray(saved)?saved[0]:saved);
     }
     renderUsersList();
