@@ -777,19 +777,19 @@ async function doLogin(){
   errEl.style.display='none';
   var email=(document.getElementById('loginEmail').value||'').trim().toLowerCase();
   var pwd=document.getElementById('loginPassword').value||'';
-  if(!email||!pwd){errEl.textContent='Please enter email and password.';errEl.style.display='';return;}
+  if(!email||!pwd){errEl.textContent='Please enter email and password.';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='Signing in…';
   try{
     var hash=hashPassword(pwd);
     var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=*');
-    if(!users||!users.length){errEl.textContent='Account not found.';errEl.style.display='';btn.disabled=false;btn.textContent='Sign In';return;}
+    if(!users||!users.length){errEl.textContent='Account not found.';errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
     var user=users[0];
-    if(!user.password_hash){errEl.textContent='No password set. Contact your Super Admin.';errEl.style.display='';btn.disabled=false;btn.textContent='Sign In';return;}
-    if(user.password_hash!==hash){errEl.textContent='Incorrect password.';errEl.style.display='';btn.disabled=false;btn.textContent='Sign In';return;}
+    if(!user.password_hash){errEl.textContent='No password set. Contact your Super Admin.';errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
+    if(user.password_hash!==hash){errEl.textContent='Incorrect password.';errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
     currentEmail=email;
     localStorage.setItem('mom_session',JSON.stringify({email:email,ts:Date.now()}));
     await onSignedIn();
-  }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='';}
+  }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
   btn.disabled=false;btn.textContent='Sign In';
 }
 
@@ -802,15 +802,15 @@ async function doSignup(){
   var email=(document.getElementById('signupEmail').value||'').trim().toLowerCase();
   var pwd=document.getElementById('signupPassword').value||'';
   var confirm=document.getElementById('signupConfirm').value||'';
-  if(!fullName||!username||!email||!pwd){errEl.textContent='All fields are required.';errEl.style.display='';return;}
-  if(pwd.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='';return;}
-  if(pwd!==confirm){errEl.textContent='Passwords do not match.';errEl.style.display='';return;}
+  if(!fullName||!username||!email||!pwd){errEl.textContent='All fields are required.';errEl.style.display='block';return;}
+  if(pwd.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='block';return;}
+  if(pwd!==confirm){errEl.textContent='Passwords do not match.';errEl.style.display='block';return;}
   btn.disabled=true;btn.textContent='Creating account…';
   try{
     // Check if email already exists
     var existing=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,password_hash');
     if(existing&&existing.length&&existing[0].password_hash){
-      errEl.textContent='An account with this email already exists.';errEl.style.display='';btn.disabled=false;btn.textContent='Create Account';return;
+      errEl.textContent='An account with this email already exists.';errEl.style.display='block';btn.disabled=false;btn.textContent='Create Account';return;
     }
     var hash=hashPassword(pwd);
     if(existing&&existing.length){
@@ -823,7 +823,7 @@ async function doSignup(){
     currentEmail=email;
     localStorage.setItem('mom_session',JSON.stringify({email:email,ts:Date.now()}));
     await onSignedIn();
-  }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='';}
+  }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='block';}
   btn.disabled=false;btn.textContent='Create Account';
 }
 
