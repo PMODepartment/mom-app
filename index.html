@@ -2064,6 +2064,15 @@ function renderUsersList(){
     return false;
   });
   if(!visible.length){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.84rem;">No users found.</div>';return;}
+  // Sort: superadmin first, then alphabetically by full_name/username/email
+  visible.sort(function(a,b){
+    var aIsSA=(a.role==='superadmin'||a.role==='admin')?0:1;
+    var bIsSA=(b.role==='superadmin'||b.role==='admin')?0:1;
+    if(aIsSA!==bIsSA) return aIsSA-bIsSA;
+    var aName=(a.full_name||a.username||a.email||'').toLowerCase();
+    var bName=(b.full_name||b.username||b.email||'').toLowerCase();
+    return aName.localeCompare(bName);
+  });
   visible.forEach(function(u){
     var row=document.createElement('div');row.className='user-row';
     var projText=u.project_codes?u.project_codes.split(',').map(function(s){var p=s.trim().split(':');return p[0]+(p[1]?' ('+p[1]+')':'');}).join(', '):'All projects';
