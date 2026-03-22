@@ -597,8 +597,12 @@
     <button class="sh-x" onclick="closeUsersSheet()">✕</button>
   </div>
   <div class="sh-body">
-    <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+    <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
       <button class="btn-save" style="flex:1;" onclick="openUserEditSheet(null)">+ Add User</button>
+    </div>
+    <div style="position:relative;margin-bottom:0.75rem;">
+      <span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-size:0.85rem;color:var(--muted);">🔍</span>
+      <input type="text" id="usersSearch" placeholder="Search users…" oninput="filterUsersList()" style="width:100%;font-family:var(--font);font-size:0.84rem;padding:0.5rem 0.8rem 0.5rem 2rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);box-sizing:border-box;"/>
     </div>
     <div id="usersList"></div>
   </div>
@@ -2033,6 +2037,7 @@ var allUsers=[], editUserId=null;
 function openUsersSheet(){
   if(currentRole==='viewer'){flash('Viewers cannot manage users.',true);return;}
   closeSheet('usersOverlay','usersSheet');
+  var s=document.getElementById('usersSearch');if(s)s.value='';
   loadUsers();
   openSheet('usersOverlay','usersSheet');
 }
@@ -2045,6 +2050,15 @@ async function loadUsers(){
     allUsers=await sbGet(TABLE_ROLES,'order=email.asc&select=*');
     renderUsersList();
   }catch(e){list.innerHTML='<div style="color:var(--red);font-size:0.84rem;">Error: '+esc(e.message)+'</div>';}
+}
+
+function filterUsersList(){
+  var q=(document.getElementById('usersSearch').value||'').toLowerCase().trim();
+  var rows=document.querySelectorAll('#usersList .user-row');
+  rows.forEach(function(row){
+    var text=row.textContent.toLowerCase();
+    row.style.display=(!q||text.includes(q))?'':'none';
+  });
 }
 
 function renderUsersList(){
