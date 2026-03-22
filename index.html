@@ -2090,7 +2090,7 @@ function onSuperAdminToggle(){
 function updateRoleOptions(){
   // Show super admin toggle only for superadmin users
   var saWrap=document.getElementById('uSuperAdminWrap');
-  if(saWrap) saWrap.style.display=currentRole==='superadmin'?'':'none';
+  if(saWrap) saWrap.style.display=currentRole==='superadmin'?'block':'none';
 }
 
 // Parse project_codes with roles: "projId:role,projId2:role2"
