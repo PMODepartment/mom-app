@@ -10,7 +10,6 @@
   <title>PMO · MOM</title>
   <link rel="manifest" href="manifest.json"/>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <script src="./msal-browser.min.js"></script>
   <style>
 
     /* HAMBURGER MENU */
@@ -100,6 +99,16 @@
     /* STATES */
     .centered{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:2rem 1.5rem;text-align:center;width:100%;}
     .login-icon{font-size:3.5rem;margin-bottom:1.2rem;}
+    .auth-card{background:var(--surface);border-radius:var(--rl);box-shadow:0 4px 24px rgba(0,0,0,0.10);padding:2rem 1.75rem;width:100%;max-width:380px;margin:0 auto;}
+    .auth-title{font-size:1.3rem;font-weight:800;color:var(--ink);margin-bottom:0.25rem;letter-spacing:-0.02em;}
+    .auth-sub{font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem;}
+    .auth-link{font-size:0.82rem;color:var(--blue);cursor:pointer;font-weight:600;background:none;border:none;padding:0;}
+    .auth-link:hover{text-decoration:underline;}
+    .auth-footer{text-align:center;margin-top:1.25rem;font-size:0.82rem;color:var(--muted);}
+    .auth-error{font-size:0.78rem;color:var(--red);margin-top:0.4rem;display:none;}
+    .btn-auth{width:100%;font-family:var(--font);font-size:0.95rem;font-weight:700;padding:0.75rem;border:none;border-radius:var(--r);background:#b40000;color:#fff;cursor:pointer;margin-top:0.5rem;transition:opacity 0.15s;}
+    .btn-auth:active{opacity:0.8;}
+    .btn-auth:disabled{opacity:0.5;}
     #screenSBU{display:none;}
     .sbu-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;padding:2rem 1.5rem;text-align:center;}
     .sbu-eyebrow{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#b40000;margin-bottom:0.5rem;}
@@ -338,6 +347,7 @@
     ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
   </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
 
@@ -349,7 +359,6 @@
     <div style="font-size:0.95rem;font-weight:700;color:#fff;letter-spacing:-0.01em;">Minutes of the Meetings</div>
   </div>
   <div class="hright" style="position:relative;">
-    <button class="hbtn" id="loginBtn" onclick="signIn()">Sign In</button>
     <div id="userInfo">
       <div class="user-meta">
         <span id="userNameLabel"></span>
@@ -379,11 +388,30 @@
 <div class="scroll-area" id="mainScroll">
 
   <!-- LOGIN -->
+  <!-- LOGIN -->
   <div id="stateLogin" class="centered">
-    <div class="login-icon">📋</div>
-    <h2>Minutes of Meeting</h2>
-    <p>Sign in with your Microsoft account to continue.</p>
-    <small>PMO · Megawide Construction</small>
+    <div id="authLogin" class="auth-card">
+      <div class="login-icon">📋</div>
+      <div class="auth-title">Welcome Back</div>
+      <div class="auth-sub">Sign in to Minutes of Meeting</div>
+      <div class="ff"><label>Email</label><input type="email" id="loginEmail" placeholder="you@megawide.com.ph" autocomplete="email"/></div>
+      <div class="ff"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/></div>
+      <div class="auth-error" id="loginError"></div>
+      <button class="btn-auth" onclick="doLogin()">Sign In</button>
+      <div class="auth-footer">Don't have an account? <button class="auth-link" onclick="showSignup()">Create Account</button></div>
+    </div>
+    <div id="authSignup" class="auth-card" style="display:none;">
+      <div class="auth-title">Create Account</div>
+      <div class="auth-sub">Join Minutes of Meeting</div>
+      <div class="ff"><label>Full Name</label><input type="text" id="signupName" placeholder="Juan dela Cruz"/></div>
+      <div class="ff"><label>Username</label><input type="text" id="signupUsername" placeholder="jdelacruz"/></div>
+      <div class="ff"><label>Email</label><input type="email" id="signupEmail" placeholder="you@megawide.com.ph" autocomplete="email"/></div>
+      <div class="ff"><label>Password</label><input type="password" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password"/></div>
+      <div class="ff"><label>Confirm Password</label><input type="password" id="signupConfirm" placeholder="Re-enter password"/></div>
+      <div class="auth-error" id="signupError"></div>
+      <button class="btn-auth" onclick="doSignup()">Create Account</button>
+      <div class="auth-footer">Already have an account? <button class="auth-link" onclick="showLogin()">Sign In</button></div>
+    </div>
   </div>
 
   <!-- LOADING -->
@@ -673,9 +701,7 @@ var TABLE_MEETINGS  = 'meetings';
 var TABLE_MOM       = 'mom_items';
 var TABLE_ROLES     = 'mom_users';
 var STORAGE_BUCKET  = 'mom-attachments';
-var ALLOWED_DOMAINS = ['@megawide.com.ph','@ph1world.com'];
-var CLIENT_ID       = '4288144d-c7e4-4c8c-8eed-85447fa46342';
-var TENANT_ID       = '036b84b7-26b8-441d-87c1-f3590d3f2ed1';
+// Custom auth — no MSAL needed
 var SCOPES          = ['User.Read'];
 
 // SUPABASE
@@ -687,9 +713,7 @@ async function sbDelete(tbl,id){var r=await fetch(SUPABASE_URL+'/rest/v1/'+tbl+'
 async function sbUpload(path,file){var r=await fetch(SUPABASE_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+path,{method:'POST',headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+SUPABASE_ANON,'Content-Type':file.type||'application/octet-stream','x-upsert':'true'},body:file});if(!r.ok)throw new Error(await r.text());return SUPABASE_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+path;}
 
 // MSAL
-var msalInstance=null;
-function getMsalLib(){if(typeof window.msal!=='undefined'&&window.msal.PublicClientApplication)return window.msal;return null;}
-function waitForMsal(){return new Promise(function(resolve,reject){var lib=getMsalLib();if(lib)return resolve(lib);var tries=0;var poll=setInterval(function(){var l=getMsalLib();if(l){clearInterval(poll);resolve(l);}else if(++tries>50){clearInterval(poll);reject(new Error('msal-browser.min.js not found'));}},100);});}
+// Custom auth helpers below
 
 // STATE
 var currentRole='',currentEmail='',currentProjectCodes=null;
@@ -731,19 +755,88 @@ window.addEventListener('offline',function(){isOnline=false;updateOfflineBanner(
 function updateOfflineBanner(){document.getElementById('offlineBanner').classList.toggle('show',!isOnline);}
 
 // AUTH
-async function signIn(){
-  try{
-    if(!msalInstance){var lib=await waitForMsal();msalInstance=new lib.PublicClientApplication({auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:'localStorage'}});if(typeof msalInstance.initialize==='function')await msalInstance.initialize();}
-    await msalInstance.loginRedirect({scopes:SCOPES});
-  }catch(e){console.error(e);flash('Sign-in error: '+e.message,true);}
+function hashPassword(pwd){
+  return CryptoJS.SHA256(pwd).toString();
 }
-function signOut(){try{if(msalInstance)msalInstance.logoutRedirect();}catch(e){}msalInstance=null;currentRole='';currentEmail='';selectedSBU=null;document.getElementById('loginBtn').style.display='';document.getElementById('userInfo').style.display='none';document.getElementById('fab').style.display='none';setState('login');}
+
+function showLogin(){
+  document.getElementById('authLogin').style.display='';
+  document.getElementById('authSignup').style.display='none';
+  document.getElementById('loginError').style.display='none';
+}
+
+function showSignup(){
+  document.getElementById('authLogin').style.display='none';
+  document.getElementById('authSignup').style.display='';
+  document.getElementById('signupError').style.display='none';
+}
+
+async function doLogin(){
+  var btn=document.querySelector('#authLogin .btn-auth');
+  var errEl=document.getElementById('loginError');
+  errEl.style.display='none';
+  var email=(document.getElementById('loginEmail').value||'').trim().toLowerCase();
+  var pwd=document.getElementById('loginPassword').value||'';
+  if(!email||!pwd){errEl.textContent='Please enter email and password.';errEl.style.display='';return;}
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    var hash=hashPassword(pwd);
+    var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=*');
+    if(!users||!users.length){errEl.textContent='Account not found.';errEl.style.display='';btn.disabled=false;btn.textContent='Sign In';return;}
+    var user=users[0];
+    if(!user.password_hash){errEl.textContent='No password set. Contact your Super Admin.';errEl.style.display='';btn.disabled=false;btn.textContent='Sign In';return;}
+    if(user.password_hash!==hash){errEl.textContent='Incorrect password.';errEl.style.display='';btn.disabled=false;btn.textContent='Sign In';return;}
+    currentEmail=email;
+    localStorage.setItem('mom_session',JSON.stringify({email:email,ts:Date.now()}));
+    await onSignedIn();
+  }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='';}
+  btn.disabled=false;btn.textContent='Sign In';
+}
+
+async function doSignup(){
+  var btn=document.querySelector('#authSignup .btn-auth');
+  var errEl=document.getElementById('signupError');
+  errEl.style.display='none';
+  var fullName=(document.getElementById('signupName').value||'').trim();
+  var username=(document.getElementById('signupUsername').value||'').trim();
+  var email=(document.getElementById('signupEmail').value||'').trim().toLowerCase();
+  var pwd=document.getElementById('signupPassword').value||'';
+  var confirm=document.getElementById('signupConfirm').value||'';
+  if(!fullName||!username||!email||!pwd){errEl.textContent='All fields are required.';errEl.style.display='';return;}
+  if(pwd.length<6){errEl.textContent='Password must be at least 6 characters.';errEl.style.display='';return;}
+  if(pwd!==confirm){errEl.textContent='Passwords do not match.';errEl.style.display='';return;}
+  btn.disabled=true;btn.textContent='Creating account…';
+  try{
+    // Check if email already exists
+    var existing=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,password_hash');
+    if(existing&&existing.length&&existing[0].password_hash){
+      errEl.textContent='An account with this email already exists.';errEl.style.display='';btn.disabled=false;btn.textContent='Create Account';return;
+    }
+    var hash=hashPassword(pwd);
+    if(existing&&existing.length){
+      // Account exists (created by admin) — just set password
+      await sbPatch(TABLE_ROLES,existing[0].id,{password_hash:hash,full_name:fullName,username:username});
+    } else {
+      // New account — role will be 'viewer' until admin assigns
+      await sbPost(TABLE_ROLES,{email:email,role:'viewer',password_hash:hash,full_name:fullName,username:username,project_codes:null});
+    }
+    currentEmail=email;
+    localStorage.setItem('mom_session',JSON.stringify({email:email,ts:Date.now()}));
+    await onSignedIn();
+  }catch(e){errEl.textContent='Error: '+e.message;errEl.style.display='';}
+  btn.disabled=false;btn.textContent='Create Account';
+}
+
+function signOut(){
+  currentRole='';currentEmail='';selectedSBU=null;
+  localStorage.removeItem('mom_session');
+  document.getElementById('userInfo').style.display='none';
+  document.getElementById('fab').style.display='none';
+  showLogin();
+  setState('login');
+}
+
 async function onSignedIn(){
-  if(!msalInstance)return;
-  var accs=msalInstance.getAllAccounts();if(!accs.length)return;
-  currentEmail=(accs[0].username||'').toLowerCase();
-  if(!ALLOWED_DOMAINS.some(function(d){return currentEmail.endsWith(d);})){document.getElementById('deniedEmail').textContent=currentEmail;document.getElementById('loginBtn').style.display='none';setState('noAccess');return;}
-  document.getElementById('loginBtn').style.display='none';
   await loadAll();
 }
 
@@ -753,6 +846,7 @@ async function loadAll(){
   try{
     // 1. Role
     var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(currentEmail)+'&select=*');
+    if(!users||!users.length){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
     var user=users[0];
     var rawRole=(user.role||'').toLowerCase().trim();
     if(rawRole==='admin') rawRole='superadmin'; // normalize legacy role
@@ -800,8 +894,9 @@ function applyUserUI(){
   var chip=document.getElementById('roleChip');chip.textContent=cap(currentRole);chip.className='role-chip rc-'+(currentRole==='superadmin'?'superadmin':currentRole);
   var info=document.getElementById('userInfo');info.style.display='flex';
   var hBtn=document.getElementById('hamburgerBtn');if(hBtn)hBtn.style.display='flex';
-  var parts=currentEmail.split('@')[0].split('.');
-  var displayName=parts.map(function(p){return p.charAt(0).toUpperCase()+p.slice(1);}).join(' ');document.getElementById('userNameLabel').textContent=displayName;var hmName=document.getElementById('hmName');if(hmName)hmName.textContent=displayName;var hmChip=document.getElementById('hmChip');if(hmChip){hmChip.textContent=cap(currentRole);hmChip.className='role-chip rc-'+currentRole;}
+  // Use full_name or username from allUsers cache
+  var userRec=allUsers.find(function(u){return u.email===currentEmail;});
+  var displayName=(userRec&&(userRec.full_name||userRec.username))||currentEmail.split('@')[0];document.getElementById('userNameLabel').textContent=displayName;var hmName=document.getElementById('hmName');if(hmName)hmName.textContent=displayName;var hmChip=document.getElementById('hmChip');if(hmChip){hmChip.textContent=cap(currentRole);hmChip.className='role-chip rc-'+currentRole;}
   var canAdd=currentRole==='superadmin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
   document.getElementById('addMeetingBtn').style.display=isAdmin?'':'none';
@@ -1690,7 +1785,8 @@ function renderUsersList(){
   allUsers.forEach(function(u){
     var row=document.createElement('div');row.className='user-row';
     var projText=u.project_codes?u.project_codes.split(',').map(function(s){var p=s.trim().split(':');return p[0]+(p[1]?' ('+p[1]+')':'');}).join(', '):'All projects';
-    row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right"><span class="badge '+(u.role==='superadmin'?'b-issue':u.role==='editor'?'b-open':'b-fyi')+'">'+cap(u.role)+'</span><button class="btn-edit-user">Edit</button></div>';row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
+    var displayN=u.full_name||u.username||'';
+    row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right"><span class="badge '+(u.role==='superadmin'?'b-issue':u.role==='editor'?'b-open':'b-fyi')+'">'+cap(u.role)+'</span><button class="btn-edit-user">Edit</button></div>';row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
     list.appendChild(row);
   });
 }
@@ -1879,14 +1975,23 @@ document.addEventListener('click',function(e){
 // INIT
 (async function(){
   updateOfflineBanner();updateSyncBadge();
+  // Check for saved session
   try{
-    var lib=await waitForMsal();
-    msalInstance=new lib.PublicClientApplication({auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/'+TENANT_ID,redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:'localStorage'}});
-    if(typeof msalInstance.initialize==='function')await msalInstance.initialize();
-    await msalInstance.handleRedirectPromise();
-    if(msalInstance.getAllAccounts().length)await onSignedIn();
-    else setState('login');
-  }catch(e){setState('login');flash('Load error: '+e.message,true);}
+    var session=localStorage.getItem('mom_session');
+    if(session){
+      var s=JSON.parse(session);
+      // Session valid for 7 days
+      if(s.email&&s.ts&&(Date.now()-s.ts)<7*24*60*60*1000){
+        currentEmail=s.email;
+        await onSignedIn();
+        return;
+      } else {
+        localStorage.removeItem('mom_session');
+      }
+    }
+  }catch(e){}
+  setState('login');
+  showLogin();
 })();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
 </script>
