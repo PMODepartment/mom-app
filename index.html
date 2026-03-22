@@ -1212,6 +1212,9 @@ function selectProject(proj){
   var card=document.getElementById('proj-card-'+proj.id);
   if(card)card.classList.add('active');
   document.getElementById('meetingsTitle').textContent=proj.name+' · Meetings';
+  // Show/hide New Meeting based on effective role for this project
+  var effRole=getEffectiveRole(proj);
+  document.getElementById('addMeetingBtn').style.display=(effRole==='superadmin'||effRole==='editor')?'inline':'none';
   filterMeetings();
 }
 
@@ -1811,6 +1814,8 @@ async function doDeleteItem(){
 
 // MEETING CRUD
 function openMeetingSheet(meeting){
+  var effRole=getEffectiveRole(selectedProject);
+  if(effRole==='viewer'){flash('Viewers cannot add or edit meetings.',true);return;}
   editMeetingId=(meeting&&meeting.id)?meeting.id:null;
   document.getElementById('meetingSheetTitle').textContent=(meeting&&meeting.id)?'Edit Meeting':'New Meeting';
   document.getElementById('mTitle').value=meeting?meeting.title||'':'';
@@ -1883,6 +1888,8 @@ function addMeetingType(){
 function closeMeetingSheet(){closeSheet('meetingOverlay','meetingSheet');editMeetingId=null;}
 async function saveMeeting(){
   var btn=document.getElementById('meetingSaveBtn');btn.disabled=true;btn.textContent='Saving...';
+  var effRoleSave=getEffectiveRole(selectedProject);
+  if(effRoleSave==='viewer'){flash('Viewers cannot save meetings.',true);btn.disabled=false;btn.textContent='Save';return;}
   var proj=selectedProject||allProjects[0];if(!proj){flash('Select a project first',true);btn.disabled=false;btn.textContent='Save';return;}
   var mTypeVal=document.getElementById('mType')?document.getElementById('mType').value||null:null;
   var data={title:document.getElementById('mTitle').value||'Untitled',meeting_date:document.getElementById('mDate').value||null,location:document.getElementById('mLocation').value||null,meeting_type:mTypeVal,project_id:proj.id};
