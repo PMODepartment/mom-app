@@ -439,6 +439,34 @@
     </div>
   </div>
 
+  <!-- SECURITY QUESTION SETUP SHEET -->
+  <div class="sh-overlay" id="secQOverlay"></div>
+  <div class="bsheet" id="secQSheet" style="z-index:9999;">
+    <div class="sh-handle"></div>
+    <div class="sh-head">
+      <h2>Set Security Question</h2>
+    </div>
+    <div class="sh-body">
+      <p style="font-size:0.84rem;color:var(--muted);margin-bottom:1rem;line-height:1.6;">For your account security, please set a security question. This will be used to verify your identity if you forget your password.</p>
+      <div class="ff"><label>Security Question</label>
+        <select id="setupSecQ">
+          <option value="">— Pick a question —</option>
+          <option>What is the name of your first pet?</option>
+          <option>What is your mother's maiden name?</option>
+          <option>What city were you born in?</option>
+          <option>What was the name of your first school?</option>
+          <option>What is your favorite movie?</option>
+          <option>What is your childhood nickname?</option>
+        </select>
+      </div>
+      <div class="ff"><label>Your Answer</label><input type="text" id="setupSecA" placeholder="Your answer"/></div>
+      <div class="auth-error" id="setupSecError"></div>
+    </div>
+    <div class="sh-foot">
+      <button class="btn-save" onclick="saveSecurityQuestion()">Save</button>
+    </div>
+  </div>
+
   <!-- LOADING -->
   <div id="stateLoading" style="display:none" class="centered">
     <div class="spinner"></div><p>Loading…</p>
@@ -800,6 +828,27 @@ function showSignup(){
 
 var authErrTimer=null;
 
+async function saveSecurityQuestion(){
+  var btn=document.querySelector('#secQSheet .btn-save');
+  var q=document.getElementById('setupSecQ').value||'';
+  var a=(document.getElementById('setupSecA').value||'').trim().toLowerCase();
+  if(!q){showAuthError('setupSecError','Please pick a security question.');return;}
+  if(!a){showAuthError('setupSecError','Please provide an answer.');return;}
+  btn.disabled=true;btn.textContent='Saving…';
+  try{
+    var users=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(currentEmail)+'&select=id');
+    if(users&&users.length){
+      await sbPatch(TABLE_ROLES,users[0].id,{
+        security_question:q,
+        security_answer_hash:hashPassword(a)
+      });
+      closeSheet('secQOverlay','secQSheet');
+      flash('Security question saved!');
+    }
+  }catch(e){showAuthError('setupSecError','Error: '+e.message);}
+  btn.disabled=false;btn.textContent='Save';
+}
+
 function showForgotPassword(){
   document.getElementById('authLogin').style.display='none';
   document.getElementById('authSignup').style.display='none';
@@ -988,6 +1037,10 @@ async function loadAll(){
     setState('sbu');
     renderSBU();
     flash('Loaded. '+allProjects.length+' project(s). Role='+currentRole);
+    // Check if user has security question set
+    if(user&&!user.security_question){
+      setTimeout(function(){openSheet('secQOverlay','secQSheet');},800);
+    }
   }catch(e){
     console.error('loadAll error:',e);
     setState('sbu');
