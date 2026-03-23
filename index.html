@@ -683,7 +683,17 @@
   <div class="sh-handle"></div>
   <div class="sh-head"><h2 id="userEditTitle">Add User</h2><button class="sh-x" onclick="closeUserEditSheet()">✕</button></div>
   <div class="sh-body">
-    <div class="ff"><label>Email Address</label><input type="email" id="uEmail" placeholder="user@megawide.com.ph"/></div>
+    <div class="ff" id="uEmailSelectWrap">
+      <label>Select User</label>
+      <select id="uEmailSelect" style="font-family:var(--font);font-size:0.88rem;padding:0.62rem 0.85rem;border:none;border-radius:var(--r);background:var(--surface);color:var(--ink);width:100%;box-shadow:0 0 0 1px var(--border);">
+        <option value="">— Select a user —</option>
+      </select>
+    </div>
+    <div class="ff" id="uEmailDisplayWrap" style="display:none;">
+      <label>Email Address</label>
+      <div id="uEmailDisplay" style="font-size:0.88rem;padding:0.62rem 0.85rem;border-radius:var(--r);background:var(--surface3);color:var(--ink);box-shadow:0 0 0 1px var(--border);"></div>
+      <input type="hidden" id="uEmail"/>
+    </div>
     <div class="ff" id="uSuperAdminWrap">
       <label>Super Admin</label>
       <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:var(--r);padding:0.65rem 0.85rem;box-shadow:0 0 0 1px var(--border);">
@@ -2600,7 +2610,17 @@ function openUserEditSheet(id){
   var u=id?allUsers.find(function(x){return x.id===id;}):null;
   document.getElementById('userEditTitle').textContent=u?'Edit User':'Add User';
   document.getElementById('uEmail').value=u?u.email:'';
-  document.getElementById('uEmail').disabled=!!u;
+  // Show dropdown for new users, display for existing
+  if(u){
+    document.getElementById('uEmailSelectWrap').style.display='none';
+    document.getElementById('uEmailDisplayWrap').style.display='';
+    document.getElementById('uEmailDisplay').textContent=u.email;
+  } else {
+    document.getElementById('uEmailSelectWrap').style.display='';
+    document.getElementById('uEmailDisplayWrap').style.display='none';
+    // Populate dropdown with unassigned users
+    populateUserDropdown();
+  }
   var rawR=(u&&(u.role||'').toLowerCase())||'viewer';
   var isSA=rawR==='superadmin';
   var isAdm=rawR==='admin';
@@ -2634,11 +2654,36 @@ function openUserEditSheet(id){
   document.getElementById('userDelBtn').style.display=u?'':'none';
   openSheet('userEditOverlay','userEditSheet');
 }
+async function populateUserDropdown(){
+  var sel=document.getElementById('uEmailSelect');
+  sel.innerHTML='<option value="">— Select a user —</option>';
+  try{
+    // Get all accounts from mom_users that have a password set (signed up)
+    var allAccounts=await sbGet(TABLE_ROLES,'order=email.asc&select=id,email,full_name,username,role');
+    // Filter out users who already have a role assigned (not viewer with no projects, or already managed)
+    var managed=allUsers.map(function(u){return u.email;});
+    allAccounts.forEach(function(acc){
+      var opt=document.createElement('option');
+      opt.value=acc.email;
+      var label=(acc.full_name||acc.username)?'('+(acc.full_name||acc.username)+') '+acc.email:acc.email;
+      opt.textContent=label;
+      sel.appendChild(opt);
+    });
+  }catch(e){sel.innerHTML='<option value="">Error loading users</option>';}
+}
+
 function closeUserEditSheet(){closeSheet('userEditOverlay','userEditSheet');editUserId=null;}
 
 async function saveUser(){
   var btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Saving...';
-  var email=document.getElementById('uEmail').value.trim().toLowerCase();
+  // Get email from dropdown (new) or hidden input (edit)
+  var email='';
+  if(!editUserId){
+    email=(document.getElementById('uEmailSelect').value||'').trim().toLowerCase();
+    document.getElementById('uEmail').value=email;
+  } else {
+    email=document.getElementById('uEmail').value.trim().toLowerCase();
+  }
   var isSuperAdmin=document.getElementById('uIsSuperAdmin').checked;
   var isAdmin=document.getElementById('uIsAdmin').checked;
   var role,codes;
