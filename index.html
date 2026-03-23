@@ -695,6 +695,7 @@
         <span id="uAdminSBUPlaceholder" style="flex:1;font-size:0.84rem;color:var(--muted);">Full access within an SBU</span>
       </div>
     </div>
+    <div id="uEditorRoleNote" style="display:none;font-size:0.75rem;color:var(--blue);background:var(--blue-l);border-radius:var(--r);padding:0.5rem 0.75rem;margin-bottom:0.5rem;">ℹ Users you add will be assigned as <strong>Viewer</strong> on your assigned projects.</div>
     <div class="ff" id="uProjectsWrap">
       <label>Assigned Projects</label>
       <select id="uSBUFilter" onchange="renderProjectCheckboxes(document.getElementById('uSBUFilter').value,currentEditCodes)" style="font-family:var(--font);font-size:0.82rem;padding:0.45rem 0.7rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);width:100%;margin-bottom:0.5rem;box-shadow:0 0 0 1px var(--border);">
@@ -894,11 +895,17 @@ var currentEditCodes=''; // tracks codes during user edit
 function getEffectiveRole(proj){
   if(currentRole==='superadmin') return 'superadmin';
   if(currentRole==='admin'){
-    // Admin has full access to all projects in their SBU
-    if(!window._adminSBU) return 'admin';
     if(!proj) return 'admin';
-    var projSBU=(proj.sbu||'');
-    return projSBU===window._adminSBU?'admin':'viewer';
+    // Full admin access on projects within assigned SBU
+    if(window._adminSBU&&(proj.sbu||'')===window._adminSBU) return 'admin';
+    // Check if also assigned as editor/viewer on this specific project
+    if(currentProjectRoles){
+      var key1=(proj.code||'').toLowerCase();
+      var key2=(proj.id||'').toLowerCase();
+      var r=currentProjectRoles[key1]||currentProjectRoles[key2];
+      if(r) return r;
+    }
+    return 'viewer'; // no access to projects outside their SBU by default
   }
   if(!currentProjectRoles||!proj) return currentRole;
   var key1=(proj.code||'').toLowerCase();
@@ -1298,8 +1305,20 @@ async function loadAll(){
     if(!['superadmin','admin','editor','viewer'].includes(rawRole)){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
     currentRole=rawRole;
     // null project_codes for superadmin/admin = all access; for others = no access
-    currentProjectCodes=(currentRole==='superadmin'||currentRole==='admin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):[]);
-    currentProjectRoles=(currentRole==='superadmin'||currentRole==='admin')?null:(user.project_codes?parseProjectCodesForAccess(user.project_codes):null);
+    // Parse project codes for all roles including admin (for extra project assignments)
+    var rawCodes=user.project_codes||'';
+    var parsedCodes=rawCodes?rawCodes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(function(s){return s&&!s.startsWith('sbu:');}):[]; 
+    if(currentRole==='superadmin'){
+      currentProjectCodes=null;currentProjectRoles=null;
+    } else if(currentRole==='admin'){
+      // Admin: null means see all in their SBU (handled by getEffectiveRole)
+      // But store extra project assignments too
+      currentProjectCodes=null;
+      currentProjectRoles=rawCodes?parseProjectCodesForAccess(rawCodes):null;
+    } else {
+      currentProjectCodes=parsedCodes;
+      currentProjectRoles=rawCodes?parseProjectCodesForAccess(rawCodes):null;
+    }
     // Admin's SBU assignment stored in project_codes as "sbu:SBUName"
     window._adminSBU=(currentRole==='admin'&&user.project_codes)?user.project_codes.replace('sbu:','').trim():null;
     localStorage.setItem('mom_role',currentRole);
@@ -1309,7 +1328,15 @@ async function loadAll(){
     // 2. Projects
     var projs=await sbGet(TABLE_PROJECTS,'order=name.asc&select=*');
     allProjects=projs||[];
-    if(currentProjectCodes!==null){
+    if(currentRole==='admin'&&window._adminSBU){
+      // Admin sees all projects in their SBU + any extra assigned projects
+      var extraCodes=currentProjectRoles?Object.keys(currentProjectRoles):[];
+      allProjects=allProjects.filter(function(p){
+        if((p.sbu||'')===window._adminSBU) return true;
+        var k1=(p.code||'').toLowerCase();var k2=(p.id||'').toLowerCase();
+        return extraCodes.indexOf(k1)>-1||extraCodes.indexOf(k2)>-1;
+      });
+    } else if(currentProjectCodes!==null){
       allProjects=allProjects.filter(function(p){
         var pCode=(p.code||'').toLowerCase().trim();
         var pName=(p.name||'').toLowerCase().trim();
@@ -1358,7 +1385,7 @@ function applyUserUI(){
   var annBtn=document.getElementById('hmAnnouncementBtn');
   if(annBtn) annBtn.style.display=isAdmin?'block':'none';
   document.getElementById('addMeetingBtn').style.display='none'; // hidden until project selected
-  var canManageUsers=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor';
+  var canManageUsers=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor'; // viewers excluded
   var hmBtn=document.getElementById('hmUsersBtn');
   if(hmBtn) hmBtn.style.display=canManageUsers?'block':'none';
   var dtBtn=document.getElementById('desktopUsersBtn');
@@ -2278,26 +2305,26 @@ function renderUsersList(){
   var list=document.getElementById('usersList');list.innerHTML='';
   // Editors can only see editors and viewers (not superadmins)
   var visible=allUsers.filter(function(u){
-    if(currentRole==='superadmin') return true;
+    var uRole=(u.role||'').toLowerCase();
+    if(currentRole==='superadmin') return true; // sees everyone
+
     if(currentRole==='admin'){
-      var r=(u.role||'').toLowerCase();
-      if(r==='superadmin') return false; // admins can't see superadmins
-      // Admin only sees users in their SBU
+      if(uRole==='superadmin'||uRole==='admin') return false; // can't see superadmins or other admins
       var adminSBU=window._adminSBU||'';
-      if(!adminSBU) return true;
+      if(!adminSBU) return false;
       if(!u.project_codes) return false;
-      // Check if user has projects in admin's SBU OR is assigned to same SBU
       var uCodes=u.project_codes;
-      if(uCodes.startsWith('sbu:')) return uCodes.replace('sbu:','').trim()===adminSBU;
+      // Check if user belongs to a project within admin's SBU
       var projsInSBU=allProjects.filter(function(p){return (p.sbu||'')===adminSBU;}).map(function(p){return (p.code||p.id||'').toLowerCase();});
       var uProjCodes=uCodes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
       return uProjCodes.some(function(c){return projsInSBU.indexOf(c)>-1;});
     }
+
     if(currentRole==='editor'){
-      var r=(u.role||'').toLowerCase();
-      if(r==='superadmin'||r==='admin') return false; // editors can't see superadmin or admin
-      // Editor can only manage users on their own projects
-      if(!currentProjectCodes) return true;
+      if(uRole==='superadmin'||uRole==='admin') return false; // editors can't see superadmin or admin
+      if(uRole==='editor') return false; // editors can't see other editors
+      // Editor can only see viewers on their assigned projects
+      if(!currentProjectCodes||!currentProjectCodes.length) return false;
       if(!u.project_codes) return false;
       var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
       return uCodes2.some(function(c){return currentProjectCodes.indexOf(c)>-1;});
@@ -2322,7 +2349,7 @@ function renderUsersList(){
     var uRole=(u.role||'').toLowerCase();
     var canEditUser=currentRole==='superadmin'
       ||(currentRole==='admin'&&uRole!=='superadmin'&&uRole!=='admin')
-      ||(currentRole==='editor'&&uRole!=='superadmin'&&uRole!=='admin');
+      ||(currentRole==='editor'&&uRole==='viewer'); // editors can only edit viewers
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
     var roleBadge=u.role==='superadmin'?'<span class="badge b-issue">Super Admin</span>':(u.role==='admin'?'<span class="badge b-open">Admin</span>':'');
     row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right">'+roleBadge+editBtnHtml+'</div>';
@@ -2375,7 +2402,9 @@ function updateRoleOptions(){
   var adminWrap=document.getElementById('uAdminWrap');
   if(saWrap) saWrap.style.display=canAssignSA?'block':'none';
   if(adminWrap) adminWrap.style.display=canAssignAdmin?'block':'none';
-  // Editors cannot see or use superadmin/admin toggles - already handled above
+  // For editors: hide superadmin/admin toggles, role is always viewer
+  var uRoleNote=document.getElementById('uEditorRoleNote');
+  if(uRoleNote) uRoleNote.style.display=currentRole==='editor'?'block':'none';
   // Populate SBU dropdown in admin wrap
   var sbuSel=document.getElementById('uAdminSBU');
   if(sbuSel){
@@ -2513,7 +2542,8 @@ function openUserEditSheet(id){
     sbuSel.appendChild(opt);
   });
   sbuSel.value='';
-  renderProjectCheckboxes('', currentEditCodes);
+  sbuSel.disabled=false;
+  renderProjectCheckboxes('', currentEditCodes);;
   document.getElementById('userDelBtn').style.display=u?'':'none';
   openSheet('userEditOverlay','userEditSheet');
 }
@@ -2530,6 +2560,10 @@ async function saveUser(){
     var adminSBU=document.getElementById('uAdminSBU').value||'';
     if(!adminSBU){flash('Please select an SBU for the Admin.',true);btn.disabled=false;btn.textContent='Save';return;}
     role='admin';codes='sbu:'+adminSBU;
+  } else if(currentRole==='editor'){
+    // Editors can only assign viewer role
+    var selectedCodes=getSelectedProjectCodes();
+    role='viewer';codes=selectedCodes;
   } else {
     var selectedCodes=getSelectedProjectCodes();
     role=selectedCodes?'editor':'viewer';
