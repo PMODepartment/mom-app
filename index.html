@@ -127,6 +127,11 @@
     .sbu-card-short{font-size:1.1rem;font-weight:800;color:var(--ink);letter-spacing:-0.02em;margin-bottom:0.15rem;text-align:center;}
     .btn-sbu-add{margin-top:1.25rem;font-family:var(--font);font-size:0.78rem;font-weight:600;padding:0.55rem 1.4rem;border:1.5px dashed var(--border);border-radius:20px;background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;}
     .btn-sbu-add:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-l);}
+    .users-tabs{display:flex;gap:0.25rem;margin-bottom:0.75rem;background:var(--surface3);border-radius:var(--r);padding:0.2rem;}
+    .users-tab{flex:1;font-family:var(--font);font-size:0.72rem;font-weight:600;padding:0.4rem 0.3rem;border:none;border-radius:calc(var(--r) - 2px);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+    .users-tab.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+    .users-tab-count{display:inline-block;font-size:0.62rem;font-weight:700;background:var(--surface3);border-radius:20px;padding:0.05rem 0.35rem;margin-left:0.25rem;color:var(--muted);}
+    .users-tab.active .users-tab-count{background:#b40000;color:#fff;}
     #uSuperAdminWrap{display:none;}
     .btn-sbu-edit{position:absolute;top:0.6rem;right:0.6rem;font-family:var(--font);font-size:0.62rem;font-weight:600;padding:0.2rem 0.5rem;border:none;border-radius:20px;background:rgba(0,0,0,0.06);color:var(--muted);cursor:pointer;opacity:1;transition:opacity 0.15s;}
     @media(min-width:600px){.btn-sbu-edit{opacity:0;} .sbu-card:hover .btn-sbu-edit{opacity:1;}}
@@ -173,6 +178,8 @@
     .proj-card-code{font-size:0.6rem;font-weight:500;color:var(--muted);text-align:center;}
     .proj-card-edit{font-family:var(--font);font-size:0.62rem;font-weight:600;padding:0.2rem 0.55rem;border:none;border-radius:20px;background:rgba(0,0,0,0.08);color:var(--ink2);cursor:pointer;margin-top:0.3rem;display:none;}
     .proj-card.active .proj-card-edit{display:inline-block;}
+    .proj-card-users{font-family:var(--font);font-size:0.62rem;font-weight:600;padding:0.2rem 0.55rem;border:none;border-radius:20px;background:var(--blue-l);color:var(--blue);cursor:pointer;margin-top:0.3rem;display:none;}
+    .proj-card.active .proj-card-users{display:inline-block;}
 
     /* Meetings list */
     .meetings-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.6rem 1rem 0.35rem;display:flex;align-items:center;justify-content:space-between;}
@@ -650,12 +657,21 @@
     <button class="sh-x" onclick="closeUsersSheet()">✕</button>
   </div>
   <div class="sh-body">
+    <!-- Tabs -->
+    <div class="users-tabs" id="usersTabs">
+      <button class="users-tab active" onclick="switchUsersTab('all')" id="tab-all">All <span class="users-tab-count" id="count-all">0</span></button>
+      <button class="users-tab" onclick="switchUsersTab('superadmin')" id="tab-superadmin">Super Admin <span class="users-tab-count" id="count-superadmin">0</span></button>
+      <button class="users-tab" onclick="switchUsersTab('admin')" id="tab-admin">SBU Admin <span class="users-tab-count" id="count-admin">0</span></button>
+      <button class="users-tab" onclick="switchUsersTab('editor')" id="tab-editor">Editor <span class="users-tab-count" id="count-editor">0</span></button>
+      <button class="users-tab" onclick="switchUsersTab('viewer')" id="tab-viewer">Viewer <span class="users-tab-count" id="count-viewer">0</span></button>
+    </div>
+    <!-- Search + Add -->
     <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:center;">
       <div style="position:relative;flex:1;">
         <span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-size:0.85rem;color:var(--muted);">🔍</span>
         <input type="text" id="usersSearch" placeholder="Search users…" oninput="filterUsersList()" style="width:100%;font-family:var(--font);font-size:0.84rem;padding:0.5rem 0.8rem 0.5rem 2rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);box-sizing:border-box;"/>
       </div>
-      <button onclick="openUserEditSheet(null)" style="font-family:var(--font);font-size:0.78rem;font-weight:700;padding:0.5rem 0.75rem;border:none;border-radius:var(--r);background:#b40000;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0;width:auto;">+ Add User</button>
+      <button id="usersAddBtn" onclick="openUserEditSheet(null)" style="font-family:var(--font);font-size:0.78rem;font-weight:700;padding:0.5rem 0.75rem;border:none;border-radius:var(--r);background:#b40000;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0;width:auto;">+ Add User</button>
     </div>
     <div id="usersList"></div>
   </div>
@@ -1385,11 +1401,12 @@ function applyUserUI(){
   var annBtn=document.getElementById('hmAnnouncementBtn');
   if(annBtn) annBtn.style.display=isAdmin?'block':'none';
   document.getElementById('addMeetingBtn').style.display='none'; // hidden until project selected
-  var canManageUsers=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor'; // viewers excluded
+  // SBU-level manage users only for superadmin
+  var canManageSBUUsers=currentRole==='superadmin';
   var hmBtn=document.getElementById('hmUsersBtn');
-  if(hmBtn) hmBtn.style.display=canManageUsers?'block':'none';
+  if(hmBtn) hmBtn.style.display=canManageSBUUsers?'block':'none';
   var dtBtn=document.getElementById('desktopUsersBtn');
-  if(dtBtn) dtBtn.style.display=canManageUsers?'inline-block':'none';
+  if(dtBtn) dtBtn.style.display=canManageSBUUsers?'inline-block':'none';
 }
 
 // PROJECTS SCREEN
@@ -1415,7 +1432,8 @@ function renderProjects(){
     var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
     var effRoleProj=getEffectiveRole(proj);
     var editBtn=(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor')?'<button class="proj-card-edit">✏ Edit</button>':'';
-    card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.short_name||proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>'+editBtn;
+    var usersBtn=(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor')?'<button class="proj-card-users">👥 Users</button>':'';
+    card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.short_name||proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>'+editBtn+usersBtn;
     card.onclick=function(){selectProject(proj);};
     if(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor'){
       card.onlongpress=function(){openProjSheet(proj);};
@@ -2275,13 +2293,29 @@ function flash(msg,err){var b=document.getElementById('flashBanner');b.textConte
 var allUsers=[], editUserId=null;
 
 function openUsersSheet(){
-  if(currentRole==='viewer'){flash('Viewers cannot manage users.',true);return;}
+  if(currentRole!=='superadmin'){flash('Only Super Admin can manage SBU-level access.',true);return;}
   closeSheet('usersOverlay','usersSheet');
+  currentUsersTab='all';
+  document.querySelectorAll('.users-tab').forEach(function(t){t.classList.remove('active');});var at=document.getElementById('tab-all');if(at)at.classList.add('active');
   var s=document.getElementById('usersSearch');if(s)s.value='';
+  window._usersSheetMode='sbu'; // SBU level
   loadUsers();
   openSheet('usersOverlay','usersSheet');
 }
 function closeUsersSheet(){closeSheet('usersOverlay','usersSheet');}
+
+var _currentProjectForUsers=null;
+function openProjectUsersSheet(proj){
+  _currentProjectForUsers=proj;
+  window._usersSheetMode='project';
+  closeSheet('usersOverlay','usersSheet');
+  // Update sheet title
+  var title=document.querySelector('#usersSheet .sh-head h2');
+  if(title) title.textContent=(proj.short_name||proj.name)+' — Users';
+  var s=document.getElementById('usersSearch');if(s)s.value='';
+  loadUsers();
+  openSheet('usersOverlay','usersSheet');
+}
 
 async function loadUsers(){
   var list=document.getElementById('usersList');
@@ -2301,12 +2335,49 @@ function filterUsersList(){
   });
 }
 
+var currentUsersTab='all';
+
+function switchUsersTab(tab){
+  currentUsersTab=tab;
+  document.querySelectorAll('.users-tab').forEach(function(t){t.classList.remove('active');});
+  var activeTab=document.getElementById('tab-'+tab);
+  if(activeTab)activeTab.classList.add('active');
+  var s=document.getElementById('usersSearch');if(s)s.value='';
+  renderUsersList();
+}
+
 function renderUsersList(){
   var list=document.getElementById('usersList');list.innerHTML='';
   // Editors can only see editors and viewers (not superadmins)
+  // Update sheet title based on mode
+  var shTitle=document.querySelector('#usersSheet .sh-head h2');
+  if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+    if(shTitle) shTitle.textContent=(_currentProjectForUsers.short_name||_currentProjectForUsers.name)+' — Users';
+  } else {
+    if(shTitle) shTitle.textContent='Manage Users';
+  }
+  // In project mode, only show editors and viewers for that project
+  // In SBU mode, only show superadmin and SBU admin
   var visible=allUsers.filter(function(u){
     var uRole=(u.role||'').toLowerCase();
-    if(currentRole==='superadmin') return true; // sees everyone
+    if(currentRole==='superadmin'){
+      if(window._usersSheetMode==='sbu'){
+        // SBU mode: only show superadmin and sbu admin
+        var ur=(u.role||'').toLowerCase();
+        return ur==='superadmin'||ur==='admin';
+      }
+      if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+        // Project mode: only show users assigned to this project (editor/viewer)
+        var ur=(u.role||'').toLowerCase();
+        if(ur==='superadmin'||ur==='admin') return false;
+        if(!u.project_codes) return false;
+        var pId=(_currentProjectForUsers.id||'').toLowerCase();
+        var pCode=(_currentProjectForUsers.code||'').toLowerCase();
+        var uCodes=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
+        return uCodes.indexOf(pId)>-1||uCodes.indexOf(pCode)>-1;
+      }
+      return true;
+    }
 
     if(currentRole==='admin'){
       if(uRole==='superadmin'||uRole==='admin') return false; // can't see superadmins or other admins
@@ -2332,6 +2403,15 @@ function renderUsersList(){
     return false;
   });
   if(!visible.length){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.84rem;">No users found.</div>';return;}
+  // Update tab counts
+  var tabRoles={superadmin:0,admin:0,editor:0,viewer:0};
+  visible.forEach(function(u){var r=(u.role||'').toLowerCase();if(tabRoles[r]!==undefined)tabRoles[r]++;});
+  document.getElementById('count-all').textContent=visible.length;
+  Object.keys(tabRoles).forEach(function(r){var el=document.getElementById('count-'+r);if(el)el.textContent=tabRoles[r];});
+  // Filter by active tab
+  if(currentUsersTab!=='all'){
+    visible=visible.filter(function(u){return (u.role||'').toLowerCase()===currentUsersTab;});
+  }
   // Sort: superadmin first, then alphabetically by full_name/username/email
   visible.sort(function(a,b){
     var aIsSA=(a.role==='superadmin'||a.role==='admin')?0:1;
@@ -2525,6 +2605,11 @@ function openUserEditSheet(id){
   var cb=document.getElementById('uIsSuperAdmin');if(cb)cb.checked=isSA;
   var cb2=document.getElementById('uIsAdmin');if(cb2)cb2.checked=isAdm;
   updateRoleOptions();
+  // In project mode, hide superadmin and admin toggles regardless
+  if(window._usersSheetMode==='project'){
+    var saW=document.getElementById('uSuperAdminWrap');if(saW)saW.style.display='none';
+    var adW=document.getElementById('uAdminWrap');if(adW)adW.style.display='none';
+  }
   // Set admin SBU if applicable
   if(isAdm&&u&&u.project_codes){
     var sbuVal=u.project_codes.replace('sbu:','').trim();
@@ -2560,8 +2645,12 @@ async function saveUser(){
     var adminSBU=document.getElementById('uAdminSBU').value||'';
     if(!adminSBU){flash('Please select an SBU for the Admin.',true);btn.disabled=false;btn.textContent='Save';return;}
     role='admin';codes='sbu:'+adminSBU;
+  } else if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+    // Project mode: assign editor/viewer to this specific project
+    var selectedCodes=getSelectedProjectCodes();
+    role=selectedCodes?'editor':'viewer';
+    codes=selectedCodes;
   } else if(currentRole==='editor'){
-    // Editors can only assign viewer role
     var selectedCodes=getSelectedProjectCodes();
     role='viewer';codes=selectedCodes;
   } else {
