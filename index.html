@@ -2326,7 +2326,8 @@ async function saveUser(){
   if(isSuperAdmin){role='superadmin';codes=null;}
   else if(isAdmin){
     var adminSBU=document.getElementById('uAdminSBU').value||'';
-    role='admin';codes=adminSBU?'sbu:'+adminSBU:null;
+    if(!adminSBU){flash('Please select an SBU for the Admin.',true);btn.disabled=false;btn.textContent='Save';return;}
+    role='admin';codes='sbu:'+adminSBU;
   } else {
     var selectedCodes=getSelectedProjectCodes();
     role=selectedCodes?'editor':'viewer';
@@ -2344,7 +2345,11 @@ async function saveUser(){
     renderUsersList();
     closeUserEditSheet();
     flash('User saved.');
-  }catch(e){flash('Error: '+e.message,true);}
+  }catch(e){
+    var msg=e.message;
+    try{var parsed=JSON.parse(msg);msg=parsed.message||msg;}catch(pe){}
+    flash('Save failed: '+msg,true);
+  }
   btn.disabled=false;btn.textContent='Save';
 }
 
