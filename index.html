@@ -396,15 +396,15 @@
   <!-- LOGIN -->
   <!-- LOGIN -->
   <div id="stateLogin" class="centered">
-    <div id="loginAnnouncement" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:90%;max-height:90vh;z-index:9998;background:#b40000;color:#fff;border-radius:0 0 14px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.25);overflow:hidden;display:none;flex-direction:column;">
+    <div id="loginAnnouncement" style="display:none;position:fixed;top:var(--header-h,70px);left:50%;transform:translateX(-50%);width:90%;max-height:calc(90vh - var(--header-h,70px));z-index:9998;background:#f2f2f7;color:#1c1c1e;border-radius:14px;margin-top:0.5rem;box-shadow:0 6px 24px rgba(0,0,0,0.18),0 2px 6px rgba(0,0,0,0.1);overflow:hidden;display:none;flex-direction:column;">
       <div style="padding:0.75rem 1rem 0.5rem;display:flex;align-items:flex-start;gap:0.5rem;flex-shrink:0;">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.7);margin-bottom:0.25rem;">📢 Announcement</div>
-          <div id="loginAnnDesc" style="font-size:0.84rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;"></div>
+          <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#b40000;margin-bottom:0.25rem;">📢 Announcement</div>
+          <div id="loginAnnDesc" style="font-size:0.84rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;color:#1c1c1e;"></div>
         </div>
-        <button onclick="document.getElementById('loginAnnouncement').style.display='none';" style="background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:0.9rem;width:24px;height:24px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
+        <button onclick="document.getElementById('loginAnnouncement').style.display='none';" style="background:rgba(0,0,0,0.08);border:none;color:#666;font-size:0.9rem;width:24px;height:24px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
       </div>
-      <img id="loginAnnPhoto" src="" alt="" style="width:100%;flex:1;min-height:0;object-fit:contain;display:none;background:rgba(0,0,0,0.15);"/>
+      <div id="loginAnnPhotoWrap" style="flex:1;min-height:0;padding:0.75rem;display:none;box-sizing:border-box;"><img id="loginAnnPhoto" src="" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:8px;display:block;"/></div>
     </div>
     <div id="authLogin" class="auth-card">
       <div class="login-icon">📋</div>
@@ -990,7 +990,7 @@ async function openAnnouncementSheet(){
     var preview=document.getElementById('announcementPhotoPreview');
     var clearBtn=document.getElementById('clearAnnPhotoBtn');
     if(data.photo){
-      preview.innerHTML='<img src="'+data.photo+'" style="width:100%;height:100%;object-fit:cover;"/>';
+      preview.innerHTML='<img src="'+data.photo+'" style="width:100%;height:100%;object-fit:contain;"/>';
       if(clearBtn)clearBtn.style.display='';
     } else {
       preview.innerHTML='<span style="color:var(--muted);font-size:0.82rem;">Tap to add photo</span>';
@@ -1065,11 +1065,16 @@ function showLoginAnnouncement(){
   var data=window._announcement||{};
   var el=document.getElementById('loginAnnouncement');
   if(!el)return;
+  // Set header height CSS variable
+  var hdr=document.querySelector('header');
+  if(hdr)document.documentElement.style.setProperty('--header-h',hdr.offsetHeight+'px');
   if(data.active&&(data.description||data.photo)){
     el.style.display='flex';
     var img=document.getElementById('loginAnnPhoto');
+    var imgWrap=document.getElementById('loginAnnPhotoWrap');
     var desc=document.getElementById('loginAnnDesc');
-    if(img){img.src=data.photo||'';img.style.display=data.photo?'block':'none';}
+    if(img){img.src=data.photo||'';}
+    if(imgWrap){imgWrap.style.display=data.photo?'flex':'none';}
     if(desc)desc.textContent=data.description||'';
   } else {
     el.style.display='none';
