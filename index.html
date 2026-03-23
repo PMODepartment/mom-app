@@ -185,6 +185,11 @@
     .meetings-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);padding:0.6rem 1rem 0.35rem;display:flex;align-items:center;justify-content:space-between;}
     .meetings-label span{font-size:0.7rem;font-weight:600;color:var(--blue);cursor:pointer;}
     #addMeetingBtn{display:none;}
+    .user-picker-item{padding:0.55rem 0.85rem;cursor:pointer;font-size:0.84rem;border-bottom:1px solid var(--border2);}
+    .user-picker-item:last-child{border-bottom:none;}
+    .user-picker-item:hover{background:var(--surface3);}
+    .user-picker-item .upi-name{font-weight:600;color:var(--ink);}
+    .user-picker-item .upi-email{font-size:0.75rem;color:var(--muted);}
     .meeting-group-header{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);padding:0.85rem 0 0.35rem;border-bottom:1px solid var(--border);margin-bottom:0.4rem;}
     .meeting-group-header:first-child{padding-top:0;}
     .meetings-list{padding:0 1rem 5rem;display:flex;flex-direction:column;gap:0.5rem;}
@@ -685,9 +690,16 @@
   <div class="sh-body">
     <div class="ff" id="uEmailSelectWrap">
       <label>Select User</label>
-      <select id="uEmailSelect" style="font-family:var(--font);font-size:0.88rem;padding:0.62rem 0.85rem;border:none;border-radius:var(--r);background:var(--surface);color:var(--ink);width:100%;box-shadow:0 0 0 1px var(--border);">
-        <option value="">— Select a user —</option>
-      </select>
+      <div style="position:relative;">
+        <input type="text" id="uUserSearch" placeholder="Search by name or email…" oninput="filterUserPicker()" autocomplete="off"
+          style="width:100%;font-family:var(--font);font-size:0.88rem;padding:0.62rem 0.85rem;border:none;border-radius:var(--r);background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--border);box-sizing:border-box;"/>
+      </div>
+      <div id="uUserPickerList" style="margin-top:0.4rem;max-height:180px;overflow-y:auto;border-radius:var(--r);box-shadow:0 0 0 1px var(--border);background:var(--surface);display:none;"></div>
+      <div id="uSelectedUserDisplay" style="display:none;margin-top:0.4rem;padding:0.55rem 0.85rem;border-radius:var(--r);background:var(--blue-l);color:var(--blue);font-size:0.84rem;font-weight:600;display:none;align-items:center;justify-content:space-between;">
+        <span id="uSelectedUserLabel"></span>
+        <button onclick="clearSelectedUser()" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:0.9rem;font-weight:700;padding:0;">✕</button>
+      </div>
+      <input type="hidden" id="uEmailSelect" value=""/>
     </div>
     <div class="ff" id="uEmailDisplayWrap" style="display:none;">
       <label>Email Address</label>
@@ -2654,32 +2666,66 @@ function openUserEditSheet(id){
   document.getElementById('userDelBtn').style.display=u?'':'none';
   openSheet('userEditOverlay','userEditSheet');
 }
-async function populateUserDropdown(){
-  var sel=document.getElementById('uEmailSelect');
-  sel.innerHTML='<option value="">— Select a user —</option>';
-  try{
-    // Get all accounts from mom_users that have a password set (signed up)
-    var allAccounts=await sbGet(TABLE_ROLES,'order=email.asc&select=id,email,full_name,username,role');
-    // Filter out users who already have a role assigned (not viewer with no projects, or already managed)
-    var managed=allUsers.map(function(u){return u.email;});
-    allAccounts.forEach(function(acc){
-      var opt=document.createElement('option');
-      opt.value=acc.email;
-      var label=(acc.full_name||acc.username)?'('+(acc.full_name||acc.username)+') '+acc.email:acc.email;
-      opt.textContent=label;
-      sel.appendChild(opt);
+var _allAccountsCache=[];
+
+function filterUserPicker(){
+  var q=(document.getElementById('uUserSearch').value||'').toLowerCase().trim();
+  var list=document.getElementById('uUserPickerList');
+  if(!q){list.style.display='none';return;}
+  var matches=_allAccountsCache.filter(function(a){
+    return (a.email||'').toLowerCase().includes(q)
+      ||(a.full_name||'').toLowerCase().includes(q)
+      ||(a.username||'').toLowerCase().includes(q);
+  }).slice(0,8);
+  if(!matches.length){
+    list.innerHTML='<div class="user-picker-item" style="color:var(--muted);">No users found</div>';
+  } else {
+    list.innerHTML='';
+    matches.forEach(function(a){
+      var div=document.createElement('div');
+      div.className='user-picker-item';
+      var name=a.full_name||a.username||'';
+      div.innerHTML='<div class="upi-name">'+(name?esc(name):'—')+'</div><div class="upi-email">'+esc(a.email)+'</div>';
+      div.onclick=function(){selectUserFromPicker(a);};
+      list.appendChild(div);
     });
-  }catch(e){sel.innerHTML='<option value="">Error loading users</option>';}
+  }
+  list.style.display='';
+}
+
+function selectUserFromPicker(a){
+  document.getElementById('uEmailSelect').value=a.email;
+  document.getElementById('uUserSearch').value='';
+  document.getElementById('uUserPickerList').style.display='none';
+  var label=(a.full_name||a.username)?esc(a.full_name||a.username)+' · '+esc(a.email):esc(a.email);
+  document.getElementById('uSelectedUserLabel').innerHTML=label;
+  document.getElementById('uSelectedUserDisplay').style.display='flex';
+}
+
+function clearSelectedUser(){
+  document.getElementById('uEmailSelect').value='';
+  document.getElementById('uSelectedUserDisplay').style.display='none';
+  document.getElementById('uUserSearch').value='';
+  document.getElementById('uUserPickerList').style.display='none';
+}
+
+async function populateUserDropdown(){
+  clearSelectedUser();
+  document.getElementById('uUserSearch').value='';
+  try{
+    _allAccountsCache=await sbGet(TABLE_ROLES,'order=email.asc&select=id,email,full_name,username,role');
+  }catch(e){_allAccountsCache=[];}
 }
 
 function closeUserEditSheet(){closeSheet('userEditOverlay','userEditSheet');editUserId=null;}
 
 async function saveUser(){
   var btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Saving...';
-  // Get email from dropdown (new) or hidden input (edit)
+  // Get email from picker (new) or hidden input (edit)
   var email='';
   if(!editUserId){
     email=(document.getElementById('uEmailSelect').value||'').trim().toLowerCase();
+    if(!email){flash('Please select a user.',true);btn.disabled=false;btn.textContent='Save';return;}
     document.getElementById('uEmail').value=email;
   } else {
     email=document.getElementById('uEmail').value.trim().toLowerCase();
