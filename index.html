@@ -396,15 +396,15 @@
   <!-- LOGIN -->
   <!-- LOGIN -->
   <div id="stateLogin" class="centered">
-    <div id="loginAnnouncement" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:90%;z-index:9998;background:#b40000;color:#fff;border-radius:0 0 14px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.25);overflow:hidden;">
-      <div style="padding:0.75rem 1rem 0.5rem;display:flex;align-items:flex-start;gap:0.5rem;">
+    <div id="loginAnnouncement" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:90%;max-height:90vh;z-index:9998;background:#b40000;color:#fff;border-radius:0 0 14px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.25);overflow:hidden;display:none;flex-direction:column;">
+      <div style="padding:0.75rem 1rem 0.5rem;display:flex;align-items:flex-start;gap:0.5rem;flex-shrink:0;">
         <div style="flex:1;min-width:0;">
           <div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.7);margin-bottom:0.25rem;">📢 Announcement</div>
           <div id="loginAnnDesc" style="font-size:0.84rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;"></div>
         </div>
         <button onclick="document.getElementById('loginAnnouncement').style.display='none';" style="background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:0.9rem;width:24px;height:24px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>
       </div>
-      <img id="loginAnnPhoto" src="" alt="" style="width:100%;max-height:180px;object-fit:cover;display:none;"/>
+      <img id="loginAnnPhoto" src="" alt="" style="width:100%;flex:1;min-height:0;object-fit:cover;display:none;"/>
     </div>
     <div id="authLogin" class="auth-card">
       <div class="login-icon">📋</div>
@@ -1066,7 +1066,7 @@ function showLoginAnnouncement(){
   var el=document.getElementById('loginAnnouncement');
   if(!el)return;
   if(data.active&&(data.description||data.photo)){
-    el.style.display='block';
+    el.style.display='flex';
     var img=document.getElementById('loginAnnPhoto');
     var desc=document.getElementById('loginAnnDesc');
     if(img){img.src=data.photo||'';img.style.display=data.photo?'block':'none';}
