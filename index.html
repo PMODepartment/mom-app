@@ -2106,15 +2106,28 @@ function renderUsersList(){
   // Editors can only see editors and viewers (not superadmins)
   var visible=allUsers.filter(function(u){
     if(currentRole==='superadmin') return true;
+    if(currentRole==='admin'){
+      var r=(u.role||'').toLowerCase();
+      if(r==='superadmin') return false; // admins can't see superadmins
+      // Admin only sees users in their SBU
+      var adminSBU=window._adminSBU||'';
+      if(!adminSBU) return true;
+      if(!u.project_codes) return false;
+      // Check if user has projects in admin's SBU OR is assigned to same SBU
+      var uCodes=u.project_codes;
+      if(uCodes.startsWith('sbu:')) return uCodes.replace('sbu:','').trim()===adminSBU;
+      var projsInSBU=allProjects.filter(function(p){return (p.sbu||'')===adminSBU;}).map(function(p){return (p.code||p.id||'').toLowerCase();});
+      var uProjCodes=uCodes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
+      return uProjCodes.some(function(c){return projsInSBU.indexOf(c)>-1;});
+    }
     if(currentRole==='editor'){
       var r=(u.role||'').toLowerCase();
-      if(r==='superadmin') return false;
-      if(r==='admin'&&currentRole!=='admin') return false; // editors can't see admins
+      if(r==='superadmin'||r==='admin') return false; // editors can't see superadmin or admin
       // Editor can only manage users on their own projects
       if(!currentProjectCodes) return true;
       if(!u.project_codes) return false;
-      var uCodes=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
-      return uCodes.some(function(c){return currentProjectCodes.indexOf(c)>-1;});
+      var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
+      return uCodes2.some(function(c){return currentProjectCodes.indexOf(c)>-1;});
     }
     return false;
   });
@@ -2133,7 +2146,10 @@ function renderUsersList(){
     var projText=u.project_codes?u.project_codes.split(',').map(function(s){var p=s.trim().split(':');return p[0]+(p[1]?' ('+p[1]+')':'');}).join(', '):'All projects';
     var displayN=u.full_name||u.username||'';
     // Editors cannot edit superadmins or other editors' accounts
-    var canEditUser=currentRole==='superadmin'||(currentRole==='editor'&&(u.role||'').toLowerCase()!=='superadmin');
+    var uRole=(u.role||'').toLowerCase();
+    var canEditUser=currentRole==='superadmin'
+      ||(currentRole==='admin'&&uRole!=='superadmin'&&uRole!=='admin')
+      ||(currentRole==='editor'&&uRole!=='superadmin'&&uRole!=='admin');
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
     var roleBadge=u.role==='superadmin'?'<span class="badge b-issue">Super Admin</span>':(u.role==='admin'?'<span class="badge b-open">Admin</span>':'');
     row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right">'+roleBadge+editBtnHtml+'</div>';
@@ -2186,6 +2202,7 @@ function updateRoleOptions(){
   var adminWrap=document.getElementById('uAdminWrap');
   if(saWrap) saWrap.style.display=canAssignSA?'block':'none';
   if(adminWrap) adminWrap.style.display=canAssignAdmin?'block':'none';
+  // Editors cannot see or use superadmin/admin toggles - already handled above
   // Populate SBU dropdown in admin wrap
   var sbuSel=document.getElementById('uAdminSBU');
   if(sbuSel){
@@ -2219,6 +2236,17 @@ function renderProjectCheckboxes(sbuFilter, selectedCodes){
   container.innerHTML='';
   var codeMap=parseProjectCodes(selectedCodes);
   var filtered=sbuFilter?allProjects.filter(function(p){return (p.sbu||'')=== sbuFilter;}):allProjects;
+  // Editors can only assign projects they are editors on
+  if(currentRole==='editor'&&currentProjectCodes&&currentProjectCodes.length){
+    filtered=filtered.filter(function(p){
+      var key1=(p.code||'').toLowerCase();
+      var key2=(p.id||'').toLowerCase();
+      var role1=currentProjectRoles?currentProjectRoles[key1]:null;
+      var role2=currentProjectRoles?currentProjectRoles[key2]:null;
+      var effR=role1||role2||'viewer';
+      return effR==='editor';
+    });
+  }
   if(!filtered.length){container.innerHTML='<span style="font-size:0.78rem;color:var(--muted);">No projects in this SBU.</span>';return;}
   filtered.forEach(function(proj){
     var key=(proj.code||proj.id||'').toLowerCase();
