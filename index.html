@@ -1193,7 +1193,7 @@ function applyUserUI(){
   if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='';}
   var canAdd=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
-  document.getElementById('addMeetingBtn').style.display=(currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor')?'inline':'none';
+  document.getElementById('addMeetingBtn').style.display='none'; // hidden until project selected
   var canManageUsers=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor';
   var hmBtn=document.getElementById('hmUsersBtn');
   if(hmBtn) hmBtn.style.display=canManageUsers?'block':'none';
@@ -1417,6 +1417,7 @@ function closeSBUSheet(){
 function selectSBU(name){
   selectedSBU=name;
   selectedProject=null; // reset selected project
+  document.getElementById('addMeetingBtn').style.display='none';
   // Clear active state on carousel
   document.querySelectorAll('.proj-card').forEach(function(c){c.classList.remove('active');});
   // Clear meetings list
