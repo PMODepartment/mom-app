@@ -1297,7 +1297,8 @@ async function loadAll(){
     var rawRole=(user.role||'').toLowerCase().trim();
     if(!['superadmin','admin','editor','viewer'].includes(rawRole)){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
     currentRole=rawRole;
-    currentProjectCodes=(currentRole==='superadmin'||currentRole==='admin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):null);
+    // null project_codes for superadmin/admin = all access; for others = no access
+    currentProjectCodes=(currentRole==='superadmin'||currentRole==='admin')?null:(user.project_codes?user.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean):[]);
     currentProjectRoles=(currentRole==='superadmin'||currentRole==='admin')?null:(user.project_codes?parseProjectCodesForAccess(user.project_codes):null);
     // Admin's SBU assignment stored in project_codes as "sbu:SBUName"
     window._adminSBU=(currentRole==='admin'&&user.project_codes)?user.project_codes.replace('sbu:','').trim():null;
@@ -1308,7 +1309,7 @@ async function loadAll(){
     // 2. Projects
     var projs=await sbGet(TABLE_PROJECTS,'order=name.asc&select=*');
     allProjects=projs||[];
-    if(currentProjectCodes){
+    if(currentProjectCodes!==null){
       allProjects=allProjects.filter(function(p){
         var pCode=(p.code||'').toLowerCase().trim();
         var pName=(p.name||'').toLowerCase().trim();
@@ -1369,7 +1370,9 @@ function renderProjects(){
   var carousel=document.getElementById('projectCarousel');
   carousel.innerHTML='';
   // Add project card for admin
-  if(currentRole==='superadmin'){
+  // Show Add Project for superadmin and SBU admin (within their SBU)
+  var canAddProject=currentRole==='superadmin'||(currentRole==='admin'&&window._adminSBU);
+  if(canAddProject){
     var addCard=document.createElement('div');addCard.className='proj-card';
     addCard.innerHTML='<div class="proj-avatar" style="background:var(--surface3);color:var(--muted);font-size:1.5rem;">+</div><div class="proj-card-name" style="color:var(--blue)">Add Project</div>';
     addCard.onclick=function(){openProjSheet(null);};
@@ -2158,6 +2161,13 @@ function openProjSheet(proj){
     pSBU.appendChild(opt);
   });
   pSBU.value=proj?proj.sbu||'':'';
+  // Pre-fill and lock SBU for SBU admin
+  if(!proj&&currentRole==='admin'&&window._adminSBU){
+    pSBU.value=window._adminSBU;
+    pSBU.disabled=true;
+  } else {
+    pSBU.disabled=false;
+  }
   document.getElementById('projDelBtn').style.display=(currentRole==='superadmin'&&proj)?'':'none';
   pendingProjPhoto=null;
   var preview=document.getElementById('projPhotoPreview');
