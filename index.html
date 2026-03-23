@@ -1439,6 +1439,8 @@ function renderProjects(){
       card.onlongpress=function(){openProjSheet(proj);};
       var eb=card.querySelector('.proj-card-edit');
       if(eb)eb.addEventListener('click',function(e){e.stopPropagation();openProjSheet(proj);});
+      var ub=card.querySelector('.proj-card-users');
+      if(ub)ub.addEventListener('click',(function(p){return function(e){e.stopPropagation();openProjectUsersSheet(p);};})(proj));
     }
     carousel.appendChild(card);
   });
