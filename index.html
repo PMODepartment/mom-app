@@ -1225,8 +1225,8 @@ async function loadNotifications(){
   list.innerHTML='<div style="font-size:0.82rem;color:var(--muted);text-align:center;padding:1rem 0;">Loading…</div>';
   try{
     // Find users with no project_codes and role=viewer (newly signed up, unassigned)
-    var pending=await sbGet(TABLE_ROLES,'select=id,email,full_name,username,created_at,role,project_codes&order=created_at.desc');
-    pending=(pending||[]).filter(function(u){var r=(u.role||'').toLowerCase();return (r==='viewer'||r==='')&&!u.project_codes;});
+    var allU=await sbGet(TABLE_ROLES,'select=id,email,full_name,username,role,project_codes');
+    var pending=(allU||[]).filter(function(u){var r=(u.role||'').toLowerCase();return r==='viewer'&&!u.project_codes&&u.password_hash;});
     // Update badge
     var badge=document.getElementById('notifBadge');
     if(badge){
@@ -1257,14 +1257,14 @@ async function loadNotifications(){
       };
       list.appendChild(div);
     });
-  }catch(e){list.innerHTML='<div style="font-size:0.82rem;color:var(--red);">Error: '+esc(e.message)+'</div>';console.error('notif error',e);}
+  }catch(e){console.error('notif error',e);list.innerHTML='<div style="font-size:0.82rem;color:var(--red);">Error: '+(e.message||'unknown')+'</div>';}
 }
 
 async function checkNotifications(){
   if(currentRole!=='superadmin') return;
   try{
-    var pending=await sbGet(TABLE_ROLES,'select=id,role,project_codes&order=created_at.desc');
-    pending=(pending||[]).filter(function(u){var r=(u.role||'').toLowerCase();return (r==='viewer'||r==='')&&!u.project_codes;});
+    var pending=await sbGet(TABLE_ROLES,'select=id,role,project_codes,password_hash');
+    pending=(pending||[]).filter(function(u){var r=(u.role||'').toLowerCase();return r==='viewer'&&!u.project_codes&&u.password_hash;});
     var badge=document.getElementById('notifBadge');
     var btn=document.getElementById('notifBtn');
     if(btn) btn.style.display='flex';
