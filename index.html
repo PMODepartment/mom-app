@@ -841,10 +841,10 @@
     <div id="projPhotoPreview" class="proj-photo-preview" onclick="document.getElementById('projPhotoInput').click()"></div>
     <div class="proj-photo-hint" onclick="document.getElementById('projPhotoInput').click()">Tap to set photo</div>
     <input type="file" id="projPhotoInput" accept="image/*" onchange="handleProjPhoto(event)"/>
-    <div class="ff"><label>Project Name</label><input type="text" id="pName" placeholder="Carbon Market PSC"/></div>
-    <div class="frow">
-      <div class="ff"><label>Short Name</label><input type="text" id="pShort" placeholder="CMPS"/></div>
-      <div class="ff"><label>Project Code</label><input type="text" id="pCode" placeholder="EPC-001"/></div>
+    <div style="display:flex;gap:0.5rem;">
+      <div class="ff" style="flex:2;"><label>Project Name</label><input type="text" id="pName" placeholder="Carbon Market PSC"/></div>
+      <div class="ff" style="flex:1;"><label>Short Name</label><input type="text" id="pShort" placeholder="CMPS"/></div>
+      <div class="ff" style="flex:1;"><label>Project Code</label><input type="text" id="pCode" placeholder="EPC-001"/></div>
     </div>
     <div class="ff"><label>SBU</label>
       <select id="pSBU">
@@ -860,10 +860,10 @@
       </select>
     </div>
   </div>
-  <div class="sh-foot">
-    <button class="btn-cancel" onclick="closeProjSheet()">Cancel</button>
-    <button class="btn-del-inline" id="projDelBtn" style="display:none" onclick="askDeleteProject()">Delete</button>
-    <button class="btn-save" id="projSaveBtn" onclick="saveProject()">Save</button>
+  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
+    <button class="btn-cancel" onclick="closeProjSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
+    <button class="btn-del-inline" id="projDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="askDeleteProject()">Delete</button>
+    <button class="btn-save" id="projSaveBtn" onclick="saveProject()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Save</button>
   </div>
 </div>
 
