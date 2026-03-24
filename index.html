@@ -1357,20 +1357,30 @@ async function loadAll(){
     // null project_codes for superadmin/admin = all access; for others = no access
     // Parse project codes for all roles including admin (for extra project assignments)
     var rawCodes=user.project_codes||'';
-    var parsedCodes=rawCodes?rawCodes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(function(s){return s&&!s.startsWith('sbu:');}):[]; 
+    // Separate sbu: entry from project-level assignments
+    var sbuEntry='';
+    var projectEntries=[];
+    rawCodes.split(',').forEach(function(s){
+      s=s.trim();
+      if(!s) return;
+      if(s.toLowerCase().startsWith('sbu:')) sbuEntry=s;
+      else projectEntries.push(s);
+    });
+    var projectCodesStr=projectEntries.join(',');
+
     if(currentRole==='superadmin'){
       currentProjectCodes=null;currentProjectRoles=null;
     } else if(currentRole==='admin'){
-      // Admin: null means see all in their SBU (handled by getEffectiveRole)
-      // But store extra project assignments too
+      // Admin sees all projects in their SBU + any extra project assignments
       currentProjectCodes=null;
-      currentProjectRoles=rawCodes?parseProjectCodesForAccess(rawCodes):null;
+      currentProjectRoles=projectCodesStr?parseProjectCodesForAccess(projectCodesStr):null;
     } else {
+      var parsedCodes=projectEntries.map(function(s){return s.split(':')[0].toLowerCase();}).filter(Boolean);
       currentProjectCodes=parsedCodes;
-      currentProjectRoles=rawCodes?parseProjectCodesForAccess(rawCodes):null;
+      currentProjectRoles=projectCodesStr?parseProjectCodesForAccess(projectCodesStr):null;
     }
-    // Admin's SBU assignment stored in project_codes as "sbu:SBUName"
-    window._adminSBU=(currentRole==='admin'&&user.project_codes)?user.project_codes.replace('sbu:','').trim():null;
+    // Extract SBU from sbu: entry only
+    window._adminSBU=(currentRole==='admin'&&sbuEntry)?sbuEntry.replace(/^sbu:/i,'').trim():null;
     localStorage.setItem('mom_role',currentRole);
     window._currentUser=user; // store for applyUserUI
     applyUserUI();
@@ -2813,7 +2823,13 @@ async function saveUser(){
   else if(isAdmin){
     var adminSBU=document.getElementById('uAdminSBU').value||'';
     if(!adminSBU){flash('Please select an SBU for the Admin.',true);btn.disabled=false;btn.textContent='Save';return;}
-    role='admin';codes='sbu:'+adminSBU;
+    // Preserve any existing project-level assignments when setting SBU admin
+    var existAdminUser=editUserId?allUsers.find(function(u){return u.id===editUserId;}):null;
+    var existCodes=existAdminUser&&existAdminUser.project_codes?existAdminUser.project_codes:'';
+    var existProjEntries=existCodes.split(',').filter(function(s){return s.trim()&&!s.trim().toLowerCase().startsWith('sbu:');});
+    var adminCodes='sbu:'+adminSBU;
+    if(existProjEntries.length) adminCodes=adminCodes+','+existProjEntries.join(',');
+    role='admin';codes=adminCodes;
   } else if(window._usersSheetMode==='project'&&_currentProjectForUsers){
     // Project mode: auto-assign to current project as viewer by default
     // Role dropdown determines editor or viewer
