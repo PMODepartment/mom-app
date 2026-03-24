@@ -737,6 +737,14 @@
       </div>
     </div>
     <div id="uEditorRoleNote" style="display:none;font-size:0.75rem;color:var(--blue);background:var(--blue-l);border-radius:var(--r);padding:0.5rem 0.75rem;margin-bottom:0.5rem;">ℹ Users you add will be assigned as <strong>Viewer</strong> on your assigned projects.</div>
+    <div class="ff" id="uProjRoleWrap" style="display:none;">
+      <label>Project Role</label>
+      <div style="display:flex;gap:0.5rem;">
+        <button id="uProjRoleEditor" onclick="setProjRole('editor')" style="flex:1;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.6rem;border:2px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--muted);cursor:pointer;">✏ Editor</button>
+        <button id="uProjRoleViewer" onclick="setProjRole('viewer')" style="flex:1;font-family:var(--font);font-size:0.84rem;font-weight:600;padding:0.6rem;border:2px solid var(--blue);border-radius:var(--r);background:var(--blue-l);color:var(--blue);cursor:pointer;">👁 Viewer</button>
+      </div>
+      <input type="hidden" id="uProjRole" value="viewer"/>
+    </div>
     <div class="ff" id="uProjectsWrap">
       <label>Assigned Projects</label>
       <select id="uSBUFilter" onchange="renderProjectCheckboxes(document.getElementById('uSBUFilter').value,currentEditCodes)" style="font-family:var(--font);font-size:0.82rem;padding:0.45rem 0.7rem;border:none;border-radius:var(--r);background:var(--surface3);color:var(--ink);width:100%;margin-bottom:0.5rem;box-shadow:0 0 0 1px var(--border);">
@@ -2496,9 +2504,9 @@ function refreshProjectsWrap(){
   var isAdm=document.getElementById('uIsAdmin').checked;
   var projWrap=document.getElementById('uProjectsWrap');
   var adminSBUWrap=document.getElementById('uAdminSBUWrap');
-  // In SBU mode, project list is never relevant (only superadmin/sbu admin assigned here)
-  var isSBUMode=window._usersSheetMode==='sbu';
-  if(projWrap) projWrap.style.display=(isSA||isAdm||isSBUMode)?'none':'';
+  // In SBU or project mode, project list is not needed
+  var isSpecialMode=window._usersSheetMode==='sbu'||window._usersSheetMode==='project';
+  if(projWrap) projWrap.style.display=(isSA||isAdm||isSpecialMode)?'none':'';
   if(adminSBUWrap) adminSBUWrap.style.display=isAdm?'flex':'none';
   var ph=document.getElementById('uAdminSBUPlaceholder');
   if(ph) ph.style.display=isAdm?'none':'';
@@ -2646,9 +2654,26 @@ function openUserEditSheet(id){
   var cb=document.getElementById('uIsSuperAdmin');if(cb)cb.checked=isSA;
   var cb2=document.getElementById('uIsAdmin');if(cb2)cb2.checked=isAdm;
   updateRoleOptions();
-  // In project mode, hide superadmin and admin toggles regardless
+  // In project mode: hide role toggles, show project role selector
+  var projRoleWrap=document.getElementById('uProjRoleWrap');
   if(window._usersSheetMode==='project'){
     var rRow=document.getElementById('uRolesRow');if(rRow)rRow.style.display='none';
+    if(projRoleWrap){
+      projRoleWrap.style.display='';
+      // Set default role based on existing assignment if editing
+      var defRole='viewer';
+      if(editUserId&&_currentProjectForUsers){
+        var eu=allUsers.find(function(u){return u.id===editUserId;});
+        if(eu&&eu.project_codes){
+          var pKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+          var cMap=parseProjectCodes(eu.project_codes);
+          defRole=cMap[pKey]||'viewer';
+        }
+      }
+      setProjRole(defRole);
+    }
+  } else {
+    if(projRoleWrap) projRoleWrap.style.display='none';
   }
   // Set admin SBU if applicable
   if(isAdm&&u&&u.project_codes){
@@ -2723,6 +2748,19 @@ async function populateUserDropdown(){
   }catch(e){_allAccountsCache=[];}
 }
 
+function setProjRole(role){
+  document.getElementById('uProjRole').value=role;
+  var edBtn=document.getElementById('uProjRoleEditor');
+  var vwBtn=document.getElementById('uProjRoleViewer');
+  if(role==='editor'){
+    if(edBtn){edBtn.style.borderColor='#1a56db';edBtn.style.background='var(--blue-l)';edBtn.style.color='var(--blue)';}
+    if(vwBtn){vwBtn.style.borderColor='var(--border)';vwBtn.style.background='var(--surface)';vwBtn.style.color='var(--muted)';}
+  } else {
+    if(vwBtn){vwBtn.style.borderColor='var(--blue)';vwBtn.style.background='var(--blue-l)';vwBtn.style.color='var(--blue)';}
+    if(edBtn){edBtn.style.borderColor='var(--border)';edBtn.style.background='var(--surface)';edBtn.style.color='var(--muted)';}
+  }
+}
+
 function closeUserEditSheet(){closeSheet('userEditOverlay','userEditSheet');editUserId=null;}
 
 async function saveUser(){
@@ -2745,10 +2783,23 @@ async function saveUser(){
     if(!adminSBU){flash('Please select an SBU for the Admin.',true);btn.disabled=false;btn.textContent='Save';return;}
     role='admin';codes='sbu:'+adminSBU;
   } else if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-    // Project mode: assign editor/viewer to this specific project
-    var selectedCodes=getSelectedProjectCodes();
-    role=selectedCodes?'editor':'viewer';
-    codes=selectedCodes;
+    // Project mode: auto-assign to current project as viewer by default
+    // Role dropdown determines editor or viewer
+    var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+    var projRole=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
+    role=projRole==='editor'?'editor':'viewer';
+    codes=projKey+':'+projRole;
+    // Merge with existing codes if user already has other project assignments
+    if(editUserId){
+      var existingUser=allUsers.find(function(u){return u.id===editUserId;});
+      if(existingUser&&existingUser.project_codes){
+        var existingCodes=existingUser.project_codes.split(',').filter(function(c){
+          var k=c.trim().split(':')[0].toLowerCase();
+          return k!==projKey;
+        });
+        if(existingCodes.length) codes=existingCodes.join(',')+','+codes;
+      }
+    }
   } else if(currentRole==='editor'){
     var selectedCodes=getSelectedProjectCodes();
     role='viewer';codes=selectedCodes;
