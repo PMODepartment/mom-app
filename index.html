@@ -2868,7 +2868,8 @@ async function saveUser(){
     codes=selectedCodes;
   }
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
-  if(!role||codes===undefined){flash('Role or codes missing.',true);btn.disabled=false;btn.textContent='Save';return;}
+  console.log('saveUser: email='+email+' role='+role+' codes='+codes+' editUserId='+editUserId+' mode='+window._usersSheetMode);
+  if(!role){flash('Role is missing.',true);btn.disabled=false;btn.textContent='Save';return;}
   try{
     if(editUserId){
       // Patch existing record
