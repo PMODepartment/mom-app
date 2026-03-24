@@ -1265,7 +1265,7 @@ async function checkNotifications(){
     var pending=await sbGet(TABLE_ROLES,'role=eq.viewer&project_codes=is.null&select=id&order=created_at.desc');
     var badge=document.getElementById('notifBadge');
     var btn=document.getElementById('notifBtn');
-    if(btn) btn.style.display='';
+    if(btn) btn.style.display='flex';
     if(badge){
       if(pending&&pending.length){
         badge.textContent=pending.length>9?'9+':pending.length;
@@ -1415,6 +1415,8 @@ function signOut(){
   localStorage.removeItem('mom_session');
   document.getElementById('userInfo').style.display='none';
   var gr=document.getElementById('headerGreeting');if(gr)gr.style.display='none';
+  var nb=document.getElementById('notifBtn');if(nb)nb.style.display='none';
+  var nbp=document.getElementById('notifPanel');if(nbp)nbp.style.display='none';
   document.getElementById('fab').style.display='none';
   showLogin();
   setState('login');
