@@ -2493,7 +2493,9 @@ function refreshProjectsWrap(){
   var isAdm=document.getElementById('uIsAdmin').checked;
   var projWrap=document.getElementById('uProjectsWrap');
   var adminSBUWrap=document.getElementById('uAdminSBUWrap');
-  if(projWrap) projWrap.style.display=(isSA||isAdm)?'none':'';
+  // In SBU mode, project list is never relevant (only superadmin/sbu admin assigned here)
+  var isSBUMode=window._usersSheetMode==='sbu';
+  if(projWrap) projWrap.style.display=(isSA||isAdm||isSBUMode)?'none':'';
   if(adminSBUWrap) adminSBUWrap.style.display=isAdm?'flex':'none';
   var ph=document.getElementById('uAdminSBUPlaceholder');
   if(ph) ph.style.display=isAdm?'none':'';
