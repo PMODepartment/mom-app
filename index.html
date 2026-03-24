@@ -878,13 +878,15 @@
     <div id="sbuPhotoPreview" class="proj-photo-preview" onclick="document.getElementById('sbuPhotoInput').click()" style="cursor:pointer;"></div>
     <div class="proj-photo-hint" onclick="document.getElementById('sbuPhotoInput').click()">Tap to set photo</div>
     <input type="file" id="sbuPhotoInput" accept="image/*" onchange="handleSBUPhoto(event)" style="display:none;"/>
-    <div class="ff"><label>SBU Name</label><input type="text" id="sbuName" placeholder="e.g. Engineering, Procurement & Construction"/></div>
-    <div class="ff"><label>Short Name</label><input type="text" id="sbuShort" placeholder="e.g. EPC"/></div>
+    <div style="display:flex;gap:0.5rem;">
+      <div class="ff" style="flex:3;"><label>SBU Name</label><input type="text" id="sbuName" placeholder="e.g. Engineering, Procurement &amp; Construction"/></div>
+      <div class="ff" style="flex:1;"><label>Short Name</label><input type="text" id="sbuShort" placeholder="e.g. EPC"/></div>
+    </div>
   </div>
-  <div class="sh-foot">
-    <button class="btn-cancel" onclick="closeSBUSheet()">Cancel</button>
-    <button class="btn-del-inline" id="sbuDelBtn" style="display:none;" onclick="askDeleteSBU()">Delete</button>
-    <button class="btn-save" onclick="saveSBUSheet()">Save</button>
+  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
+    <button class="btn-cancel" onclick="closeSBUSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
+    <button class="btn-del-inline" id="sbuDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="askDeleteSBU()">Delete</button>
+    <button class="btn-save" onclick="saveSBUSheet()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Save</button>
   </div>
 </div>
 
