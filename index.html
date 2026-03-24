@@ -2831,26 +2831,34 @@ async function saveUser(){
     if(existProjEntries.length) adminCodes=adminCodes+','+existProjEntries.join(',');
     role='admin';codes=adminCodes;
   } else if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-    var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
-    var projRole=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
-    var newEntry=projKey+':'+projRole;
-    if(!projKey){flash('Project key missing.',true);btn.disabled=false;btn.textContent='Save';return;}
     if(!email){flash('Please select a user first.',true);btn.disabled=false;btn.textContent='Save';return;}
-    // Always fetch fresh from DB using email to get full project_codes
+    // Fetch fresh user record from DB
     var fr=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
     var freshRecord=fr&&fr.length?fr[0]:null;
     if(!freshRecord){flash('User account not found. They must sign up first.',true);btn.disabled=false;btn.textContent='Save';return;}
+    var uRole=(freshRecord.role||'').toLowerCase();
+    // Rule 1: Block superadmin
+    if(uRole==='superadmin'){flash('Super Admins already have full access.',true);btn.disabled=false;btn.textContent='Save';return;}
+    // Rule 2 & 3: Block SBU Admin of the same SBU as current project
+    var projSBU=_currentProjectForUsers.sbu||'';
+    if(uRole==='admin'){
+      var uAdminSBU=(freshRecord.project_codes||'').split(',').map(function(s){return s.trim();}).filter(function(s){return s.toLowerCase().startsWith('sbu:');}).map(function(s){return s.replace(/^sbu:/i,'').trim();})[0]||'';
+      if(uAdminSBU===projSBU){flash('This user is already SBU Admin of '+projSBU+' and has full access.',true);btn.disabled=false;btn.textContent='Save';return;}
+    }
+    // Rule 4: Add/update the project assignment
+    var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+    var projRole=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
+    var newEntry=projKey+':'+projRole;
+    // Merge with existing codes, replacing any existing entry for this project
     var existFull=freshRecord.project_codes||'';
-    var existRole2=(freshRecord.role||'viewer').toLowerCase();
-    // Merge: keep all existing entries except this project, then add new entry
     var mergedEntries=existFull.split(',').filter(function(c){
       return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
     });
     mergedEntries.push(newEntry);
     codes=mergedEntries.join(',');
-    // Preserve elevated roles — never downgrade superadmin or admin
-    role=(existRole2==='superadmin'||existRole2==='admin')?existRole2:(projRole==='editor'?'editor':'viewer');
-    editUserId=freshRecord.id; // always use the DB id
+    // Preserve role — never downgrade admin
+    role=uRole==='admin'?'admin':(projRole==='editor'?'editor':'viewer');
+    editUserId=freshRecord.id;
   } else if(currentRole==='editor'){
     var selectedCodes=getSelectedProjectCodes();
     role='viewer';codes=selectedCodes;
