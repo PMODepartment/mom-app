@@ -756,7 +756,7 @@
   </div>
   <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
     <button class="btn-cancel" onclick="closeUserEditSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
-    <button class="btn-del-inline" id="userDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="deleteUser()">Remove Access</button>
+    <button class="btn-del-inline" id="userDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="askDeleteUser()">Remove Access</button>
     <button class="btn-save" id="userSaveBtn" onclick="saveUser()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Save</button>
   </div>
 </div>
@@ -892,7 +892,7 @@
   </div>
   <div class="sh-foot">
     <button class="btn-cancel" onclick="closeSBUSheet()">Cancel</button>
-    <button class="btn-del-inline" id="sbuDelBtn" style="display:none;" onclick="deleteSBU()">Delete</button>
+    <button class="btn-del-inline" id="sbuDelBtn" style="display:none;" onclick="askDeleteSBU()">Delete</button>
     <button class="btn-save" onclick="saveSBUSheet()">Save</button>
   </div>
 </div>
@@ -1653,6 +1653,32 @@ async function saveSBUSheet(){
   if(btn){btn.disabled=false;btn.textContent='Save';}
 }
 
+function askDeleteSBU(){
+  var idx=editSBUIdx;
+  if(idx===null||idx===-1) return;
+  var all=getSBUs();
+  var sbu=all.find(function(s){return s.id===idx;});
+  if(!sbu) return;
+  deleteTarget=idx;
+  deleteType='sbu';
+  document.getElementById('confirmTitle').textContent='Delete SBU?';
+  document.getElementById('delPreview').textContent='Delete "'+sbu.name+'"? This cannot be undone.';
+  document.getElementById('confirmBtn').textContent='Delete';
+  openSheet('confirmOverlay','confirmSheet');
+}
+
+async function doDeleteSBU(){
+  var id=editSBUIdx;
+  if(!id||id===-1) return;
+  try{
+    await sbDelete(TABLE_SBUS,id);
+    allSBUs=allSBUs.filter(function(s){return s.id!==id;});
+    closeSBUSheet();
+    renderSBU();
+    flash('SBU deleted.');
+  }catch(e){flash('Error: '+e.message,true);}
+}
+
 async function deleteSBU(){
   var id=editSBUIdx;
   if(!id||id===-1) return;
@@ -2087,11 +2113,13 @@ function askDeleteItem(idx){
   openSheet('confirmOverlay','confirmSheet');
 }
 function askDeleteCurrent(){closeEdit();askDeleteItem(editItemIdx);}
-function closeConfirm(){closeSheet('confirmOverlay','confirmSheet');deleteTarget=null;deleteType='';}
+function closeConfirm(){closeSheet('confirmOverlay','confirmSheet');deleteTarget=null;deleteType='';document.getElementById('confirmBtn').textContent='Delete';}
 async function confirmDelete(){
   if(deleteType==='item') await doDeleteItem();
   else if(deleteType==='meeting') await doDeleteMeeting();
   else if(deleteType==='project') await doDeleteProject();
+  else if(deleteType==='user') await deleteUser();
+  else if(deleteType==='sbu') await doDeleteSBU();
   closeConfirm();
 }
 async function doDeleteItem(){
@@ -2911,6 +2939,21 @@ async function saveUser(){
     console.error('saveUser error:',e);
   }
   btn.disabled=false;btn.textContent='Save';
+}
+
+function askDeleteUser(){
+  var u=allUsers.find(function(x){return x.id===editUserId;});
+  if(!u) return;
+  var msg=window._usersSheetMode==='project'&&_currentProjectForUsers
+    ?'Remove access from "'+esc(_currentProjectForUsers.short_name||_currentProjectForUsers.name)+'" for '+esc(u.full_name||u.email)+'?'
+    :'Remove all access for '+esc(u.full_name||u.email)+'?';
+  deleteTarget=editUserId;
+  deleteType='user';
+  document.getElementById('confirmTitle').textContent='Remove Access?';
+  document.getElementById('delPreview').textContent=msg;
+  document.getElementById('confirmBtn').textContent='Remove';
+  closeUserEditSheet();
+  openSheet('confirmOverlay','confirmSheet');
 }
 
 async function deleteUser(){
