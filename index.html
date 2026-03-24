@@ -72,6 +72,11 @@
     .brand h1 span{color:rgba(255,255,255,0.7);}
     .brand .sub{font-size:0.58rem;font-weight:500;color:rgba(255,255,255,0.6);letter-spacing:0.04em;text-transform:uppercase;margin-top:1px;}
     .hright{display:flex;align-items:center;gap:0.5rem;}
+    .notif-item{padding:0.5rem 0.6rem;border-radius:var(--r);background:var(--surface3);margin-bottom:0.35rem;cursor:pointer;}
+    .notif-item:hover{background:var(--blue-l);}
+    .notif-item-name{font-size:0.8rem;font-weight:600;color:var(--ink);}
+    .notif-item-email{font-size:0.72rem;color:var(--muted);}
+    .notif-item-action{font-size:0.7rem;color:var(--blue);margin-top:0.2rem;font-weight:600;}
     #userInfo{display:none;flex-direction:row;align-items:center;gap:0.6rem;}
     .user-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
     #userNameLabel{font-size:0.8rem;font-weight:600;color:#fff;letter-spacing:-0.01em;}
@@ -376,6 +381,10 @@
       <button class="manage-users-btn" id="desktopUsersBtn" onclick="openUsersSheet()">Manage Users</button>
       <button class="hbtn" id="logoutBtn" onclick="signOut()" style="display:block;">Sign Out</button>
     </div>
+    <button id="notifBtn" onclick="toggleNotifPanel()" style="display:none;position:relative;background:none;border:none;cursor:pointer;color:#fff;font-size:1.1rem;padding:0.2rem;line-height:1;" title="Notifications">
+      🔔
+      <span id="notifBadge" style="display:none;position:absolute;top:-2px;right:-2px;background:#ff3b30;color:#fff;font-size:0.55rem;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:none;align-items:center;justify-content:center;line-height:1;padding:0 3px;"></span>
+    </button>
     <span id="headerGreeting" style="display:none;font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.9);white-space:nowrap;"></span>
     <button id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -390,6 +399,11 @@
       <button class="hm-sbu" id="hmAnnouncementBtn" onclick="openAnnouncementSheet();toggleHamburger()" style="display:none;">📢 Announcements</button>
       <button class="hm-signout" onclick="signOut()">Sign Out</button>
     </div>
+  <!-- NOTIFICATION PANEL -->
+  <div id="notifPanel" style="display:none;position:fixed;top:70px;right:1.5rem;background:var(--surface);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:0.75rem;min-width:260px;max-width:320px;z-index:99998;border:1px solid var(--border);max-height:400px;overflow-y:auto;">
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:0.5rem;">Pending Access Requests</div>
+    <div id="notifList"><div style="font-size:0.82rem;color:var(--muted);text-align:center;padding:1rem 0;">Loading…</div></div>
+  </div>
   </div>
 </header>
 
@@ -1189,6 +1203,80 @@ async function saveProfile(){
   btn.disabled=false;btn.textContent='Save';
 }
 
+// ── NOTIFICATIONS ──
+var _notifOpen=false;
+
+function toggleNotifPanel(){
+  _notifOpen=!_notifOpen;
+  var panel=document.getElementById('notifPanel');
+  if(_notifOpen){
+    loadNotifications();
+    panel.style.display='block';
+    // Position below header
+    var hdr=document.querySelector('header');
+    if(hdr) panel.style.top=(hdr.offsetHeight+4)+'px';
+  } else {
+    panel.style.display='none';
+  }
+}
+
+async function loadNotifications(){
+  var list=document.getElementById('notifList');
+  list.innerHTML='<div style="font-size:0.82rem;color:var(--muted);text-align:center;padding:1rem 0;">Loading…</div>';
+  try{
+    // Find users with no project_codes and role=viewer (newly signed up, unassigned)
+    var pending=await sbGet(TABLE_ROLES,'role=eq.viewer&project_codes=is.null&select=id,email,full_name,username,created_at&order=created_at.desc');
+    // Update badge
+    var badge=document.getElementById('notifBadge');
+    if(badge){
+      if(pending&&pending.length){
+        badge.textContent=pending.length>9?'9+':pending.length;
+        badge.style.display='flex';
+      } else {
+        badge.style.display='none';
+      }
+    }
+    if(!pending||!pending.length){
+      list.innerHTML='<div style="font-size:0.82rem;color:var(--muted);text-align:center;padding:1rem 0;">No pending requests 🎉</div>';
+      return;
+    }
+    list.innerHTML='';
+    pending.forEach(function(u){
+      var div=document.createElement('div');
+      div.className='notif-item';
+      var name=u.full_name||u.username||'';
+      div.innerHTML='<div class="notif-item-name">'+(name?esc(name):esc(u.email))+'</div>'
+        +(name?'<div class="notif-item-email">'+esc(u.email)+'</div>':'')
+        +'<div class="notif-item-action">Tap to assign access →</div>';
+      div.onclick=function(){
+        _notifOpen=false;
+        document.getElementById('notifPanel').style.display='none';
+        // Open manage users SBU-level sheet
+        openUsersSheet();
+      };
+      list.appendChild(div);
+    });
+  }catch(e){list.innerHTML='<div style="font-size:0.82rem;color:var(--red);">Error loading</div>';}
+}
+
+async function checkNotifications(){
+  if(currentRole!=='superadmin') return;
+  try{
+    var pending=await sbGet(TABLE_ROLES,'role=eq.viewer&project_codes=is.null&select=id&order=created_at.desc');
+    var badge=document.getElementById('notifBadge');
+    var btn=document.getElementById('notifBtn');
+    if(btn) btn.style.display='';
+    if(badge){
+      if(pending&&pending.length){
+        badge.textContent=pending.length>9?'9+':pending.length;
+        badge.style.display='flex';
+      } else {
+        badge.style.display='none';
+      }
+    }
+  }catch(e){}
+}
+
 function showForgotPassword(){
   document.getElementById('authLogin').style.display='none';
   document.getElementById('authSignup').style.display='none';
@@ -1433,6 +1521,7 @@ function applyUserUI(){
   var greetingName=(userRec&&userRec.username)||(userRec&&userRec.full_name)||displayName;
   var greeting=document.getElementById('headerGreeting');
   if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='';}
+  checkNotifications();
   var canAdd=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
   var annBtn=document.getElementById('hmAnnouncementBtn');
@@ -2985,6 +3074,15 @@ function goToSBU(){
   setState('sbu');
   renderSBU();
 }
+// Close notif panel when clicking hamburger
+document.addEventListener('click',function(e){
+  var panel=document.getElementById('notifPanel');
+  var btn=document.getElementById('notifBtn');
+  if(panel&&btn&&!panel.contains(e.target)&&!btn.contains(e.target)&&_notifOpen){
+    _notifOpen=false;panel.style.display='none';
+  }
+});
+
 function toggleHamburger(){
   var m=document.getElementById('hamburgerMenu');
   var btn=document.getElementById('hamburgerBtn');
