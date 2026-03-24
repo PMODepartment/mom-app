@@ -2831,23 +2831,31 @@ async function saveUser(){
     if(existProjEntries.length) adminCodes=adminCodes+','+existProjEntries.join(',');
     role='admin';codes=adminCodes;
   } else if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-    // Project mode: auto-assign to current project as viewer by default
-    // Role dropdown determines editor or viewer
     var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
     var projRole=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
-    role=projRole==='editor'?'editor':'viewer';
-    codes=projKey+':'+projRole;
-    // Merge with existing codes if user already has other project assignments
-    if(editUserId){
-      var existingUser=allUsers.find(function(u){return u.id===editUserId;});
-      if(existingUser&&existingUser.project_codes){
-        var existingCodes=existingUser.project_codes.split(',').filter(function(c){
-          var k=c.trim().split(':')[0].toLowerCase();
-          return k!==projKey;
-        });
-        if(existingCodes.length) codes=existingCodes.join(',')+','+codes;
-      }
+    var newEntry=projKey+':'+projRole;
+    // Always fetch fresh from DB to get full project_codes (avoids losing sbu: entries)
+    var freshRecord=null;
+    var lookupId=editUserId;
+    if(!lookupId){
+      // new assignment — email already set above
+      var fr=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
+      if(fr&&fr.length) freshRecord=fr[0];
+    } else {
+      var fr2=await sbGet(TABLE_ROLES,'id=eq.'+editUserId+'&select=id,project_codes,role');
+      if(fr2&&fr2.length) freshRecord=fr2[0];
     }
+    var existFull=freshRecord&&freshRecord.project_codes?freshRecord.project_codes:'';
+    var existRole2=freshRecord&&freshRecord.role?freshRecord.role.toLowerCase():'viewer';
+    // Merge: keep all existing entries except this project, then add new entry
+    var mergedEntries=existFull.split(',').filter(function(c){
+      return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
+    });
+    mergedEntries.push(newEntry);
+    codes=mergedEntries.join(',');
+    // Preserve elevated roles
+    role=(existRole2==='superadmin'||existRole2==='admin')?existRole2:(projRole==='editor'?'editor':'viewer');
+    if(freshRecord&&!editUserId) editUserId=freshRecord.id; // set editUserId so we patch instead of post
   } else if(currentRole==='editor'){
     var selectedCodes=getSelectedProjectCodes();
     role='viewer';codes=selectedCodes;
