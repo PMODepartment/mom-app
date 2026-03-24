@@ -1257,7 +1257,7 @@ async function loadNotifications(){
       };
       list.appendChild(div);
     });
-  }catch(e){list.innerHTML='<div style="font-size:0.82rem;color:var(--red);">Error loading</div>';}
+  }catch(e){list.innerHTML='<div style="font-size:0.82rem;color:var(--red);">Error: '+esc(e.message)+'</div>';console.error('notif error',e);}
 }
 
 async function checkNotifications(){
