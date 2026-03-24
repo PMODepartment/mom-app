@@ -2470,7 +2470,20 @@ function renderUsersList(){
       ||(currentRole==='admin'&&uRole!=='superadmin'&&uRole!=='admin')
       ||(currentRole==='editor'&&uRole==='viewer'); // editors can only edit viewers
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
-    var roleBadge=u.role==='superadmin'?'<span class="badge b-issue">Super Admin</span>':(u.role==='admin'?'<span class="badge b-open">Admin</span>':'');
+    // In project mode show the per-project role, in SBU mode show the global role
+    var displayRole='';
+    if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+      var pKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+      var cMap=u.project_codes?parseProjectCodes(u.project_codes):{};
+      displayRole=cMap[pKey]||u.role||'viewer';
+    } else {
+      displayRole=u.role||'';
+    }
+    var roleBadge=displayRole==='superadmin'?'<span class="badge b-issue">Super Admin</span>'
+      :displayRole==='admin'?'<span class="badge b-open">SBU Admin</span>'
+      :displayRole==='editor'?'<span class="badge b-fyi">Editor</span>'
+      :displayRole==='viewer'?'<span class="badge" style="background:var(--surface3);color:var(--muted);">Viewer</span>'
+      :'';
     row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div></div><div class="user-row-right">'+roleBadge+editBtnHtml+'</div>';
     if(canEditUser) row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
     list.appendChild(row);
