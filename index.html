@@ -2834,28 +2834,23 @@ async function saveUser(){
     var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
     var projRole=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
     var newEntry=projKey+':'+projRole;
-    // Always fetch fresh from DB to get full project_codes (avoids losing sbu: entries)
-    var freshRecord=null;
-    var lookupId=editUserId;
-    if(!lookupId){
-      // new assignment — email already set above
-      var fr=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
-      if(fr&&fr.length) freshRecord=fr[0];
-    } else {
-      var fr2=await sbGet(TABLE_ROLES,'id=eq.'+editUserId+'&select=id,project_codes,role');
-      if(fr2&&fr2.length) freshRecord=fr2[0];
-    }
-    var existFull=freshRecord&&freshRecord.project_codes?freshRecord.project_codes:'';
-    var existRole2=freshRecord&&freshRecord.role?freshRecord.role.toLowerCase():'viewer';
+    if(!projKey){flash('Project key missing.',true);btn.disabled=false;btn.textContent='Save';return;}
+    if(!email){flash('Please select a user first.',true);btn.disabled=false;btn.textContent='Save';return;}
+    // Always fetch fresh from DB using email to get full project_codes
+    var fr=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
+    var freshRecord=fr&&fr.length?fr[0]:null;
+    if(!freshRecord){flash('User account not found. They must sign up first.',true);btn.disabled=false;btn.textContent='Save';return;}
+    var existFull=freshRecord.project_codes||'';
+    var existRole2=(freshRecord.role||'viewer').toLowerCase();
     // Merge: keep all existing entries except this project, then add new entry
     var mergedEntries=existFull.split(',').filter(function(c){
       return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
     });
     mergedEntries.push(newEntry);
     codes=mergedEntries.join(',');
-    // Preserve elevated roles
+    // Preserve elevated roles — never downgrade superadmin or admin
     role=(existRole2==='superadmin'||existRole2==='admin')?existRole2:(projRole==='editor'?'editor':'viewer');
-    if(freshRecord&&!editUserId) editUserId=freshRecord.id; // set editUserId so we patch instead of post
+    editUserId=freshRecord.id; // always use the DB id
   } else if(currentRole==='editor'){
     var selectedCodes=getSelectedProjectCodes();
     role='viewer';codes=selectedCodes;
