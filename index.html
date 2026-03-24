@@ -2471,7 +2471,7 @@ function renderUsersList(){
       ||(currentRole==='editor'&&uRole==='viewer'); // editors can only edit viewers
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
     var roleBadge=u.role==='superadmin'?'<span class="badge b-issue">Super Admin</span>':(u.role==='admin'?'<span class="badge b-open">Admin</span>':'');
-    row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div><div class="user-row-proj">'+projText+'</div></div><div class="user-row-right">'+roleBadge+editBtnHtml+'</div>';
+    row.innerHTML='<div class="user-row-left"><div class="user-row-email">'+(displayN?esc(displayN)+' · ':'')+esc(u.email)+'</div></div><div class="user-row-right">'+roleBadge+editBtnHtml+'</div>';
     if(canEditUser) row.querySelector('.btn-edit-user').onclick=(function(uid){return function(){openUserEditSheet(uid);};})(u.id);
     list.appendChild(row);
   });
