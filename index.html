@@ -581,6 +581,7 @@
     <div class="denied-box">
       <h3>Access Not Granted</h3>
       <p>Your account <code id="deniedEmail"></code> has not been assigned a role. Ask the Super Admin to add you in Supabase.</p>
+      <button onclick="signOut()" style="margin-top:1rem;font-family:var(--font);font-size:0.84rem;font-weight:600;color:var(--blue);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0;">← Back to Sign In</button>
     </div>
   </div>
 
@@ -2744,7 +2745,22 @@ async function populateUserDropdown(){
   clearSelectedUser();
   document.getElementById('uUserSearch').value='';
   try{
-    _allAccountsCache=await sbGet(TABLE_ROLES,'order=email.asc&select=id,email,full_name,username,role');
+    var accounts=await sbGet(TABLE_ROLES,'order=email.asc&select=id,email,full_name,username,role,project_codes');
+    // In project mode: filter out superadmins and SBU admins of the current project's SBU
+    if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+      var projSBU=(_currentProjectForUsers.sbu||'');
+      accounts=accounts.filter(function(a){
+        var r=(a.role||'').toLowerCase();
+        if(r==='superadmin') return false;
+        if(r==='admin'){
+          // Exclude SBU admin of the same SBU as the current project
+          var adminSBU=(a.project_codes||'').replace('sbu:','').trim();
+          return adminSBU!==projSBU;
+        }
+        return true;
+      });
+    }
+    _allAccountsCache=accounts;
   }catch(e){_allAccountsCache=[];}
 }
 
