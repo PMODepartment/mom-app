@@ -2830,8 +2830,31 @@ async function saveUser(){
       await sbPatch(TABLE_ROLES,editUserId,{role:role,project_codes:codes});
       allUsers=allUsers.map(function(u){return u.id===editUserId?Object.assign({},u,{role:role,project_codes:codes}):u;});
     }else{
-      var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
-      allUsers.push(Array.isArray(saved)?saved[0]:saved);
+      // Always check if user already exists to avoid duplicate error
+      var existingByEmail=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
+      if(existingByEmail&&existingByEmail.length){
+        var existId=existingByEmail[0].id;
+        var existCodes=existingByEmail[0].project_codes||'';
+        // In project mode: merge existing project codes with new assignment
+        if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+          var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+          var mergedCodes=existCodes.split(',').filter(function(c){
+            return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
+          });
+          mergedCodes.push(codes);
+          codes=mergedCodes.join(',');
+          // Keep existing role unless we're upgrading
+          var existRole=(existingByEmail[0].role||'viewer').toLowerCase();
+          if(existRole!=='superadmin'&&existRole!=='admin') role=role==='editor'?'editor':existRole;
+        }
+        await sbPatch(TABLE_ROLES,existId,{role:role,project_codes:codes});
+        var updatedUser=Object.assign({},existingByEmail[0],{role:role,project_codes:codes,email:email});
+        var idx=allUsers.findIndex(function(u){return u.id===existId;});
+        if(idx>-1) allUsers[idx]=updatedUser; else allUsers.push(updatedUser);
+      } else {
+        var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
+        allUsers.push(Array.isArray(saved)?saved[0]:saved);
+      }
     }
     renderUsersList();
     closeUserEditSheet();
