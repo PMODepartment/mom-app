@@ -381,7 +381,7 @@
       <button class="manage-users-btn" id="desktopUsersBtn" onclick="openUsersSheet()">Manage Users</button>
       <button class="hbtn" id="logoutBtn" onclick="signOut()" style="display:block;">Sign Out</button>
     </div>
-    <button id="notifBtn" onclick="toggleNotifPanel()" style="display:none;position:relative;background:none;border:none;cursor:pointer;color:#fff;font-size:1.1rem;padding:0.2rem;line-height:1;" title="Notifications">
+    <button id="notifBtn" onclick="toggleNotifPanel()" style="display:none;position:relative;background:none;border:none;cursor:pointer;color:#fff;font-size:1.1rem;padding:0.35rem;line-height:1;border-radius:50%;transition:background 0.15s,transform 0.15s;" title="Notifications" onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='scale(1.15)'" onmouseout="this.style.background='none';this.style.transform='scale(1)'" onmousedown="this.style.transform='scale(0.92)'" onmouseup="this.style.transform='scale(1.15)'">
       🔔
       <span id="notifBadge" style="display:none;position:absolute;top:-2px;right:-2px;background:#ff3b30;color:#fff;font-size:0.55rem;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:none;align-items:center;justify-content:center;line-height:1;padding:0 3px;"></span>
     </button>
