@@ -1522,7 +1522,9 @@ function applyUserUI(){
   var displayName=(userRec&&(userRec.full_name||userRec.username))||currentEmail.split('@')[0];document.getElementById('userNameLabel').textContent=displayName;var hmName=document.getElementById('hmName');if(hmName)hmName.textContent=displayName;var hmChip=document.getElementById('hmChip');if(hmChip){hmChip.textContent=cap(currentRole);hmChip.className='role-chip rc-'+currentRole;}
   var greetingName=(userRec&&userRec.username)||(userRec&&userRec.full_name)||displayName;
   var greeting=document.getElementById('headerGreeting');
-  if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='';}
+  if(greeting){greeting.textContent='Hi '+greetingName+' !';greeting.style.display='inline';}
+  var nb=document.getElementById('notifBtn');
+  if(nb) nb.style.display=currentRole==='superadmin'?'inline-flex':'none';
   checkNotifications();
   var canAdd=currentRole==='superadmin'||currentRole==='admin'||currentRole==='editor';
   var isAdmin=currentRole==='superadmin';
