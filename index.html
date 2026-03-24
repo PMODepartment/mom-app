@@ -2915,21 +2915,26 @@ async function deleteUser(){
   if(u&&u.email===currentEmail){flash('Cannot remove your own access.',true);return;}
   try{
     if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-      // Remove only this project's assignment from user's project_codes
+      // Always fetch fresh from DB to get full project_codes
+      var freshRecs=await sbGet(TABLE_ROLES,'id=eq.'+editUserId+'&select=id,project_codes,role');
+      var fresh=freshRecs&&freshRecs.length?freshRecs[0]:null;
+      if(!fresh){flash('User not found.',true);return;}
       var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
-      var existingCodes=(u&&u.project_codes||'').split(',').filter(function(c){
+      var remainingCodes=(fresh.project_codes||'').split(',').filter(function(c){
         return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
       });
-      var newCodes=existingCodes.length?existingCodes.join(','):null;
-      var newRole=newCodes?u.role:'viewer'; // downgrade to viewer if no projects left
+      var newCodes=remainingCodes.length?remainingCodes.join(','):null;
+      // Preserve elevated roles — only downgrade if no elevated role
+      var freshRole=(fresh.role||'viewer').toLowerCase();
+      var newRole=(freshRole==='superadmin'||freshRole==='admin')?freshRole:(newCodes?'editor':'viewer');
       await sbPatch(TABLE_ROLES,editUserId,{project_codes:newCodes,role:newRole});
       allUsers=allUsers.map(function(x){return x.id===editUserId?Object.assign({},x,{project_codes:newCodes,role:newRole}):x;});
       flash('Project access removed.');
     } else {
-      // SBU mode: fully delete the role record
-      await sbDelete(TABLE_ROLES,editUserId);
-      allUsers=allUsers.filter(function(x){return x.id!==editUserId;});
-      flash('User removed.');
+      // SBU mode: remove role/codes but keep the account (just reset to viewer with no projects)
+      await sbPatch(TABLE_ROLES,editUserId,{role:'viewer',project_codes:null});
+      allUsers=allUsers.map(function(x){return x.id===editUserId?Object.assign({},x,{role:'viewer',project_codes:null}):x;});
+      flash('Access removed.');
     }
     renderUsersList();
     closeUserEditSheet();
