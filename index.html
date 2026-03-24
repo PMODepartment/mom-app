@@ -2873,11 +2873,13 @@ async function saveUser(){
           var mergedCodes=existCodes.split(',').filter(function(c){
             return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
           });
-          mergedCodes.push(codes);
+          mergedCodes.push(codes); // codes is already "projKey:role" here
           codes=mergedCodes.join(',');
-          // Keep existing role unless we're upgrading
+          // Always preserve existing role for superadmin and admin — never downgrade
           var existRole=(existingByEmail[0].role||'viewer').toLowerCase();
-          if(existRole!=='superadmin'&&existRole!=='admin') role=role==='editor'?'editor':existRole;
+          if(existRole==='superadmin'||existRole==='admin'){
+            role=existRole; // keep their elevated role
+          }
         }
         await sbPatch(TABLE_ROLES,existId,{role:role,project_codes:codes});
         var updatedUser=Object.assign({},existingByEmail[0],{role:role,project_codes:codes,email:email});
