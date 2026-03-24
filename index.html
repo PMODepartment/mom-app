@@ -906,9 +906,9 @@
     <p style="font-size:0.84rem;color:var(--muted);line-height:1.75;">This cannot be undone.</p>
     <p id="delPreview" style="font-size:0.78rem;font-weight:600;color:var(--red);margin-top:0.5rem;"></p>
   </div>
-  <div class="sh-foot">
-    <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
-    <button class="btn-danger" id="confirmBtn" onclick="confirmDelete()">Delete</button>
+  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
+    <button class="btn-cancel" onclick="closeConfirm()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
+    <button class="btn-danger" id="confirmBtn" onclick="confirmDelete()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Delete</button>
   </div>
 </div>
 
