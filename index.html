@@ -2866,37 +2866,20 @@ async function saveUser(){
   }
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
   try{
-    if(editUserId){
-      await sbPatch(TABLE_ROLES,editUserId,{role:role,project_codes:codes});
-      allUsers=allUsers.map(function(u){return u.id===editUserId?Object.assign({},u,{role:role,project_codes:codes}):u;});
-    }else{
-      // Always check if user already exists to avoid duplicate error
-      var existingByEmail=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
-      if(existingByEmail&&existingByEmail.length){
-        var existId=existingByEmail[0].id;
-        var existCodes=existingByEmail[0].project_codes||'';
-        // In project mode: merge existing project codes with new assignment
-        if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-          var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
-          var mergedCodes=existCodes.split(',').filter(function(c){
-            return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
-          });
-          mergedCodes.push(codes); // codes is already "projKey:role" here
-          codes=mergedCodes.join(',');
-          // Always preserve existing role for superadmin and admin — never downgrade
-          var existRole=(existingByEmail[0].role||'viewer').toLowerCase();
-          if(existRole==='superadmin'||existRole==='admin'){
-            role=existRole; // keep their elevated role
-          }
-        }
-        await sbPatch(TABLE_ROLES,existId,{role:role,project_codes:codes});
-        var updatedUser=Object.assign({},existingByEmail[0],{role:role,project_codes:codes,email:email});
-        var idx=allUsers.findIndex(function(u){return u.id===existId;});
-        if(idx>-1) allUsers[idx]=updatedUser; else allUsers.push(updatedUser);
-      } else {
-        var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
-        allUsers.push(Array.isArray(saved)?saved[0]:saved);
-      }
+    // Unified save: always lookup by id if we have it, otherwise by email
+    var targetId=editUserId;
+    if(!targetId){
+      var lookup=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id');
+      if(lookup&&lookup.length) targetId=lookup[0].id;
+    }
+    if(targetId){
+      await sbPatch(TABLE_ROLES,targetId,{role:role,project_codes:codes});
+      var updatedRec=Object.assign({},allUsers.find(function(u){return u.id===targetId;})||{},{id:targetId,email:email,role:role,project_codes:codes});
+      var idx=allUsers.findIndex(function(u){return u.id===targetId;});
+      if(idx>-1) allUsers[idx]=updatedRec; else allUsers.push(updatedRec);
+    } else {
+      var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
+      allUsers.push(Array.isArray(saved)?saved[0]:saved);
     }
     renderUsersList();
     closeUserEditSheet();
