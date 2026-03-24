@@ -842,22 +842,24 @@
     <div class="proj-photo-hint" onclick="document.getElementById('projPhotoInput').click()">Tap to set photo</div>
     <input type="file" id="projPhotoInput" accept="image/*" onchange="handleProjPhoto(event)"/>
     <div style="display:flex;gap:0.5rem;">
-      <div class="ff" style="flex:2;"><label>Project Name</label><input type="text" id="pName" placeholder="Carbon Market PSC"/></div>
-      <div class="ff" style="flex:1;"><label>Short Name</label><input type="text" id="pShort" placeholder="CMPS"/></div>
-      <div class="ff" style="flex:1;"><label>Project Code</label><input type="text" id="pCode" placeholder="EPC-001"/></div>
+      <div class="ff" style="flex:3;"><label>Project Name</label><input type="text" id="pName" placeholder="Carbon Market PSC"/></div>
+      <div class="ff" style="flex:2;"><label>Short Name</label><input type="text" id="pShort" placeholder="CMPS"/></div>
+      <div class="ff" style="flex:1;"><label>Code</label><input type="text" id="pCode" placeholder="EPC-001"/></div>
     </div>
-    <div class="ff"><label>SBU</label>
-      <select id="pSBU">
-        <option value="">— Select SBU —</option>
-      </select>
-    </div>
-    <div class="ff"><label>Color (for avatar)</label>
-      <select id="pColor">
-        <option value="#007aff">Blue</option><option value="#34c759">Green</option>
-        <option value="#ff9500">Orange</option><option value="#ff3b30">Red</option>
-        <option value="#af52de">Purple</option><option value="#5ac8fa">Teal</option>
-        <option value="#ff2d55">Pink</option><option value="#1c1c1e">Black</option>
-      </select>
+    <div style="display:flex;gap:0.5rem;">
+      <div class="ff" style="flex:3;"><label>SBU</label>
+        <select id="pSBU">
+          <option value="">— Select SBU —</option>
+        </select>
+      </div>
+      <div class="ff" style="flex:1;"><label>Color</label>
+        <select id="pColor">
+          <option value="#007aff">Blue</option><option value="#34c759">Green</option>
+          <option value="#ff9500">Orange</option><option value="#ff3b30">Red</option>
+          <option value="#af52de">Purple</option><option value="#5ac8fa">Teal</option>
+          <option value="#ff2d55">Pink</option><option value="#1c1c1e">Black</option>
+        </select>
+      </div>
     </div>
   </div>
   <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
