@@ -2868,21 +2868,27 @@ async function saveUser(){
     codes=selectedCodes;
   }
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
+  if(!role||codes===undefined){flash('Role or codes missing.',true);btn.disabled=false;btn.textContent='Save';return;}
   try{
-    // Unified save: always lookup by id if we have it, otherwise by email
-    var targetId=editUserId;
-    if(!targetId){
-      var lookup=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id');
-      if(lookup&&lookup.length) targetId=lookup[0].id;
-    }
-    if(targetId){
-      await sbPatch(TABLE_ROLES,targetId,{role:role,project_codes:codes});
-      var updatedRec=Object.assign({},allUsers.find(function(u){return u.id===targetId;})||{},{id:targetId,email:email,role:role,project_codes:codes});
-      var idx=allUsers.findIndex(function(u){return u.id===targetId;});
+    if(editUserId){
+      // Patch existing record
+      await sbPatch(TABLE_ROLES,editUserId,{role:role,project_codes:codes});
+      var updatedRec=Object.assign({},allUsers.find(function(u){return u.id===editUserId;})||{},{id:editUserId,email:email,role:role,project_codes:codes});
+      var idx=allUsers.findIndex(function(u){return u.id===editUserId;});
       if(idx>-1) allUsers[idx]=updatedRec; else allUsers.push(updatedRec);
     } else {
-      var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
-      allUsers.push(Array.isArray(saved)?saved[0]:saved);
+      // New record — check if email exists first
+      var lookup=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id');
+      if(lookup&&lookup.length){
+        var tid=lookup[0].id;
+        await sbPatch(TABLE_ROLES,tid,{role:role,project_codes:codes});
+        var ur2=Object.assign({},{id:tid,email:email,role:role,project_codes:codes});
+        var idx2=allUsers.findIndex(function(u){return u.id===tid;});
+        if(idx2>-1) allUsers[idx2]=ur2; else allUsers.push(ur2);
+      } else {
+        var saved=await sbPost(TABLE_ROLES,{email:email,role:role,project_codes:codes});
+        allUsers.push(Array.isArray(saved)?saved[0]:saved);
+      }
     }
     renderUsersList();
     closeUserEditSheet();
@@ -2891,6 +2897,7 @@ async function saveUser(){
     var msg=e.message;
     try{var parsed=JSON.parse(msg);msg=parsed.message||msg;}catch(pe){}
     flash('Save failed: '+msg,true);
+    console.error('saveUser error:',e);
   }
   btn.disabled=false;btn.textContent='Save';
 }
