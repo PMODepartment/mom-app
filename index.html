@@ -754,10 +754,10 @@
       <div id="uProjectsList" style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.3rem;"></div>
     </div>
   </div>
-  <div class="sh-foot">
-    <button class="btn-cancel" onclick="closeUserEditSheet()">Cancel</button>
-    <button class="btn-del-inline" id="userDelBtn" style="display:none" onclick="deleteUser()">Delete</button>
-    <button class="btn-save" id="userSaveBtn" onclick="saveUser()">Save</button>
+  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
+    <button class="btn-cancel" onclick="closeUserEditSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
+    <button class="btn-del-inline" id="userDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="deleteUser()">Remove Access</button>
+    <button class="btn-save" id="userSaveBtn" onclick="saveUser()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Save</button>
   </div>
 </div>
 
@@ -2873,13 +2873,27 @@ async function saveUser(){
 async function deleteUser(){
   if(!editUserId)return;
   var u=allUsers.find(function(x){return x.id===editUserId;});
-  if(u&&u.email===currentEmail){flash('Cannot delete your own account.',true);return;}
+  if(u&&u.email===currentEmail){flash('Cannot remove your own access.',true);return;}
   try{
-    await sbDelete(TABLE_ROLES,editUserId);
-    allUsers=allUsers.filter(function(x){return x.id!==editUserId;});
+    if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+      // Remove only this project's assignment from user's project_codes
+      var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+      var existingCodes=(u&&u.project_codes||'').split(',').filter(function(c){
+        return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
+      });
+      var newCodes=existingCodes.length?existingCodes.join(','):null;
+      var newRole=newCodes?u.role:'viewer'; // downgrade to viewer if no projects left
+      await sbPatch(TABLE_ROLES,editUserId,{project_codes:newCodes,role:newRole});
+      allUsers=allUsers.map(function(x){return x.id===editUserId?Object.assign({},x,{project_codes:newCodes,role:newRole}):x;});
+      flash('Project access removed.');
+    } else {
+      // SBU mode: fully delete the role record
+      await sbDelete(TABLE_ROLES,editUserId);
+      allUsers=allUsers.filter(function(x){return x.id!==editUserId;});
+      flash('User removed.');
+    }
     renderUsersList();
     closeUserEditSheet();
-    flash('User deleted.');
   }catch(e){flash('Error: '+e.message,true);}
 }
 
