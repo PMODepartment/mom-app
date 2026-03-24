@@ -2361,8 +2361,6 @@ function openUsersSheet(){
   if(currentRole!=='superadmin'){flash('Only Super Admin can manage SBU-level access.',true);return;}
   closeSheet('usersOverlay','usersSheet');
   currentUsersTab='all';
-  document.querySelectorAll('.users-tab').forEach(function(t){t.classList.remove('active');t.style.display='';});
-  var at=document.getElementById('tab-all');if(at)at.classList.add('active');
   var s=document.getElementById('usersSearch');if(s)s.value='';
   window._usersSheetMode='sbu';
   loadUsers();
@@ -2378,9 +2376,7 @@ function openProjectUsersSheet(proj){
   var title=document.querySelector('#usersSheet .sh-head h2');
   if(title) title.textContent=(proj.short_name||proj.name)+' — Users';
   var s=document.getElementById('usersSearch');if(s)s.value='';
-  // Hide super admin and sbu admin tabs in project mode
-  var tSA=document.getElementById('tab-superadmin');if(tSA)tSA.style.display='none';
-  var tAD=document.getElementById('tab-admin');if(tAD)tAD.style.display='none';
+
   loadUsers();
   openSheet('usersOverlay','usersSheet');
 }
@@ -2482,15 +2478,7 @@ function renderUsersList(){
     return false;
   });
   if(!visible.length){list.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.84rem;">No users found.</div>';return;}
-  // Update tab counts
-  var tabRoles={superadmin:0,admin:0,editor:0,viewer:0};
-  visible.forEach(function(u){var r=(u.role||'').toLowerCase();if(tabRoles[r]!==undefined)tabRoles[r]++;});
-  document.getElementById('count-all').textContent=visible.length;
-  Object.keys(tabRoles).forEach(function(r){var el=document.getElementById('count-'+r);if(el)el.textContent=tabRoles[r];});
-  // Filter by active tab
-  if(currentUsersTab!=='all'){
-    visible=visible.filter(function(u){return (u.role||'').toLowerCase()===currentUsersTab;});
-  }
+  // Tabs removed — show all visible users
   // Sort: superadmin first, then alphabetically by full_name/username/email
   visible.sort(function(a,b){
     var aIsSA=(a.role==='superadmin'||a.role==='admin')?0:1;
