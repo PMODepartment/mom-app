@@ -2332,9 +2332,10 @@ function openUsersSheet(){
   if(currentRole!=='superadmin'){flash('Only Super Admin can manage SBU-level access.',true);return;}
   closeSheet('usersOverlay','usersSheet');
   currentUsersTab='all';
-  document.querySelectorAll('.users-tab').forEach(function(t){t.classList.remove('active');});var at=document.getElementById('tab-all');if(at)at.classList.add('active');
+  document.querySelectorAll('.users-tab').forEach(function(t){t.classList.remove('active');t.style.display='';});
+  var at=document.getElementById('tab-all');if(at)at.classList.add('active');
   var s=document.getElementById('usersSearch');if(s)s.value='';
-  window._usersSheetMode='sbu'; // SBU level
+  window._usersSheetMode='sbu';
   loadUsers();
   openSheet('usersOverlay','usersSheet');
 }
@@ -2345,10 +2346,12 @@ function openProjectUsersSheet(proj){
   _currentProjectForUsers=proj;
   window._usersSheetMode='project';
   closeSheet('usersOverlay','usersSheet');
-  // Update sheet title
   var title=document.querySelector('#usersSheet .sh-head h2');
   if(title) title.textContent=(proj.short_name||proj.name)+' — Users';
   var s=document.getElementById('usersSearch');if(s)s.value='';
+  // Hide super admin and sbu admin tabs in project mode
+  var tSA=document.getElementById('tab-superadmin');if(tSA)tSA.style.display='none';
+  var tAD=document.getElementById('tab-admin');if(tAD)tAD.style.display='none';
   loadUsers();
   openSheet('usersOverlay','usersSheet');
 }
