@@ -2092,12 +2092,14 @@ function openDetail(idx){
     if(delItem) delItem.style.display=canDel?'block':'none';
   }
   var att=item.attachment_url?'<div class="dfield"><div class="dl">Attachment</div><div class="dv"><a href="'+item.attachment_url+'" target="_blank" class="att-link">'+esc(item.attachment_name||'Download')+'</a></div></div>':'';
-  var firstRow='<div style="display:grid;grid-template-columns:0.6fr 1.5fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">'+
+  // Row 1: No. Type Status | Row 2: Category
+  var firstRow=
+    '<div style="display:grid;grid-template-columns:0.6fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">'+
     '<div class="dfield" style="margin-bottom:0;"><div class="dl">No.</div><div class="dv mono">'+(item.no||'-')+'</div></div>'+
-    '<div class="dfield" style="margin-bottom:0;"><div class="dl">Category</div><div class="dv">'+(item.category||'-')+'</div></div>'+
     '<div class="dfield" style="margin-bottom:0;"><div class="dl">Type</div><div class="dv">'+typeBadge(item.type)+'</div></div>'+
     '<div class="dfield" style="margin-bottom:0;"><div class="dl">Status</div><div class="dv">'+statusBadge(item.status)+'</div></div>'+
-    '</div>';
+    '</div>'+
+    '<div class="dfield" style="margin-bottom:0.5rem;"><div class="dl">Category</div><div class="dv">'+(item.category||'-')+'</div></div>';
   document.getElementById('detailBody').innerHTML=actions+firstRow+
     '<div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv lg">'+esc(item.issue||'-')+'</div></div>'+
     '<div class="dfield"><div class="dl">Description</div><div class="dv lg">'+esc(item.description||'-')+'</div></div>'+
