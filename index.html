@@ -2146,7 +2146,8 @@ function closeDetail(){closeSheet('detailOverlay','detailSheet');}
 
 // EDIT ITEM
 function openEditSheet(idx){
-  if(currentRole==='viewer')return;
+  var effRoleEdit=getEffectiveRole(selectedProject);
+  if(effRoleEdit==='viewer')return;
   editItemIdx=idx;
   var item=(idx===-1)?{}:(window._meetingItems||[])[idx]||{};
   document.getElementById('editTitle').textContent=idx===-1?'Add New Item':'Edit Item';
