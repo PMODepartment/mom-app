@@ -14,6 +14,10 @@
 
     /* HAMBURGER MENU */
     .hide-mobile{display:none !important;}
+    @media(max-width:599px){
+      .proj-field-row{flex-direction:column !important;}
+      .proj-field-row .ff{flex:none !important;}
+    }
     @media(min-width:600px){.hide-mobile{display:inline !important;}}
     #hamburgerBtn{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:0.4rem;border-radius:8px;}
     #hamburgerBtn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all 0.2s;}
@@ -279,7 +283,7 @@
     /* BOTTOM SHEETS */
     .sh-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
     .sh-overlay.open{display:block;}
-    .bsheet{position:fixed;left:50%;bottom:0;z-index:201;background:var(--surface2);border-radius:var(--rxl) var(--rxl) 0 0;max-height:var(--sheet-max-h,85vh);transform:translateX(-50%) translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;padding-bottom:var(--safe-bot);width:70%;min-width:320px;overflow:hidden;}
+    .bsheet{position:fixed;left:50%;bottom:0;z-index:201;background:var(--surface2);border-radius:var(--rxl) var(--rxl) 0 0;max-height:var(--sheet-max-h,85vh);transform:translateX(-50%) translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;padding-bottom:var(--safe-bot);width:95%;min-width:320px;overflow:hidden;}
     @media(max-width:599px){#detailSheet,#editSheet{width:90%;min-width:0;}}
     @media(min-width:600px){#detailSheet,#editSheet{width:60%!important;max-height:calc(100vh - var(--header-h, 70px))!important;top:var(--header-h, 70px);bottom:0;}}
     .bsheet.open{transform:translateX(-50%) translateY(0);}
@@ -854,12 +858,12 @@
     <div id="projPhotoPreview" class="proj-photo-preview" onclick="document.getElementById('projPhotoInput').click()"></div>
     <div class="proj-photo-hint" onclick="document.getElementById('projPhotoInput').click()">Tap to set photo</div>
     <input type="file" id="projPhotoInput" accept="image/*" onchange="handleProjPhoto(event)"/>
-    <div style="display:flex;gap:0.5rem;">
-      <div class="ff" style="flex:3;"><label>Project Name</label><input type="text" id="pName" placeholder="Modan Lofts Ortigas Hills"/></div>
+    <div class="ff"><label>Project Name</label><input type="text" id="pName" placeholder="Modan Lofts Ortigas Hills"/></div>
+    <div class="proj-field-row" style="display:flex;gap:0.5rem;">
       <div class="ff" style="flex:2;"><label>Short Name</label><input type="text" id="pShort" placeholder="MLOH"/></div>
       <div class="ff" style="flex:1;"><label>Code</label><input type="text" id="pCode" placeholder="TMS301"/></div>
     </div>
-    <div style="display:flex;gap:0.5rem;">
+    <div class="proj-field-row" style="display:flex;gap:0.5rem;">
       <div class="ff" style="flex:3;"><label>SBU</label>
         <select id="pSBU">
           <option value="">— Select SBU —</option>
@@ -891,10 +895,8 @@
     <div id="sbuPhotoPreview" class="proj-photo-preview" onclick="document.getElementById('sbuPhotoInput').click()" style="cursor:pointer;"></div>
     <div class="proj-photo-hint" onclick="document.getElementById('sbuPhotoInput').click()">Tap to set photo</div>
     <input type="file" id="sbuPhotoInput" accept="image/*" onchange="handleSBUPhoto(event)" style="display:none;"/>
-    <div style="display:flex;gap:0.5rem;">
-      <div class="ff" style="flex:3;"><label>SBU Name</label><input type="text" id="sbuName" placeholder="e.g. Engineering, Procurement &amp; Construction"/></div>
-      <div class="ff" style="flex:1;"><label>Short Name</label><input type="text" id="sbuShort" placeholder="e.g. EPC"/></div>
-    </div>
+    <div class="ff"><label>SBU Name</label><input type="text" id="sbuName" placeholder="e.g. Engineering, Procurement &amp; Construction"/></div>
+    <div class="ff"><label>Short Name</label><input type="text" id="sbuShort" placeholder="e.g. EPC"/></div>
   </div>
   <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
     <button class="btn-cancel" onclick="closeSBUSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
