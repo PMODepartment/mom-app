@@ -17,6 +17,8 @@
     @media(max-width:599px){
       .proj-field-row{flex-direction:column !important;}
       .proj-field-row .ff{flex:none !important;}
+      .item-fields-desktop{grid-template-columns:0.6fr 1fr 1fr !important;}
+      .item-fields-desktop .ff:nth-child(2),.item-fields-desktop .dfield:nth-child(2){grid-column:1/-1;}
     }
     @media(min-width:600px){.hide-mobile{display:inline !important;}}
     #hamburgerBtn{display:none;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;cursor:pointer;padding:0.4rem;border-radius:8px;}
@@ -785,14 +787,13 @@
   <div class="sh-handle"></div>
   <div class="sh-head"><h2 id="editTitle">Add New Item</h2><button class="sh-x" onclick="closeEdit()">✕</button></div>
   <div class="sh-body">
-    <!-- Row 1: No. Type Status -->
-    <div style="display:grid;grid-template-columns:0.6fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+    <!-- Desktop: 4-col row | Mobile: No/Type/Status row + Category row -->
+    <div class="item-fields-desktop" style="display:grid;grid-template-columns:0.6fr 1.5fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">
       <div class="ff" style="margin-bottom:0;"><label>No.</label><input type="number" id="fNo" placeholder="1"/></div>
+      <div class="ff" style="margin-bottom:0;"><label>Category</label><select id="fCat2"><option value="">Select</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Finance</option><option>Other Matters</option></select></div>
       <div class="ff" style="margin-bottom:0;"><label>Type</label><select id="fType2"><option value="">Select</option><option>Issue</option><option>FYI</option><option>Report</option></select></div>
       <div class="ff" style="margin-bottom:0;"><label>Status</label><select id="fStat2"><option value="">Select</option><option>Open</option><option>Closed</option><option>On Hold</option></select></div>
     </div>
-    <!-- Row 2: Category -->
-    <div class="ff" style="margin-bottom:0.5rem;"><label>Category</label><select id="fCat2"><option value="">Select</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Finance</option><option>Other Matters</option></select></div>
     <div class="ff"><label>Issue / Agenda</label><input type="text" id="fIssue" placeholder="Topic"/></div>
     <div class="ff"><label>Description</label><textarea id="fDesc" placeholder="Details…"></textarea></div>
     <div class="ff"><label>Action Item</label><textarea id="fAction" placeholder="What needs to be done…"></textarea></div>
@@ -2092,14 +2093,13 @@ function openDetail(idx){
     if(delItem) delItem.style.display=canDel?'block':'none';
   }
   var att=item.attachment_url?'<div class="dfield"><div class="dl">Attachment</div><div class="dv"><a href="'+item.attachment_url+'" target="_blank" class="att-link">'+esc(item.attachment_name||'Download')+'</a></div></div>':'';
-  // Row 1: No. Type Status | Row 2: Category
-  var firstRow=
-    '<div style="display:grid;grid-template-columns:0.6fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">'+
+  // Desktop: 4-col | Mobile: 3-col + category row
+  var firstRow='<div class="item-fields-desktop" style="display:grid;grid-template-columns:0.6fr 1.5fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">'+
     '<div class="dfield" style="margin-bottom:0;"><div class="dl">No.</div><div class="dv mono">'+(item.no||'-')+'</div></div>'+
+    '<div class="dfield" style="margin-bottom:0;"><div class="dl">Category</div><div class="dv">'+(item.category||'-')+'</div></div>'+
     '<div class="dfield" style="margin-bottom:0;"><div class="dl">Type</div><div class="dv">'+typeBadge(item.type)+'</div></div>'+
     '<div class="dfield" style="margin-bottom:0;"><div class="dl">Status</div><div class="dv">'+statusBadge(item.status)+'</div></div>'+
-    '</div>'+
-    '<div class="dfield" style="margin-bottom:0.5rem;"><div class="dl">Category</div><div class="dv">'+(item.category||'-')+'</div></div>';
+    '</div>';
   document.getElementById('detailBody').innerHTML=actions+firstRow+
     '<div class="dfield"><div class="dl">Issue / Agenda</div><div class="dv lg">'+esc(item.issue||'-')+'</div></div>'+
     '<div class="dfield"><div class="dl">Description</div><div class="dv lg">'+esc(item.description||'-')+'</div></div>'+
