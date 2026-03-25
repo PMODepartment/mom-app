@@ -785,7 +785,14 @@
   <div class="sh-handle"></div>
   <div class="sh-head"><h2 id="editTitle">Add New Item</h2><button class="sh-x" onclick="closeEdit()">✕</button></div>
   <div class="sh-body">
-    <div id="editTopFields" style="margin-bottom:0.5rem;"></div>
+    <!-- Row 1: No. Type Status (all screens) -->
+    <div style="display:grid;grid-template-columns:0.6fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+      <div class="ff" style="margin-bottom:0;"><label>No.</label><input type="number" id="fNo" placeholder="1"/></div>
+      <div class="ff" style="margin-bottom:0;"><label>Type</label><select id="fType2"><option value="">Select</option><option>Issue</option><option>FYI</option><option>Report</option></select></div>
+      <div class="ff" style="margin-bottom:0;"><label>Status</label><select id="fStat2"><option value="">Select</option><option>Open</option><option>Closed</option><option>On Hold</option></select></div>
+    </div>
+    <!-- Row 2: Category (all screens) -->
+    <div class="ff" style="margin-bottom:0.5rem;"><label>Category</label><select id="fCat2"><option value="">Select</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Finance</option><option>Other Matters</option></select></div>
     <div class="ff"><label>Issue / Agenda</label><input type="text" id="fIssue" placeholder="Topic"/></div>
     <div class="ff"><label>Description</label><textarea id="fDesc" placeholder="Details…"></textarea></div>
     <div class="ff"><label>Action Item</label><textarea id="fAction" placeholder="What needs to be done…"></textarea></div>
@@ -2138,32 +2145,8 @@ function detailMenuDel(){
 function closeDetail(){closeSheet('detailOverlay','detailSheet');}
 
 // EDIT ITEM
-function renderEditTopFields(){
-  var isMobile=window.innerWidth<600;
-  var container=document.getElementById('editTopFields');
-  if(!container) return;
-  if(isMobile){
-    container.innerHTML=
-      '<div style="display:grid;grid-template-columns:0.6fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">'+
-      '<div class="ff" style="margin-bottom:0;"><label>No.</label><input type="number" id="fNo" placeholder="1"/></div>'+
-      '<div class="ff" style="margin-bottom:0;"><label>Type</label><select id="fType2"><option value="">Select</option><option>Issue</option><option>FYI</option><option>Report</option></select></div>'+
-      '<div class="ff" style="margin-bottom:0;"><label>Status</label><select id="fStat2"><option value="">Select</option><option>Open</option><option>Closed</option><option>On Hold</option></select></div>'+
-      '</div>'+
-      '<div class="ff" style="margin-bottom:0.5rem;"><label>Category</label><select id="fCat2"><option value="">Select</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Finance</option><option>Other Matters</option></select></div>';
-  } else {
-    container.innerHTML=
-      '<div style="display:grid;grid-template-columns:0.6fr 1.5fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;">'+
-      '<div class="ff" style="margin-bottom:0;"><label>No.</label><input type="number" id="fNo" placeholder="1"/></div>'+
-      '<div class="ff" style="margin-bottom:0;"><label>Category</label><select id="fCat2"><option value="">Select</option><option>Commercial / Contracts</option><option>Organizational Hr</option><option>Engineering</option><option>Procurement</option><option>Operations</option><option>Risk</option><option>Stakeholder Management</option><option>Quality</option><option>Project Execution Plan</option><option>Finance</option><option>Other Matters</option></select></div>'+
-      '<div class="ff" style="margin-bottom:0;"><label>Type</label><select id="fType2"><option value="">Select</option><option>Issue</option><option>FYI</option><option>Report</option></select></div>'+
-      '<div class="ff" style="margin-bottom:0;"><label>Status</label><select id="fStat2"><option value="">Select</option><option>Open</option><option>Closed</option><option>On Hold</option></select></div>'+
-      '</div>';
-  }
-}
-
 function openEditSheet(idx){
   if(currentRole==='viewer')return;
-  renderEditTopFields();
   editItemIdx=idx;
   var item=(idx===-1)?{}:(window._meetingItems||[])[idx]||{};
   document.getElementById('editTitle').textContent=idx===-1?'Add New Item':'Edit Item';
