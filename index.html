@@ -2163,6 +2163,7 @@ function renderEditTopFields(){
 
 function openEditSheet(idx){
   if(currentRole==='viewer')return;
+  renderEditTopFields();
   editItemIdx=idx;
   var item=(idx===-1)?{}:(window._meetingItems||[])[idx]||{};
   document.getElementById('editTitle').textContent=idx===-1?'Add New Item':'Edit Item';
