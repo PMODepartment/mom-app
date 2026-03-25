@@ -301,6 +301,9 @@
     .dot-menu-item.del{color:var(--red);}
     .sh-body{overflow-y:auto;flex:1;padding:1rem 1.1rem;-webkit-overflow-scrolling:touch;}
     .sh-foot{display:flex;gap:0.6rem;padding:0.8rem 1.1rem;border-top:1px solid var(--border);flex-shrink:0;}
+    .sh-foot.right{justify-content:flex-end;}
+    .sh-foot.right .btn-cancel,.sh-foot.right .btn-del-inline,.sh-foot.right .btn-save,.sh-foot.right .btn-danger{flex:none!important;padding:0.5rem 1rem!important;font-size:0.8rem!important;}
+    .sh-foot.right .btn-save{padding:0.5rem 1.25rem!important;}
 
     /* FORM */
     .ff{display:flex;flex-direction:column;gap:0.3rem;margin-bottom:0.85rem;}
@@ -760,10 +763,10 @@
       <div id="uProjectsList" style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.3rem;"></div>
     </div>
   </div>
-  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
-    <button class="btn-cancel" onclick="closeUserEditSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
-    <button class="btn-del-inline" id="userDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="askDeleteUser()">Remove Access</button>
-    <button class="btn-save" id="userSaveBtn" onclick="saveUser()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Save</button>
+  <div class="sh-foot right">
+    <button class="btn-cancel" onclick="closeUserEditSheet()">Cancel</button>
+    <button class="btn-del-inline" id="userDelBtn" style="display:none;" onclick="askDeleteUser()">Remove Access</button>
+    <button class="btn-save" id="userSaveBtn" onclick="saveUser()">Save</button>
   </div>
 </div>
 
@@ -842,9 +845,9 @@
       <div id="carryOverPreview" style="display:none;margin-top:0.5rem;padding:0.6rem 0.85rem;background:var(--blue-l);border-radius:var(--r);font-size:0.78rem;color:var(--blue);font-weight:500;"></div>
     </div>
   </div>
-  <div class="sh-foot">
+  <div class="sh-foot right">
     <button class="btn-cancel" onclick="closeMeetingSheet()">Cancel</button>
-    <button class="btn-del-inline" id="meetingDelBtn" style="display:none" onclick="askDeleteMeeting()">Delete</button>
+    <button class="btn-del-inline" id="meetingDelBtn" style="display:none;" onclick="askDeleteMeeting()">Delete</button>
     <button class="btn-save" id="meetingSaveBtn" onclick="saveMeeting()">Save</button>
   </div>
 </div>
@@ -879,10 +882,10 @@
       </div>
     </div>
   </div>
-  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
-    <button class="btn-cancel" onclick="closeProjSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
-    <button class="btn-del-inline" id="projDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="askDeleteProject()">Delete</button>
-    <button class="btn-save" id="projSaveBtn" onclick="saveProject()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Save</button>
+  <div class="sh-foot right">
+    <button class="btn-cancel" onclick="closeProjSheet()">Cancel</button>
+    <button class="btn-del-inline" id="projDelBtn" style="display:none;" onclick="askDeleteProject()">Delete</button>
+    <button class="btn-save" id="projSaveBtn" onclick="saveProject()">Save</button>
   </div>
 </div>
 
@@ -898,10 +901,10 @@
     <div class="ff"><label>SBU Name</label><input type="text" id="sbuName" placeholder="e.g. Engineering, Procurement &amp; Construction"/></div>
     <div class="ff"><label>Short Name</label><input type="text" id="sbuShort" placeholder="e.g. EPC"/></div>
   </div>
-  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
-    <button class="btn-cancel" onclick="closeSBUSheet()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
-    <button class="btn-del-inline" id="sbuDelBtn" style="display:none;flex:none;padding:0.5rem 1rem;font-size:0.8rem;" onclick="askDeleteSBU()">Delete</button>
-    <button class="btn-save" onclick="saveSBUSheet()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Save</button>
+  <div class="sh-foot right">
+    <button class="btn-cancel" onclick="closeSBUSheet()">Cancel</button>
+    <button class="btn-del-inline" id="sbuDelBtn" style="display:none;" onclick="askDeleteSBU()">Delete</button>
+    <button class="btn-save" onclick="saveSBUSheet()">Save</button>
   </div>
 </div>
 
@@ -914,9 +917,9 @@
     <p style="font-size:0.84rem;color:var(--muted);line-height:1.75;">This cannot be undone.</p>
     <p id="delPreview" style="font-size:0.78rem;font-weight:600;color:var(--red);margin-top:0.5rem;"></p>
   </div>
-  <div class="sh-foot" style="justify-content:flex-end;gap:0.5rem;">
-    <button class="btn-cancel" onclick="closeConfirm()" style="flex:none;padding:0.5rem 1rem;font-size:0.8rem;">Cancel</button>
-    <button class="btn-danger" id="confirmBtn" onclick="confirmDelete()" style="flex:none;padding:0.5rem 1.25rem;font-size:0.8rem;">Delete</button>
+  <div class="sh-foot right">
+    <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+    <button class="btn-danger" id="confirmBtn" onclick="confirmDelete()">Delete</button>
   </div>
 </div>
 
