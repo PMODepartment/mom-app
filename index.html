@@ -1495,7 +1495,7 @@ async function loadAll(){
         var pId=(p.id||'').toLowerCase().trim();
         return currentProjectCodes.some(function(c){
           var cc=(c||'').toLowerCase().trim();
-          return cc&&(cc===pCode||cc===pName||cc===pId);
+          return cc&&(cc===pCode||cc===pId); // match by code or id only, not name
         });
       });
     }
