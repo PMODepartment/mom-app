@@ -2545,7 +2545,9 @@ function renderUsersList(){
         var ur=(u.role||'').toLowerCase();
         return ur==='superadmin'||ur==='admin';
       }
-      if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+      var delMode=window._deleteUserMode||window._usersSheetMode;
+    var delProject=window._deleteUserProject||_currentProjectForUsers;
+    if(delMode==='project'&&delProject){
         var ur=(u.role||'').toLowerCase();
         var projSBU=_currentProjectForUsers.sbu||'';
         var pId=(_currentProjectForUsers.id||'').toLowerCase();
@@ -3061,6 +3063,8 @@ function askDeleteUser(){
     :'Remove all access for '+esc(u.full_name||u.email)+'?';
   deleteTarget=editUserId;
   deleteType='user';
+  window._deleteUserMode=window._usersSheetMode;
+  window._deleteUserProject=_currentProjectForUsers;
   document.getElementById('confirmTitle').textContent='Remove Access?';
   document.getElementById('delPreview').textContent=msg;
   document.getElementById('confirmBtn').textContent='Remove';
@@ -3069,31 +3073,32 @@ function askDeleteUser(){
 }
 
 async function deleteUser(){
-  if(!editUserId)return;
-  var u=allUsers.find(function(x){return x.id===editUserId;});
+  var targetUserId=deleteTarget||editUserId;
+  if(!targetUserId)return;
+  var u=allUsers.find(function(x){return x.id===targetUserId;});
   if(u&&u.email===currentEmail){flash('Cannot remove your own access.',true);return;}
   try{
     // Always fetch fresh from DB to preserve all codes
-    var freshForDel=await sbGet(TABLE_ROLES,'id=eq.'+editUserId+'&select=id,project_codes,role');
+    var freshForDel=await sbGet(TABLE_ROLES,'id=eq.'+targetUserId+'&select=id,project_codes,role');
     var freshD=freshForDel&&freshForDel.length?freshForDel[0]:null;
     if(!freshD){flash('User not found.',true);return;}
     var freshDRole=(freshD.role||'viewer').toLowerCase();
 
     if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-      var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+      var projKey=(delProject.code||delProject.id||'').toLowerCase();
       var remaining=(freshD.project_codes||'').split(',').filter(function(c){
         return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
       });
       var newCodes=sanitizeProjectCodes(remaining.join(','));
       // Preserve admin/superadmin role; downgrade editor/viewer if no projects left
       var newRole=(freshDRole==='superadmin'||freshDRole==='admin')?freshDRole:(newCodes?'editor':'viewer');
-      await sbPatch(TABLE_ROLES,editUserId,{project_codes:newCodes,role:newRole});
-      allUsers=allUsers.map(function(x){return x.id===editUserId?Object.assign({},x,{project_codes:newCodes,role:newRole}):x;});
+      await sbPatch(TABLE_ROLES,targetUserId,{project_codes:newCodes,role:newRole});
+      allUsers=allUsers.map(function(x){return x.id===targetUserId?Object.assign({},x,{project_codes:newCodes,role:newRole}):x;});
       flash('Project access removed.');
     } else {
       // SBU mode: reset to viewer with no projects (keep account)
-      await sbPatch(TABLE_ROLES,editUserId,{role:'viewer',project_codes:null});
-      allUsers=allUsers.map(function(x){return x.id===editUserId?Object.assign({},x,{role:'viewer',project_codes:null}):x;});
+      await sbPatch(TABLE_ROLES,targetUserId,{role:'viewer',project_codes:null});
+      allUsers=allUsers.map(function(x){return x.id===targetUserId?Object.assign({},x,{role:'viewer',project_codes:null}):x;});
       flash('Access removed.');
     }
     renderUsersList();
