@@ -2542,7 +2542,6 @@ function renderUsersList(){
     var uRole=(u.role||'').toLowerCase();
     if(currentRole==='superadmin'){
       if(window._usersSheetMode==='sbu'){
-        // SBU mode: only show superadmin and sbu admin
         var ur=(u.role||'').toLowerCase();
         return ur==='superadmin'||ur==='admin';
       }
@@ -2551,23 +2550,20 @@ function renderUsersList(){
         var projSBU=_currentProjectForUsers.sbu||'';
         var pId=(_currentProjectForUsers.id||'').toLowerCase();
         var pCode=(_currentProjectForUsers.code||'').toLowerCase();
-        // Always exclude superadmins
         if(ur==='superadmin') return false;
-        // Exclude SBU admin of the same SBU (they already have full access)
         if(ur==='admin'){
           var uAdminSBU=(u.project_codes||'').split(',').map(function(s){return s.trim();}).filter(function(s){return s.toLowerCase().startsWith('sbu:');}).map(function(s){return s.replace(/^sbu:/i,'').trim();})[0]||'';
           if(uAdminSBU===projSBU) return false;
-          // Show admin from different SBU if assigned to this project
           if(!u.project_codes) return false;
-          var uCodes=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
-          return uCodes.indexOf(pId)>-1||uCodes.indexOf(pCode)>-1;
+          var uCodes=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean);
+          return (pId&&uCodes.indexOf(pId)>-1)||(pCode&&uCodes.indexOf(pCode)>-1);
         }
-        // For editor/viewer: show if assigned to this project
         if(!u.project_codes) return false;
-        var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
-        return uCodes2.indexOf(pId)>-1||uCodes2.indexOf(pCode)>-1;
+        var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean);
+        return (pId&&uCodes2.indexOf(pId)>-1)||(pCode&&uCodes2.indexOf(pCode)>-1);
       }
-      return true;
+      // No valid mode — show nothing to avoid accidental exposure
+      return false;
     }
 
     if(currentRole==='admin'){
@@ -2576,11 +2572,10 @@ function renderUsersList(){
       if(!adminSBU) return false;
       if(!u.project_codes) return false;
       if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-        // Project mode: only show users assigned to THIS specific project
         var pId2=(_currentProjectForUsers.id||'').toLowerCase();
         var pCode2=(_currentProjectForUsers.code||'').toLowerCase();
-        var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
-        return uCodes2.indexOf(pId2)>-1||uCodes2.indexOf(pCode2)>-1;
+        var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean);
+        return (pId2&&uCodes2.indexOf(pId2)>-1)||(pCode2&&uCodes2.indexOf(pCode2)>-1);
       }
       // SBU mode: show users with projects in admin's SBU
       var projsInSBU=allProjects.filter(function(p){return (p.sbu||'')===adminSBU;}).map(function(p){return (p.code||p.id||'').toLowerCase();});
@@ -2783,6 +2778,22 @@ function renderProjectCheckboxes(sbuFilter, selectedCodes){
     row.appendChild(roleSelect);
     container.appendChild(row);
   });
+}
+
+function sanitizeProjectCodes(str){
+  if(!str) return null;
+  // Split, trim, remove empty/invalid entries, deduplicate by code
+  var seen={};
+  var clean=str.split(',').map(function(s){return s.trim();}).filter(function(s){
+    if(!s) return false;
+    var parts=s.split(':');
+    var code=parts[0].trim();
+    if(!code) return false; // no empty codes
+    if(seen[code]) return false; // no duplicates
+    seen[code]=true;
+    return true;
+  });
+  return clean.length?clean.join(','):null;
 }
 
 function getSelectedProjectCodes(){
@@ -2995,7 +3006,7 @@ async function saveUser(){
       return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
     });
     mergedEntries.push(newEntry);
-    codes=mergedEntries.join(',');
+    codes=sanitizeProjectCodes(mergedEntries.join(','));
     // Preserve role — never downgrade admin
     role=uRole==='admin'?'admin':(projRole==='editor'?'editor':'viewer');
     editUserId=freshRecord.id;
@@ -3073,7 +3084,7 @@ async function deleteUser(){
       var remaining=(freshD.project_codes||'').split(',').filter(function(c){
         return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
       });
-      var newCodes=remaining.length?remaining.join(','):null;
+      var newCodes=sanitizeProjectCodes(remaining.join(','));
       // Preserve admin/superadmin role; downgrade editor/viewer if no projects left
       var newRole=(freshDRole==='superadmin'||freshDRole==='admin')?freshDRole:(newCodes?'editor':'viewer');
       await sbPatch(TABLE_ROLES,editUserId,{project_codes:newCodes,role:newRole});
