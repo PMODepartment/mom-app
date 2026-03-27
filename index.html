@@ -747,7 +747,7 @@
         </label>
       </div>
     </div>
-    <div id="uEditorRoleNote" style="display:none;font-size:0.75rem;color:var(--blue);background:var(--blue-l);border-radius:var(--r);padding:0.5rem 0.75rem;margin-bottom:0.5rem;">ℹ Users you add will be assigned as <strong>Viewer</strong> on your assigned projects.</div>
+    <div id="uEditorRoleNote" style="display:none;font-size:0.75rem;color:var(--blue);background:var(--blue-l);border-radius:var(--r);padding:0.5rem 0.75rem;margin-bottom:0.5rem;">ℹ You can assign Editor or Viewer access for this project.</div>
     <div class="ff" id="uProjRoleWrap" style="display:none;">
       <label>Project Role</label>
       <div style="display:flex;gap:0.5rem;">
@@ -961,7 +961,7 @@ function getEffectiveRole(proj){
   if(currentRole==='admin'){
     if(!proj) return 'admin';
     // Full admin access on projects within assigned SBU
-    if(window._adminSBU&&(proj.sbu||'')===window._adminSBU) return 'admin';
+    if(window._adminSBU&&(proj.sbu||'').toLowerCase()===window._adminSBU.toLowerCase()) return 'admin';
     // Check if also assigned as editor/viewer on this specific project
     if(currentProjectRoles){
       var key1=(proj.code||'').toLowerCase();
@@ -1484,7 +1484,7 @@ async function loadAll(){
       // Admin sees all projects in their SBU + any extra assigned projects
       var extraCodes=currentProjectRoles?Object.keys(currentProjectRoles):[];
       allProjects=allProjects.filter(function(p){
-        if((p.sbu||'')===window._adminSBU) return true;
+        if((p.sbu||'').toLowerCase()===(window._adminSBU||'').toLowerCase()) return true;
         var k1=(p.code||'').toLowerCase();var k2=(p.id||'').toLowerCase();
         return extraCodes.indexOf(k1)>-1||extraCodes.indexOf(k2)>-1;
       });
@@ -1564,20 +1564,22 @@ function renderProjects(){
   var sbuProjects=selectedSBU?allProjects.filter(function(p){return (p.sbu||'')=== selectedSBU;}):allProjects;
   // Admin only sees projects in their assigned SBU
   if(currentRole==='admin'&&window._adminSBU){
-    sbuProjects=sbuProjects.filter(function(p){return (p.sbu||'')===window._adminSBU;});
+    sbuProjects=sbuProjects.filter(function(p){return (p.sbu||'').toLowerCase()===(window._adminSBU||'').toLowerCase();});
   }
   sbuProjects.forEach(function(proj){
     var card=document.createElement('div');card.className='proj-card';card.id='proj-card-'+proj.id;
     var avatarInner=proj.photo_url?'<img src="'+proj.photo_url+'" alt=""/>':'<span>'+esc(proj.short_name||proj.name.charAt(0))+'</span>';
     var effRoleProj=getEffectiveRole(proj);
-    var editBtn=(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor')?'<button class="proj-card-edit">✏ Edit</button>':'';
+    var editBtn=(effRoleProj==='superadmin'||effRoleProj==='admin')?'<button class="proj-card-edit">✏ Edit</button>':'';
     var usersBtn=(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor')?'<button class="proj-card-users">👥 Users</button>':'';
     card.innerHTML='<div class="proj-avatar" style="background:'+(proj.color||'#007aff')+'">'+avatarInner+'</div><div class="proj-card-name">'+esc(proj.short_name||proj.name)+'</div><div class="proj-card-code">'+esc(proj.code||'')+'</div>'+editBtn+usersBtn;
     card.onclick=function(){selectProject(proj);};
-    if(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor'){
+    if(effRoleProj==='superadmin'||effRoleProj==='admin'){
       card.onlongpress=function(){openProjSheet(proj);};
       var eb=card.querySelector('.proj-card-edit');
       if(eb)eb.addEventListener('click',function(e){e.stopPropagation();openProjSheet(proj);});
+    }
+    if(effRoleProj==='superadmin'||effRoleProj==='admin'||effRoleProj==='editor'){
       var ub=card.querySelector('.proj-card-users');
       if(ub)ub.addEventListener('click',(function(p){return function(e){e.stopPropagation();openProjectUsersSheet(p);};})(proj));
     }
@@ -1661,7 +1663,7 @@ function renderSBU(){
   var sbuColors=['#b40000','#1a56db','#1a8f3a','#b06800','#6b21a8','#0e7490'];
   var sbuList=getSBUs();
   if(currentRole==='admin'&&window._adminSBU){
-    sbuList=sbuList.filter(function(s){return s.name===window._adminSBU;});
+    sbuList=sbuList.filter(function(s){return s.name.toLowerCase()===(window._adminSBU||'').toLowerCase();});
   }
   sbuList.forEach(function(sbu,i){
     var color=sbu.color||sbuColors[i%sbuColors.length];
@@ -1867,8 +1869,8 @@ function filterMeetings(){
       var distributeBtn='';
       row.innerHTML='<div class="meeting-row-left"><div class="meeting-row-title" style="display:flex;align-items:center;gap:0.4rem;">'+esc(meeting.title||'Untitled Meeting')+draftBadge+'</div><div class="meeting-row-meta">'+fmtDate(meeting.meeting_date)+(meeting.location?' · '+esc(meeting.location):'')+'</div></div><div class="meeting-row-right"><span class="meeting-count">'+itemCount+' item'+(itemCount!==1?'s':'')+'</span>'+distributeBtn+editBtn+'<span class="meeting-chevron">›</span></div>';
       row.onclick=function(){openMeetingItems(meeting);};
-      if(currentRole==='superadmin'){
-        row.querySelector('.btn-meeting-edit')&&row.querySelector('.btn-meeting-edit').addEventListener('click',function(e){e.stopPropagation();openMeetingSheet(meeting);});
+      if(effRoleMtgList==='superadmin'||effRoleMtgList==='admin'||effRoleMtgList==='editor'){
+        row.querySelector('.btn-meeting-edit')&&row.querySelector('.btn-meeting-edit').addEventListener('click',(function(m){return function(e){e.stopPropagation();openMeetingSheet(m);};})(meeting));
       }
       list.appendChild(row);
     });
@@ -1895,6 +1897,10 @@ async function distributeMeeting(meeting, row){
     if(idx>-1) allMeetings[idx].is_distributed=newVal;
     filterMeetings();
     flash(newVal?'Meeting distributed!':'Meeting reverted to draft.');
+  // Update fab visibility based on distributed state
+  var effRoleD=getEffectiveRole(selectedProject);
+  var canAddNow=(effRoleD==='superadmin'||effRoleD==='admin'||effRoleD==='editor')&&!newVal;
+  document.getElementById('fab').style.display=canAddNow?'flex':'none';
   }catch(e){flash('Error: '+e.message,true);}
 }
 
@@ -1909,7 +1915,8 @@ async function openMeetingItems(meeting){
   var headerH=document.querySelector('header').offsetHeight;
   var si=document.getElementById('screenItems');si.style.display='flex';si.style.top=headerH+'px';
   var effRole=getEffectiveRole(selectedProject);
-  var canAdd=effRole==='superadmin'||effRole==='admin'||effRole==='editor';
+  var isDistributed=!!meeting.is_distributed;
+  var canAdd=(effRole==='superadmin'||effRole==='admin'||effRole==='editor')&&!isDistributed;
   document.getElementById('fab').style.display=canAdd?'flex':'none';
   // Show/update distribute button
   var dBtn=document.getElementById('distributeBtn');
@@ -2074,8 +2081,9 @@ function loadMore(){displayCount+=20;renderCards();}
 function openDetail(idx){
   var item=filteredItems[idx];if(!item)return;
   var effRoleDetail=getEffectiveRole(selectedProject);
-  var canEdit=effRoleDetail==='superadmin'||effRoleDetail==='admin'||effRoleDetail==='admin'||effRoleDetail==='editor';
-  var canDel=effRoleDetail==='superadmin'||effRoleDetail==='admin';
+  var meetingIsDistributed=selectedMeeting&&selectedMeeting.is_distributed;
+  var canEdit=(effRoleDetail==='superadmin'||effRoleDetail==='admin'||effRoleDetail==='editor')&&!meetingIsDistributed;
+  var canDel=(effRoleDetail==='superadmin'||effRoleDetail==='admin')&&!meetingIsDistributed;
   var globalIdx=(window._meetingItems||[]).indexOf(item);
   // Store refs for dot menu
   window._detailItemIdx = globalIdx;
@@ -2545,9 +2553,7 @@ function renderUsersList(){
         var ur=(u.role||'').toLowerCase();
         return ur==='superadmin'||ur==='admin';
       }
-      var delMode=window._deleteUserMode||window._usersSheetMode;
-    var delProject=window._deleteUserProject||_currentProjectForUsers;
-    if(delMode==='project'&&delProject){
+      if(window._usersSheetMode==='project'&&_currentProjectForUsers){
         var ur=(u.role||'').toLowerCase();
         var projSBU=_currentProjectForUsers.sbu||'';
         var pId=(_currentProjectForUsers.id||'').toLowerCase();
@@ -2586,9 +2592,17 @@ function renderUsersList(){
     }
 
     if(currentRole==='editor'){
-      if(uRole==='superadmin'||uRole==='admin') return false; // editors can't see superadmin or admin
-      if(uRole==='editor') return false; // editors can't see other editors
-      // Editor can only see viewers on their assigned projects
+      if(uRole==='superadmin'||uRole==='admin') return false;
+      // In project mode: show editors and viewers assigned to this project
+      if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+        if(!u.project_codes) return false;
+        var pId3=(_currentProjectForUsers.id||'').toLowerCase();
+        var pCode3=(_currentProjectForUsers.code||'').toLowerCase();
+        var uCodes3=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean);
+        return (pId3&&uCodes3.indexOf(pId3)>-1)||(pCode3&&uCodes3.indexOf(pCode3)>-1);
+      }
+      // Outside project mode: only see viewers on assigned projects
+      if(uRole==='editor') return false;
       if(!currentProjectCodes||!currentProjectCodes.length) return false;
       if(!u.project_codes) return false;
       var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
@@ -2615,7 +2629,7 @@ function renderUsersList(){
     var uRole=(u.role||'').toLowerCase();
     var canEditUser=currentRole==='superadmin'
       ||(currentRole==='admin'&&uRole!=='superadmin'&&uRole!=='admin')
-      ||(currentRole==='editor'&&uRole==='viewer');
+      ||(currentRole==='editor'&&(uRole==='viewer'||uRole==='editor')&&window._usersSheetMode==='project');
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
     // In project mode show the per-project role, in SBU mode show the global role
     var displayRole='';
@@ -3012,6 +3026,24 @@ async function saveUser(){
     // Preserve role — never downgrade admin
     role=uRole==='admin'?'admin':(projRole==='editor'?'editor':'viewer');
     editUserId=freshRecord.id;
+  } else if(currentRole==='editor'&&window._usersSheetMode==='project'&&_currentProjectForUsers){
+    // Editor in project mode — same flow as project mode above
+    if(!email){flash('Please select a user first.',true);btn.disabled=false;btn.textContent='Save';return;}
+    var frE=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
+    var freshE=frE&&frE.length?frE[0]:null;
+    if(!freshE){flash('User account not found.',true);btn.disabled=false;btn.textContent='Save';return;}
+    var projKeyE=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+    var projRoleE=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
+    var newEntryE=projKeyE+':'+projRoleE;
+    var existFullE=freshE.project_codes||'';
+    var mergedE=existFullE.split(',').filter(function(c){
+      return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKeyE;
+    });
+    mergedE.push(newEntryE);
+    codes=sanitizeProjectCodes(mergedE.join(','));
+    var existRoleE=(freshE.role||'viewer').toLowerCase();
+    role=(existRoleE==='superadmin'||existRoleE==='admin')?existRoleE:(projRoleE==='editor'?'editor':'viewer');
+    editUserId=freshE.id;
   } else if(currentRole==='editor'){
     var selectedCodes=getSelectedProjectCodes();
     role='viewer';codes=selectedCodes;
@@ -3074,17 +3106,18 @@ function askDeleteUser(){
 
 async function deleteUser(){
   var targetUserId=deleteTarget||editUserId;
-  if(!targetUserId)return;
+  var delMode=window._deleteUserMode||window._usersSheetMode;
+  var delProject=window._deleteUserProject||_currentProjectForUsers;
+  if(!targetUserId){flash('Error: no user selected',true);return;}
   var u=allUsers.find(function(x){return x.id===targetUserId;});
   if(u&&u.email===currentEmail){flash('Cannot remove your own access.',true);return;}
   try{
-    // Always fetch fresh from DB to preserve all codes
     var freshForDel=await sbGet(TABLE_ROLES,'id=eq.'+targetUserId+'&select=id,project_codes,role');
     var freshD=freshForDel&&freshForDel.length?freshForDel[0]:null;
     if(!freshD){flash('User not found.',true);return;}
     var freshDRole=(freshD.role||'viewer').toLowerCase();
 
-    if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+    if(delMode==='project'&&delProject){
       var projKey=(delProject.code||delProject.id||'').toLowerCase();
       var remaining=(freshD.project_codes||'').split(',').filter(function(c){
         return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
