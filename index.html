@@ -2571,14 +2571,20 @@ function renderUsersList(){
     }
 
     if(currentRole==='admin'){
-      if(uRole==='superadmin'||uRole==='admin') return false; // can't see superadmins or other admins
+      if(uRole==='superadmin'||uRole==='admin') return false;
       var adminSBU=window._adminSBU||'';
       if(!adminSBU) return false;
       if(!u.project_codes) return false;
-      var uCodes=u.project_codes;
-      // Check if user belongs to a project within admin's SBU
+      if(window._usersSheetMode==='project'&&_currentProjectForUsers){
+        // Project mode: only show users assigned to THIS specific project
+        var pId2=(_currentProjectForUsers.id||'').toLowerCase();
+        var pCode2=(_currentProjectForUsers.code||'').toLowerCase();
+        var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
+        return uCodes2.indexOf(pId2)>-1||uCodes2.indexOf(pCode2)>-1;
+      }
+      // SBU mode: show users with projects in admin's SBU
       var projsInSBU=allProjects.filter(function(p){return (p.sbu||'')===adminSBU;}).map(function(p){return (p.code||p.id||'').toLowerCase();});
-      var uProjCodes=uCodes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
+      var uProjCodes=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
       return uProjCodes.some(function(c){return projsInSBU.indexOf(c)>-1;});
     }
 
@@ -2612,7 +2618,7 @@ function renderUsersList(){
     var uRole=(u.role||'').toLowerCase();
     var canEditUser=currentRole==='superadmin'
       ||(currentRole==='admin'&&uRole!=='superadmin'&&uRole!=='admin')
-      ||(currentRole==='editor'&&uRole==='viewer'); // editors can only edit viewers
+      ||(currentRole==='editor'&&uRole==='viewer');
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
     // In project mode show the per-project role, in SBU mode show the global role
     var displayRole='';
@@ -3056,24 +3062,25 @@ async function deleteUser(){
   var u=allUsers.find(function(x){return x.id===editUserId;});
   if(u&&u.email===currentEmail){flash('Cannot remove your own access.',true);return;}
   try{
+    // Always fetch fresh from DB to preserve all codes
+    var freshForDel=await sbGet(TABLE_ROLES,'id=eq.'+editUserId+'&select=id,project_codes,role');
+    var freshD=freshForDel&&freshForDel.length?freshForDel[0]:null;
+    if(!freshD){flash('User not found.',true);return;}
+    var freshDRole=(freshD.role||'viewer').toLowerCase();
+
     if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-      // Always fetch fresh from DB to get full project_codes
-      var freshRecs=await sbGet(TABLE_ROLES,'id=eq.'+editUserId+'&select=id,project_codes,role');
-      var fresh=freshRecs&&freshRecs.length?freshRecs[0]:null;
-      if(!fresh){flash('User not found.',true);return;}
       var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
-      var remainingCodes=(fresh.project_codes||'').split(',').filter(function(c){
+      var remaining=(freshD.project_codes||'').split(',').filter(function(c){
         return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
       });
-      var newCodes=remainingCodes.length?remainingCodes.join(','):null;
-      // Preserve elevated roles — only downgrade if no elevated role
-      var freshRole=(fresh.role||'viewer').toLowerCase();
-      var newRole=(freshRole==='superadmin'||freshRole==='admin')?freshRole:(newCodes?'editor':'viewer');
+      var newCodes=remaining.length?remaining.join(','):null;
+      // Preserve admin/superadmin role; downgrade editor/viewer if no projects left
+      var newRole=(freshDRole==='superadmin'||freshDRole==='admin')?freshDRole:(newCodes?'editor':'viewer');
       await sbPatch(TABLE_ROLES,editUserId,{project_codes:newCodes,role:newRole});
       allUsers=allUsers.map(function(x){return x.id===editUserId?Object.assign({},x,{project_codes:newCodes,role:newRole}):x;});
       flash('Project access removed.');
     } else {
-      // SBU mode: remove role/codes but keep the account (just reset to viewer with no projects)
+      // SBU mode: reset to viewer with no projects (keep account)
       await sbPatch(TABLE_ROLES,editUserId,{role:'viewer',project_codes:null});
       allUsers=allUsers.map(function(x){return x.id===editUserId?Object.assign({},x,{role:'viewer',project_codes:null}):x;});
       flash('Access removed.');
