@@ -2394,7 +2394,7 @@ function openProjSheet(proj){
   } else {
     pSBU.disabled=false;
   }
-  document.getElementById('projDelBtn').style.display=(currentRole==='superadmin'&&proj)?'':'none';
+  document.getElementById('projDelBtn').style.display=((currentRole==='superadmin'||currentRole==='admin')&&proj)?'':'none';
   pendingProjPhoto=null;
   var preview=document.getElementById('projPhotoPreview');
   if(proj&&proj.photo_url)preview.innerHTML='<img src="'+proj.photo_url+'" alt=""/>';
