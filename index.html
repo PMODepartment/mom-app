@@ -957,25 +957,27 @@ var currentProjectRoles=null; // map of projId/code -> role
 var currentEditCodes=''; // tracks codes during user edit
 
 function getEffectiveRole(proj){
+  // SYSTEM ROLES: superadmin and admin are determined by role column only
   if(currentRole==='superadmin') return 'superadmin';
   if(currentRole==='admin'){
     if(!proj) return 'admin';
-    // Full admin access on projects within assigned SBU
+    // Full access within assigned SBU
     if(window._adminSBU&&(proj.sbu||'').toLowerCase()===window._adminSBU.toLowerCase()) return 'admin';
-    // Check if also assigned as editor/viewer on this specific project
+    // Extra project assignments from project_codes
     if(currentProjectRoles){
-      var key1=(proj.code||'').toLowerCase();
-      var key2=(proj.id||'').toLowerCase();
-      var r=currentProjectRoles[key1]||currentProjectRoles[key2];
+      var k1=(proj.code||'').toLowerCase();
+      var k2=(proj.id||'').toLowerCase();
+      var r=currentProjectRoles[k1]||currentProjectRoles[k2];
       if(r) return r;
     }
-    return 'viewer'; // no access to projects outside their SBU by default
+    return 'viewer';
   }
-  if(!currentProjectRoles||!proj) return currentRole;
+  // PROJECT ROLES: editor/viewer determined purely by project_codes
+  if(!proj) return 'viewer';
+  if(!currentProjectRoles) return 'viewer';
   var key1=(proj.code||'').toLowerCase();
   var key2=(proj.id||'').toLowerCase();
-  var r=currentProjectRoles[key1]||currentProjectRoles[key2]||currentRole;
-  return r;
+  return currentProjectRoles[key1]||currentProjectRoles[key2]||'viewer';
 }
 function parseProjectCodesForAccess(str){
   var map={};
@@ -1444,7 +1446,11 @@ async function loadAll(){
     if(!users||!users.length){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
     var user=users[0];
     var rawRole=(user.role||'').toLowerCase().trim();
+    // Clean role system: role column = superadmin/admin/viewer only
+    // editor/viewer per-project is stored in project_codes, not role column
     if(!['superadmin','admin','editor','viewer'].includes(rawRole)){document.getElementById('deniedEmail').textContent=currentEmail;setState('noAccess');return;}
+    // Normalize: if role=editor treat as viewer (legacy - editor is now per-project only)
+    if(rawRole==='editor') rawRole='viewer';
     currentRole=rawRole;
     // null project_codes for superadmin/admin = all access; for others = no access
     // Parse project codes for all roles including admin (for extra project assignments)
@@ -1461,14 +1467,18 @@ async function loadAll(){
     var projectCodesStr=projectEntries.join(',');
 
     if(currentRole==='superadmin'){
-      currentProjectCodes=null;currentProjectRoles=null;
+      // Superadmin: full access everywhere, no project filter
+      currentProjectCodes=null;
+      currentProjectRoles=null;
     } else if(currentRole==='admin'){
-      // Admin sees all projects in their SBU + any extra project assignments
+      // Admin: full access in SBU + extra project assignments
       currentProjectCodes=null;
       currentProjectRoles=projectCodesStr?parseProjectCodesForAccess(projectCodesStr):null;
     } else {
+      // viewer role in DB = project-level access defined by project_codes
+      // project_codes format: "projId:editor,projId2:viewer"
       var parsedCodes=projectEntries.map(function(s){return s.split(':')[0].toLowerCase();}).filter(Boolean);
-      currentProjectCodes=parsedCodes;
+      currentProjectCodes=parsedCodes; // list of project ids/codes they can access
       currentProjectRoles=projectCodesStr?parseProjectCodesForAccess(projectCodesStr):null;
     }
     // Extract SBU from sbu: entry only
@@ -1523,7 +1533,13 @@ async function loadAll(){
 }
 
 function applyUserUI(){
-  var chip=document.getElementById('roleChip');chip.textContent=cap(currentRole);chip.className='role-chip rc-'+(currentRole==='superadmin'?'superadmin':currentRole);
+  // Display role: for viewers with project access, show their highest project role
+  var displayRole=currentRole;
+  if(currentRole==='viewer'&&currentProjectRoles){
+    var roles=Object.values(currentProjectRoles);
+    if(roles.indexOf('editor')>-1) displayRole='editor';
+  }
+  var chip=document.getElementById('roleChip');chip.textContent=cap(displayRole==='superadmin'?'Super Admin':displayRole==='admin'?'SBU Admin':displayRole);chip.className='role-chip rc-'+(displayRole==='superadmin'?'superadmin':displayRole);
   var info=document.getElementById('userInfo');info.style.display='flex';
   var hBtn=document.getElementById('hamburgerBtn');if(hBtn)hBtn.style.display='flex';
   // Use full_name or username from allUsers cache
@@ -2974,9 +2990,10 @@ function closeUserEditSheet(){closeSheet('userEditOverlay','userEditSheet');edit
 
 async function saveUser(){
   var btn=document.getElementById('userSaveBtn');btn.disabled=true;btn.textContent='Saving...';
+  var isNewUser=!editUserId;
   // Get email from picker (new) or hidden input (edit)
   var email='';
-  if(!editUserId){
+  if(isNewUser){
     email=(document.getElementById('uEmailSelect').value||'').trim().toLowerCase();
     if(!email){flash('Please select a user.',true);btn.disabled=false;btn.textContent='Save';return;}
     document.getElementById('uEmail').value=email;
@@ -3024,8 +3041,9 @@ async function saveUser(){
     mergedEntries.push(newEntry);
     codes=sanitizeProjectCodes(mergedEntries.join(','));
     // Preserve role — never downgrade admin
-    role=uRole==='admin'?'admin':(projRole==='editor'?'editor':'viewer');
-    editUserId=freshRecord.id;
+    // role column: keep admin for admin users, always 'viewer' for others
+    role=uRole==='admin'?'admin':'viewer';
+    var resolvedUserId=freshRecord.id;
   } else if(currentRole==='editor'&&window._usersSheetMode==='project'&&_currentProjectForUsers){
     // Editor in project mode — same flow as project mode above
     if(!email){flash('Please select a user first.',true);btn.disabled=false;btn.textContent='Save';return;}
@@ -3042,24 +3060,29 @@ async function saveUser(){
     mergedE.push(newEntryE);
     codes=sanitizeProjectCodes(mergedE.join(','));
     var existRoleE=(freshE.role||'viewer').toLowerCase();
-    role=(existRoleE==='superadmin'||existRoleE==='admin')?existRoleE:(projRoleE==='editor'?'editor':'viewer');
-    editUserId=freshE.id;
+    // role column: preserve elevated roles, otherwise always 'viewer'
+    role=(existRoleE==='superadmin'||existRoleE==='admin')?existRoleE:'viewer';
+    var resolvedUserId=freshE.id;
   } else if(currentRole==='editor'){
     var selectedCodes=getSelectedProjectCodes();
+    // role column always 'viewer' for project-level users
     role='viewer';codes=selectedCodes;
   } else {
     var selectedCodes=getSelectedProjectCodes();
-    role=selectedCodes?'editor':'viewer';
+    // role column always 'viewer' — actual role determined by project_codes
+    role='viewer';
     codes=selectedCodes;
   }
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
   if(!role){flash('Role is missing.',true);btn.disabled=false;btn.textContent='Save';return;}
+  // resolvedUserId is set by project-mode fetch; editUserId is set by openUserEditSheet
+  var finalUserId=typeof resolvedUserId!=='undefined'?resolvedUserId:editUserId;
   try{
-    if(editUserId){
+    if(finalUserId){
       // Patch existing record
-      await sbPatch(TABLE_ROLES,editUserId,{role:role,project_codes:codes});
-      var updatedRec=Object.assign({},allUsers.find(function(u){return u.id===editUserId;})||{},{id:editUserId,email:email,role:role,project_codes:codes});
-      var idx=allUsers.findIndex(function(u){return u.id===editUserId;});
+      await sbPatch(TABLE_ROLES,finalUserId,{role:role,project_codes:codes});
+      var updatedRec=Object.assign({},allUsers.find(function(u){return u.id===finalUserId;})||{},{id:finalUserId,email:email,role:role,project_codes:codes});
+      var idx=allUsers.findIndex(function(u){return u.id===finalUserId;});
       if(idx>-1) allUsers[idx]=updatedRec; else allUsers.push(updatedRec);
     } else {
       // New record — check if email exists first
