@@ -3147,7 +3147,8 @@ async function deleteUser(){
       });
       var newCodes=sanitizeProjectCodes(remaining.join(','));
       // Preserve admin/superadmin role; downgrade editor/viewer if no projects left
-      var newRole=(freshDRole==='superadmin'||freshDRole==='admin')?freshDRole:(newCodes?'editor':'viewer');
+      // role column: only superadmin/admin/viewer — never editor
+      var newRole=(freshDRole==='superadmin'||freshDRole==='admin')?freshDRole:'viewer';
       await sbPatch(TABLE_ROLES,targetUserId,{project_codes:newCodes,role:newRole});
       allUsers=allUsers.map(function(x){return x.id===targetUserId?Object.assign({},x,{project_codes:newCodes,role:newRole}):x;});
       flash('Project access removed.');
