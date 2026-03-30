@@ -1930,9 +1930,9 @@ async function openMeetingItems(meeting){
   document.getElementById('mainScroll').style.display='none';
   var headerH=document.querySelector('header').offsetHeight;
   var si=document.getElementById('screenItems');si.style.display='flex';si.style.top=headerH+'px';
-  var effRole=getEffectiveRole(selectedProject);
+  var effRoleFab=getEffectiveRole(selectedProject);
   var isDistributed=!!meeting.is_distributed;
-  var canAdd=(effRole==='superadmin'||effRole==='admin'||effRole==='editor')&&!isDistributed;
+  var canAdd=(effRoleFab==='superadmin'||effRoleFab==='admin'||effRoleFab==='editor')&&!isDistributed;
   document.getElementById('fab').style.display=canAdd?'flex':'none';
   // Show/update distribute button
   var dBtn=document.getElementById('distributeBtn');
@@ -2171,7 +2171,7 @@ function closeDetail(){closeSheet('detailOverlay','detailSheet');}
 // EDIT ITEM
 function openEditSheet(idx){
   var effRoleEdit=getEffectiveRole(selectedProject);
-  if(effRoleEdit==='viewer')return;
+  if(effRoleEdit==='viewer'){flash('Viewers cannot edit items.',true);return;}
   editItemIdx=idx;
   var item=(idx===-1)?{}:(window._meetingItems||[])[idx]||{};
   document.getElementById('editTitle').textContent=idx===-1?'Add New Item':'Edit Item';
@@ -2201,7 +2201,8 @@ function openEditSheet(idx){
 function closeEdit(){closeSheet('editOverlay','editSheet');editItemIdx=-1;pendingFile=null;updateFileWrap();}
 
 async function saveItem(){
-  if(currentRole==='viewer')return;
+  var effRoleSaveItem=getEffectiveRole(selectedProject);
+  if(effRoleSaveItem==='viewer'){flash('You do not have edit access to this project.',true);return;}
   if(!selectedMeeting){flash('No meeting selected',true);return;}
   var btn=document.getElementById('saveBtn');btn.disabled=true;btn.textContent='Saving...';
   var isNew=editItemIdx===-1;
@@ -3074,7 +3075,7 @@ async function saveUser(){
     codes=selectedCodes;
   }
   if(!email){flash('Email is required',true);btn.disabled=false;btn.textContent='Save';return;}
-  if(!role){flash('Role is missing.',true);btn.disabled=false;btn.textContent='Save';return;}
+  if(!role){flash('Role is missing: role='+role+' codes='+codes,true);btn.disabled=false;btn.textContent='Save';return;}
   // resolvedUserId is set by project-mode fetch; editUserId is set by openUserEditSheet
   var finalUserId=typeof resolvedUserId!=='undefined'?resolvedUserId:editUserId;
   try{
