@@ -2499,7 +2499,7 @@ function flash(msg,err){var b=document.getElementById('flashBanner');b.textConte
 var allUsers=[], editUserId=null;
 
 function openUsersSheet(){
-  if(currentRole!=='superadmin'){flash('Only Super Admin can manage SBU-level access.',true);return;}
+  if(currentRole!=='superadmin'&&currentRole!=='admin'){flash('Only Super Admin can manage SBU-level access.',true);return;}
   closeSheet('usersOverlay','usersSheet');
   currentUsersTab='all';
   var s=document.getElementById('usersSearch');if(s)s.value='';
@@ -2608,9 +2608,14 @@ function renderUsersList(){
       return uProjCodes.some(function(c){return projsInSBU.indexOf(c)>-1;});
     }
 
-    if(currentRole==='editor'){
+    // viewer role in DB = project-level user (editor/viewer per project)
+    // Check their effective role on the current project
+    if(currentRole==='viewer'){
       if(uRole==='superadmin'||uRole==='admin') return false;
-      // In project mode: show editors and viewers assigned to this project
+      var myEffRole=_currentProjectForUsers?getEffectiveRole(_currentProjectForUsers):null;
+      // Only editors on this project can manage users
+      if(!myEffRole||myEffRole!=='editor') return false;
+      // In project mode: show users assigned to this project
       if(window._usersSheetMode==='project'&&_currentProjectForUsers){
         if(!u.project_codes) return false;
         var pId3=(_currentProjectForUsers.id||'').toLowerCase();
@@ -2618,12 +2623,7 @@ function renderUsersList(){
         var uCodes3=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();}).filter(Boolean);
         return (pId3&&uCodes3.indexOf(pId3)>-1)||(pCode3&&uCodes3.indexOf(pCode3)>-1);
       }
-      // Outside project mode: only see viewers on assigned projects
-      if(uRole==='editor') return false;
-      if(!currentProjectCodes||!currentProjectCodes.length) return false;
-      if(!u.project_codes) return false;
-      var uCodes2=u.project_codes.split(',').map(function(s){return s.trim().split(':')[0].toLowerCase();});
-      return uCodes2.some(function(c){return currentProjectCodes.indexOf(c)>-1;});
+      return false;
     }
     return false;
   });
@@ -2644,9 +2644,10 @@ function renderUsersList(){
     var displayN=u.full_name||u.username||'';
     // Editors cannot edit superadmins or other editors' accounts
     var uRole=(u.role||'').toLowerCase();
+    var myProjRole=_currentProjectForUsers?getEffectiveRole(_currentProjectForUsers):null;
     var canEditUser=currentRole==='superadmin'
       ||(currentRole==='admin'&&uRole!=='superadmin'&&uRole!=='admin')
-      ||(currentRole==='editor'&&(uRole==='viewer'||uRole==='editor')&&window._usersSheetMode==='project');
+      ||(currentRole==='viewer'&&myProjRole==='editor'&&window._usersSheetMode==='project'&&uRole!=='admin'&&uRole!=='superadmin');
     var editBtnHtml=canEditUser?'<button class="btn-edit-user">Edit</button>':'';
     // In project mode show the per-project role, in SBU mode show the global role
     var displayRole='';
