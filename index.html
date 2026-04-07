@@ -1492,16 +1492,20 @@ async function migrateProjectCodesToUUID(user){
     // Skip sbu: entries and already-UUID entries (contain dashes, length 36)
     if(key.toLowerCase().startsWith('sbu:')) return entry;
     if(key.length===36&&key.split('-').length===5) return entry; // already UUID
-    // Look up project by code
-    var proj=allProjects.find(function(p){return (p.code||'').toLowerCase()===key.toLowerCase();});
+    // Look up project by code (case-insensitive, trimmed)
+    var keyNorm=key.toLowerCase().replace(/\s+/g,'');
+    var proj=allProjects.find(function(p){return (p.code||'').toLowerCase().replace(/\s+/g,'')===keyNorm;});
     if(proj&&proj.id){
       needsMigration=true;
       return proj.id+':'+role;
     }
-    return entry; // keep as-is if no match found
+    // No match — mark as orphan so it can be removed
+    console.warn('migrateProjectCodesToUUID: no project found for code:',key);
+    needsMigration=true; // still mark so we save and drop the orphan
+    return null; // will be filtered out
   });
   if(!needsMigration) return;
-  var newCodes=sanitizeProjectCodes(migrated.join(','));
+  var newCodes=sanitizeProjectCodes(migrated.filter(Boolean).join(','));
   try{
     await sbPatch(TABLE_ROLES,user.id,{project_codes:newCodes});
     user.project_codes=newCodes;
@@ -3129,7 +3133,7 @@ async function saveUser(){
       if(uAdminSBU===projSBU){flash('This user is already SBU Admin of '+projSBU+' and has full access.',true);btn.disabled=false;btn.textContent='Save';return;}
     }
     // Rule 4: Add/update the project assignment
-    var projKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+    var projKey=(_currentProjectForUsers.id||'').toLowerCase(); // always use UUID
     var projRole=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
     var newEntry=projKey+':'+projRole;
     // Merge with existing codes, replacing any existing entry for this project
@@ -3149,7 +3153,7 @@ async function saveUser(){
     var frE=await sbGet(TABLE_ROLES,'email=eq.'+encodeURIComponent(email)+'&select=id,project_codes,role');
     var freshE=frE&&frE.length?frE[0]:null;
     if(!freshE){flash('User account not found.',true);btn.disabled=false;btn.textContent='Save';return;}
-    var projKeyE=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+    var projKeyE=(_currentProjectForUsers.id||'').toLowerCase(); // always use UUID
     var projRoleE=document.getElementById('uProjRole')?document.getElementById('uProjRole').value:'viewer';
     var newEntryE=projKeyE+':'+projRoleE;
     var existFullE=freshE.project_codes||'';
@@ -3240,7 +3244,7 @@ async function deleteUser(){
     var freshDRole=(freshD.role||'viewer').toLowerCase();
 
     if(delMode==='project'&&delProject){
-      var projKey=(delProject.code||delProject.id||'').toLowerCase();
+      var projKey=(delProject.id||'').toLowerCase(); // always use UUID
       var remaining=(freshD.project_codes||'').split(',').filter(function(c){
         return c.trim()&&c.trim().split(':')[0].toLowerCase()!==projKey;
       });
