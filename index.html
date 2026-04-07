@@ -972,13 +972,54 @@ function getEffectiveRole(proj){
     }
     return 'viewer';
   }
-  // PROJECT ROLES: editor/viewer determined purely by project_codes
+  // PROJECT ROLES: determined by project_codes (keyed by UUID, fallback to code)
   if(!proj) return 'viewer';
   if(!currentProjectRoles) return 'viewer';
-  var key1=(proj.code||'').toLowerCase();
-  var key2=(proj.id||'').toLowerCase();
+  var key1=(proj.id||'').toLowerCase();   // prefer UUID
+  var key2=(proj.code||'').toLowerCase(); // fallback for legacy entries
   return currentProjectRoles[key1]||currentProjectRoles[key2]||'viewer';
 }
+async function migrateProjectCodesToUUID(){
+  try{
+    // Get all users with project_codes
+    var users=await sbGet(TABLE_ROLES,'project_codes=not.is.null&select=id,email,project_codes');
+    if(!users||!users.length) return;
+    // Get all projects for code->id lookup
+    var projs=await sbGet(TABLE_PROJECTS,'select=id,code');
+    var codeToId={};
+    (projs||[]).forEach(function(p){
+      if(p.code) codeToId[p.code.toLowerCase().trim()]=p.id;
+    });
+    // Check and migrate each user
+    for(var i=0;i<users.length;i++){
+      var u=users[i];
+      if(!u.project_codes) continue;
+      var entries=u.project_codes.split(',').map(function(s){return s.trim();}).filter(Boolean);
+      var changed=false;
+      var newEntries=entries.map(function(entry){
+        if(entry.toLowerCase().startsWith('sbu:')) return entry; // keep sbu: entries
+        var parts=entry.split(':');
+        var key=parts[0].trim();
+        var role=parts[1]?parts[1].trim():'viewer';
+        // Check if key looks like a UUID already (has dashes)
+        if(key.indexOf('-')>-1) return entry; // already UUID
+        // Try to find UUID by code
+        var uuid=codeToId[key.toLowerCase()];
+        if(uuid&&uuid!==key){
+          changed=true;
+          return uuid+':'+role;
+        }
+        return entry;
+      });
+      if(changed){
+        var newCodes=newEntries.join(',');
+        await sbPatch(TABLE_ROLES,u.id,{project_codes:newCodes});
+        console.log('Migrated codes for',u.email,':',u.project_codes,'->',newCodes);
+      }
+    }
+  }catch(e){console.error('Migration error:',e);}
+}
+
 function parseProjectCodesForAccess(str){
   var map={};
   (str||"").split(",").forEach(function(s){
@@ -1438,6 +1479,52 @@ async function onSignedIn(){
 }
 
 // LOAD ALL
+async function migrateProjectCodesToUUID(user){
+  if(!user||!user.project_codes||!user.id) return;
+  var codes=user.project_codes;
+  // Skip if already fully UUID-based (no short codes)
+  var entries=codes.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  var needsMigration=false;
+  var migrated=entries.map(function(entry){
+    var parts=entry.split(':');
+    var key=parts[0].trim();
+    var role=parts[1]?parts[1].trim():'viewer';
+    // Skip sbu: entries and already-UUID entries (contain dashes, length 36)
+    if(key.toLowerCase().startsWith('sbu:')) return entry;
+    if(key.length===36&&key.split('-').length===5) return entry; // already UUID
+    // Look up project by code
+    var proj=allProjects.find(function(p){return (p.code||'').toLowerCase()===key.toLowerCase();});
+    if(proj&&proj.id){
+      needsMigration=true;
+      return proj.id+':'+role;
+    }
+    return entry; // keep as-is if no match found
+  });
+  if(!needsMigration) return;
+  var newCodes=sanitizeProjectCodes(migrated.join(','));
+  try{
+    await sbPatch(TABLE_ROLES,user.id,{project_codes:newCodes});
+    user.project_codes=newCodes;
+    // Re-parse project roles with new UUIDs
+    var rawCodes=newCodes;
+    var sbuEntry='';
+    var projectEntries=[];
+    rawCodes.split(',').forEach(function(s){
+      s=s.trim();
+      if(!s) return;
+      if(s.toLowerCase().startsWith('sbu:')) sbuEntry=s;
+      else projectEntries.push(s);
+    });
+    var projectCodesStr=projectEntries.join(',');
+    if(currentRole!=='superadmin'){
+      var parsedCodes=projectEntries.map(function(s){return s.split(':')[0].toLowerCase();}).filter(Boolean);
+      currentProjectCodes=parsedCodes;
+      currentProjectRoles=projectCodesStr?parseProjectCodesForAccess(projectCodesStr):null;
+    }
+    console.log('Migrated project_codes to UUIDs');
+  }catch(e){console.warn('Migration failed:',e.message);}
+}
+
 async function loadAll(){
   setState('loading');
   try{
@@ -1486,10 +1573,18 @@ async function loadAll(){
     localStorage.setItem('mom_role',currentRole);
     window._currentUser=user; // store for applyUserUI
     applyUserUI();
+    // Auto-migrate project_codes from code-based to UUID-based (runs once per session)
+    if(!sessionStorage.getItem('mom_codes_migrated')){
+      migrateProjectCodesToUUID().then(function(){
+        sessionStorage.setItem('mom_codes_migrated','1');
+      });
+    }
 
     // 2. Projects
     var projs=await sbGet(TABLE_PROJECTS,'order=name.asc&select=*');
     allProjects=projs||[];
+    // Auto-migrate project_codes from code-based to UUID-based
+    await migrateProjectCodesToUUID(user);
     if(currentRole==='admin'&&window._adminSBU){
       // Admin sees all projects in their SBU + any extra assigned projects
       var extraCodes=currentProjectRoles?Object.keys(currentProjectRoles):[];
@@ -2766,16 +2861,18 @@ function renderProjectCheckboxes(sbuFilter, selectedCodes){
   }
   if(!filtered.length){container.innerHTML='<span style="font-size:0.78rem;color:var(--muted);">No projects in this SBU.</span>';return;}
   filtered.forEach(function(proj){
-    var key=(proj.code||proj.id||'').toLowerCase();
-    var checked=key in codeMap;
-    var projRole=codeMap[key]||'editor';
+    var key=(proj.id||'').toLowerCase(); // always use UUID
+    // Also check legacy code-based key for backward compat
+    var legacyKey=(proj.code||'').toLowerCase();
+    var checked=key in codeMap||(legacyKey&&legacyKey in codeMap);
+    var projRole=codeMap[key]||codeMap[legacyKey]||'editor';
 
     var row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.7rem;background:'+(checked?'var(--blue-l)':'var(--surface)')+';border-radius:var(--r);box-shadow:0 0 0 1px '+(checked?'var(--blue)':'var(--border2)')+';transition:all 0.15s;margin-bottom:0;';
 
     var cb=document.createElement('input');
     cb.type='checkbox';
-    cb.dataset.code=proj.code||proj.id;
+    cb.dataset.code=proj.id; // always use UUID
     cb.checked=checked;
     cb.style.cssText='width:18px;height:18px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;';
 
