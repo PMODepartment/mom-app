@@ -2751,9 +2751,10 @@ function renderUsersList(){
     // In project mode show the per-project role, in SBU mode show the global role
     var displayRole='';
     if(window._usersSheetMode==='project'&&_currentProjectForUsers){
-      var pKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+      var pKeyId=(_currentProjectForUsers.id||'').toLowerCase();
+      var pKeyCode=(_currentProjectForUsers.code||'').toLowerCase();
       var cMap=u.project_codes?parseProjectCodes(u.project_codes):{};
-      displayRole=cMap[pKey]||u.role||'viewer';
+      displayRole=cMap[pKeyId]||cMap[pKeyCode]||'viewer'; // UUID first, code fallback
     } else {
       displayRole=u.role||'';
     }
