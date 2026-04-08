@@ -2964,12 +2964,17 @@ function openUserEditSheet(id){
   var rawR=(u&&(u.role||'').toLowerCase())||'viewer';
   var isSA=rawR==='superadmin';
   var isAdm=rawR==='admin';
+  // In project mode: always force checkboxes off — only manage project-level access here
+  var projRoleWrap=document.getElementById('uProjRoleWrap');
+  if(window._usersSheetMode==='project'){
+    isSA=false; isAdm=false; // never set system roles in project mode
+  }
   var cb=document.getElementById('uIsSuperAdmin');if(cb)cb.checked=isSA;
   var cb2=document.getElementById('uIsAdmin');if(cb2)cb2.checked=isAdm;
   updateRoleOptions();
-  // In project mode: hide role toggles, show project role selector
-  var projRoleWrap=document.getElementById('uProjRoleWrap');
   if(window._usersSheetMode==='project'){
+    var cb_sa=document.getElementById('uIsSuperAdmin');if(cb_sa)cb_sa.checked=false;
+    var cb_adm=document.getElementById('uIsAdmin');if(cb_adm)cb_adm.checked=false;
     var rRow=document.getElementById('uRolesRow');if(rRow)rRow.style.display='none';
     if(projRoleWrap){
       projRoleWrap.style.display='';
@@ -2978,7 +2983,7 @@ function openUserEditSheet(id){
       if(editUserId&&_currentProjectForUsers){
         var eu=allUsers.find(function(u){return u.id===editUserId;});
         if(eu&&eu.project_codes){
-          var pKey=(_currentProjectForUsers.code||_currentProjectForUsers.id||'').toLowerCase();
+          var pKey=(_currentProjectForUsers.id||'').toLowerCase(); // always UUID
           var cMap=parseProjectCodes(eu.project_codes);
           defRole=cMap[pKey]||'viewer';
         }
